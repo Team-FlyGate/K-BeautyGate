@@ -4,9 +4,5 @@
       "maxDuration": 60,
       "includeFiles": "{kbeauty_gate/**,public/**,hackathon/input/**,profiles/**,TASK.md}"
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index" },
-    { "source": "/", "destination": "/api/index" }
-  ]
+  }
 }

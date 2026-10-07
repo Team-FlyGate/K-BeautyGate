@@ -15,7 +15,7 @@ class handler(BaseHTTPRequestHandler):
             send_json(self, 200, status_response())
             return
         if path.startswith("/api/"):
-            send_json(self, 404, {"error": "not found"})
+            send_json(self, 404, {"error": "not found", "path": path})
             return
         body = (PUBLIC / "index.html").read_bytes()
         self.send_response(200)
@@ -26,7 +26,7 @@ class handler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         if self.path.split("?", 1)[0] != "/api/chat":
-            send_json(self, 404, {"error": "not found"})
+            send_json(self, 404, {"error": "not found", "path": self.path})
             return
         code, data = chat_response(read_json(self))
         send_json(self, code, data)
