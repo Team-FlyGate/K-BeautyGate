@@ -587,6 +587,82 @@ class DisplayNameTests(unittest.TestCase):
         self.assertFalse(any(HANGUL.search(value) for value in values), values)
 
     @patch("kbeauty_gate.language.nvidia.chat")
+    def test_observed_japanese_title_failure_uses_independent_title_label(self, chat):
+        popup = "온새미 x 드라마 '서울의 봄날' 팝업스토어"
+        title = "서울의 봄날"
+        title_label = "ソウルの春の日"
+        observed_summary = "敏感肌向けの製品を中心に、乾燥や赤みの悩みに対応するクリームやトナーをおすすめします。また、ドラマ『서울의 봄날』とのコラボレーションリップや、性数・明洞エリアでの体験・購入プランも含まれています。未確認の製品については注意が必要です。"
+        observed_popup = "オンセミ x ドラマ『서울의 봄날』ポップアップストア"
+        payload = {"summary": observed_summary, "recommendation_reasons": [], "route_notes": [],
+                   "notices": ["早期終了（beauty/stores/demo_notice.txt）"], "caveats": [],
+                   "display_names": {popup: observed_popup, title: title_label}}
+        facts = {"route": [{"name": popup}]}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = localized_projection(settings(), "ja", "beauty", facts, notices=["공지 확인 필요"])
+        request = json.loads(chat.call_args.args[2])
+        self.assertIn(title, request["display_name_sources"])
+        self.assertIn(title, request["schema"]["display_names"])
+        self.assertEqual(result["summary"], observed_summary.replace(title, title_label))
+        self.assertEqual(result["display_names"][popup], observed_popup.replace(title, title_label))
+        self.assertEqual(result["display_names"][title], title_label)
+        self.assertEqual(result["notices"], [COPY["ja"]["notice"]])
+        self.assertEqual((result["status"], result["status_reason"]), ("partial", "technical_content"))
+        self.assertEqual(facts["route"][0]["name"], popup)
+        self.assert_foreign_values_have_no_hangul(result)
+        chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_quoted_title_without_translation_stays_unavailable(self, chat):
+        popup = "봄 축제 ‘가상 제목’ 팝업"
+        payload = {"summary": "ドラマ『가상 제목』のイベントです。", "recommendation_reasons": [],
+                   "route_notes": [], "notices": [], "caveats": [],
+                   "display_names": {popup: "イベント『가상 제목』", "가상 제목": popup}}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = localized_projection(settings(), "ja", "beauty", {"route": [{"name": popup}]})
+        self.assertEqual(result["status"], "fallback")
+        self.assertEqual(result["status_reason"], "display_names_unavailable")
+        self.assertEqual(result["display_names"][popup], "表示名を確認中")
+        self.assertEqual(result["display_names"]["가상 제목"], "表示名を確認中")
+        self.assert_foreign_values_have_no_hangul(result)
+        chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_observed_japanese_district_uses_selected_route_label(self, chat):
+        observed_summary = "敏感肌向けの製品を中心に、乾燥や赤みの悩みに対応するクリームやトナーをおすすめします。また、ドラマ『ソウルの春日』とのコラボレーションリップや、性数・明洞エリアでの体験・購入プランもご案内します。未確認の製品については、公式販売チャネルでの確認をお勧めします。"
+        payload = {"summary": observed_summary, "recommendation_reasons": [], "route_notes": [],
+                   "notices": [], "caveats": [], "display_names": {"성수": "ソンス"}}
+        facts = {"route": [{"area": "성수"}]}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = localized_projection(settings(), "ja", "beauty", facts)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["summary"], observed_summary.replace("性数", "ソンス"))
+        self.assertEqual(result["display_names"], {"성수": "ソンス"})
+        self.assertEqual(facts["route"], [{"area": "성수"}])
+        self.assert_foreign_values_have_no_hangul(result)
+        chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_district_normalization_requires_route_language_and_valid_label(self, chat):
+        cases = [
+            ("ja", [], {"성수": "ソンス"}, "性数・明洞を訪ねてください。"),
+            ("ja", [{"area": "성수"}], {}, "性数・明洞を訪ねてください。"),
+            ("ja", [{"area": "성수"}], {"성수": "表示名を確認中"}, "性数・明洞を訪ねてください。"),
+            ("ja", [{"area": "성수"}], {"성수": "性数"}, "性数・明洞を訪ねてください。"),
+            ("zh-Hans", [{"area": "성수"}], {"성수": "圣水"}, "请在性数和明洞确认商品。"),
+            ("ja", [{"area": "성수"}], {"성수": "ソンス"}, "仮性数・性数学・X性数Y・性数エリアという別の表記です。"),
+        ]
+        for locale, route, labels, summary in cases:
+            with self.subTest(locale=locale, route=route, labels=labels, summary=summary):
+                chat.reset_mock()
+                payload = {"summary": summary, "recommendation_reasons": [], "route_notes": [],
+                           "notices": [], "caveats": [], "display_names": labels}
+                chat.return_value = json.dumps(payload, ensure_ascii=False)
+                result = localized_projection(settings(), locale, "beauty", {"route": route})
+                self.assertEqual(result["summary"], summary)
+                self.assertNotIn("ソンス", result["summary"])
+                chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
     def test_english_summary_and_names_use_provided_product_name(self, chat):
         payload = english_projection()
         payload["display_names"]["가상 크림"] = "Invented Cream Label"
@@ -713,3 +789,179 @@ class DraftHygieneTests(unittest.TestCase):
         self.assertIn("북문으로 입장합니다", result["draft"])
         self.assertIn("도보 18분", result["draft"])
         self.assertNotIn("/hackathon", result["draft"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_quoted_request_with_an_answer_is_preserved(self, chat):
+        cases = {
+            "ko": ("오후 3시에 시장을 방문해도 될까요?", "질문: ‘오후 3시에 시장을 방문해도 될까요?’ 시장은 14시에 종료하므로 그 전에 방문해야 합니다."),
+            "en": ("Can I visit the market at 15:00?", 'Question: "Can I visit the market at 15:00?" The market closes at 14:00, so please visit earlier.'),
+            "ja": ("午後3時に市場を訪問できますか？", "ご質問：『午後3時に市場を訪問できますか？』市場は午後2時に閉まるため、それより前に訪問してください。"),
+            "zh-Hans": ("下午三点可以去市场参观吗？", "问题：“下午三点可以去市场参观吗？”市场下午两点关闭，请提前到访。"),
+            "zh-Hant": ("下午三點可以去市場參觀嗎？", "問題：「下午三點可以去市場參觀嗎？」市場下午兩點關閉，請提前到訪。"),
+        }
+        for language, (request, draft) in cases.items():
+            with self.subTest(language=language):
+                chat.reset_mock()
+                chat.return_value = json.dumps({"draft": draft, "notices": [], "caveats": []}, ensure_ascii=False)
+                result = localized_projection(settings(), language, "culture", {"request": request})
+                self.assertEqual(result["draft"], draft)
+                self.assertEqual(result["status"], "ready")
+                chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_request_only_labels_and_repetition_remain_blocked(self, chat):
+        request = "시장 점심을 바로 예약해 주세요."
+        for draft in (request, f"질문: ‘{request}’", f"요청하신 내용: {request}", f"{request}\n{request}",
+                      f"{request} Nemotron saved /tmp/mock.json."):
+            with self.subTest(draft=draft):
+                chat.reset_mock()
+                result = self.culture(chat, draft, request)
+                self.assertEqual(result["status_reason"], "echoed_request")
+                self.assertEqual(result["draft"], COPY["ko"]["draft"])
+                chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_scrubbed_foreign_text_gets_one_safe_retry(self, chat):
+        original = {"draft": "Nemotron saved /tmp/mock.json. Test Cream을 Sample Store에서 10:00에 비교하세요.",
+                    "notices": ["営業時間を確認してください。"], "caveats": [],
+                    "recommendation_reasons": [], "route_notes": [], "display_names": {}}
+        translated = {**original, "draft": "10:00に Sample Store で Test Cream を比べてください。"}
+        chat.side_effect = [json.dumps(original, ensure_ascii=False), json.dumps(translated, ensure_ascii=False)]
+        result = localized_projection(settings(), "ja", "culture", {}, notices=["원자료 공지"],
+                                      proper_names=["Test Cream", "Sample Store"])
+        self.assertEqual(result["draft"], translated["draft"])
+        self.assertEqual(result["status_reason"], "technical_scrubbed")
+        self.assertEqual(result["notices"], original["notices"])
+        self.assertEqual(chat.call_count, 2)
+        retry_request = chat.call_args_list[1].args[2]
+        self.assertEqual(json.loads(retry_request)["draft"], "Test Cream을 Sample Store에서 10:00에 비교하세요.")
+        self.assertNotIn("mock.json", retry_request)
+        self.assertNotIn("Nemotron", retry_request)
+        self.assertNotIn("원자료", retry_request)
+        self.assertEqual(chat.call_args_list[1].kwargs["timeout"], 12)
+        self.assertTrue(chat.call_args_list[1].kwargs["prefer_fast"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_scrubbed_retry_preserves_number_and_name_guards(self, chat):
+        original = {"draft": "Nemotron saved /tmp/mock.json. Test Cream을 Sample Store에서 10:00에 비교하세요.",
+                    "notices": ["営業時間を確認してください。"], "caveats": [],
+                    "recommendation_reasons": [], "route_notes": [], "display_names": {}}
+        for candidate in ("11:00に Sample Store で Test Cream を比べてください。",
+                          "10:00に Other Store で Test Cream を比べてください。",
+                          "10:00に Sample Store で Test Cream を比べてください。 Nemotron is ready."):
+            with self.subTest(candidate=candidate):
+                chat.reset_mock()
+                translated = {**original, "draft": candidate}
+                chat.side_effect = [json.dumps(original, ensure_ascii=False), json.dumps(translated, ensure_ascii=False)]
+                result = localized_projection(settings(), "ja", "culture", {}, notices=["원자료 공지"],
+                                              proper_names=["Test Cream", "Sample Store"])
+                self.assertEqual(result["draft"], COPY["ja"]["draft"])
+                self.assertEqual(result["notices"], original["notices"])
+                self.assertEqual(result["status_reason"], "language_mismatch")
+                self.assertEqual(chat.call_count, 2)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_retry_cannot_reintroduce_a_request_only_echo(self, chat):
+        request = "Please book lunch at the market."
+        original = {"draft": "시장 점심을 바로 예약해 주세요.", "notices": [], "caveats": []}
+        translated = {**original, "draft": request}
+        chat.side_effect = [json.dumps(original, ensure_ascii=False), json.dumps(translated)]
+        result = localized_projection(settings(), "en", "culture", {"request": request})
+        self.assertEqual(chat.call_count, 2)
+        self.assertEqual(result["status_reason"], "echoed_request")
+        self.assertEqual(result["draft"], COPY["en"]["draft"])
+
+
+class VerifiedSummaryFallbackTests(unittest.TestCase):
+    def project(self, chat, language, facts, payload=None, mode="beauty"):
+        key = "draft" if mode == "culture" else "summary"
+        wrong = "Please compare the products." if language == "ko" else "제품을 비교해 주세요."
+        payload = payload or {key: wrong, "recommendation_reasons": [], "route_notes": [],
+                              "notices": [], "caveats": [], "display_names": {}}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        return localized_projection(settings(), language, mode, facts)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_language_failure_gets_at_most_three_recorded_candidates_in_all_locales(self, chat):
+        facts = {"recommendations": [{"name": f"Demo Cream {index}", "price_krw": index * 1000,
+                                      "why": ["SOURCE_ONLY_EFFICACY_CLAIM"]} for index in range(1, 5)],
+                 "authenticity_checks": [{"trusted": False, "target": "UNVERIFIED_TARGET"}]}
+        snapshot = json.dumps(facts)
+        for language in LOCALES:
+            with self.subTest(language=language):
+                chat.reset_mock()
+                result = self.project(chat, language, facts)
+                self.assertEqual(chat.call_count, 2)
+                self.assertEqual(result["status"], "fallback")
+                self.assertEqual(result["status_reason"], "language_mismatch")
+                self.assertEqual(result["summary_origin"], "verified_fields")
+                self.assertNotEqual(result["summary"], COPY[language]["summary"])
+                self.assertTrue(in_language(result["summary"], language, [f"Demo Cream {i}" for i in range(1, 4)]))
+                for index in range(1, 4):
+                    self.assertIn(f"Demo Cream {index} ({index},000 KRW)", result["summary"])
+                for excluded in ("Demo Cream 4", "SOURCE_ONLY_", "UNVERIFIED_TARGET"):
+                    self.assertNotIn(excluded, result["summary"])
+                if language != "ko":
+                    self.assertFalse(HANGUL.search(result["summary"]))
+        self.assertEqual(json.dumps(facts), snapshot)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_only_integer_prices_are_included_and_unverified_products_get_a_warning(self, chat):
+        for price in (None, True, "1000", 1000.0, -1):
+            with self.subTest(price=price):
+                chat.reset_mock()
+                facts = {"recommendations": [{"name": "Demo Cream", "price_krw": price}],
+                         "authenticity_checks": [{"trusted": False}]}
+                result = self.project(chat, "en", facts)
+                self.assertIn("Demo Cream", result["summary"])
+                self.assertNotIn("KRW", result["summary"])
+                self.assertIn("Some products still need verification.", result["summary"])
+        result = self.project(chat, "en", {"recommendations": [{"name": "Demo Cream", "price_krw": 0}],
+                                           "authenticity_checks": [{"trusted": True}]})
+        self.assertIn("Demo Cream (0 KRW)", result["summary"])
+        self.assertNotIn("Some products still need verification.", result["summary"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_missing_technical_and_untranslated_names_keep_the_existing_failure_copy(self, chat):
+        for recommendations in ([], [None], [{}], [{"name": 123}],
+                                [{"name": "Nemotron Cream"}], [{"name": "/tmp/mock.json"}],
+                                [{"name": "미확인 크림"}], [{"name": "表示名を確認中"}], [{"name": " 表示名を確認中 "}]):
+            with self.subTest(recommendations=recommendations):
+                chat.reset_mock()
+                result = self.project(chat, "ja", {"recommendations": recommendations})
+                self.assertEqual(result["summary"], COPY["ja"]["summary"])
+                self.assertNotIn("summary_origin", result)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_provided_product_name_wins_and_a_valid_display_label_can_be_used(self, chat):
+        payload = {"summary": "아직 한국어 설명입니다.", "display_names": {"가상 크림": "テストクリーム"},
+                   "recommendation_reasons": [], "route_notes": [], "notices": [], "caveats": []}
+        result = self.project(chat, "ja", {"recommendations": [{"name": "Official Cream", "name_ko": "가상 크림"}]}, payload)
+        self.assertIn("Official Cream", result["summary"])
+        self.assertNotIn("テストクリーム", result["summary"])
+        result = self.project(chat, "ja", {"recommendations": [{"name": "가상 크림"}]}, payload)
+        self.assertIn("テストクリーム", result["summary"])
+        self.assertFalse(HANGUL.search(result["summary"]))
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_good_summaries_other_failure_reasons_and_culture_are_unchanged(self, chat):
+        facts = {"recommendations": [{"name": "Demo Cream", "price_krw": 1000}]}
+        for summary, expected_reason in (("Compare the products before buying.", None),
+                                         ("Nemotron saved /tmp/mock.json.", "technical_content"),
+                                         ("Please book my lunch at the market.", "echoed_request")):
+            with self.subTest(summary=summary):
+                chat.reset_mock()
+                payload = {"summary": summary, "recommendation_reasons": [], "route_notes": [], "notices": [], "caveats": []}
+                result = self.project(chat, "en", {**facts, "request": "Please book my lunch at the market."}, payload)
+                self.assertNotIn("summary_origin", result)
+                self.assertEqual(result.get("status_reason"), expected_reason)
+                self.assertEqual(result["summary"], summary if expected_reason is None else COPY["en"]["summary"])
+                chat.assert_called_once()
+        chat.return_value = None
+        result = localized_projection(settings(), "ja", "beauty", facts)
+        self.assertEqual(result["status_reason"], "unavailable")
+        self.assertEqual(result["summary"], COPY["ja"]["summary"])
+        self.assertNotIn("summary_origin", result)
+        result = self.project(chat, "ja", facts, mode="culture")
+        self.assertEqual(result["draft"], COPY["ja"]["draft"])
+        self.assertNotIn("summary_origin", result)

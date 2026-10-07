@@ -82,6 +82,15 @@ class RequestRoutingTests(unittest.TestCase):
         self.assertEqual(state["_mode"], "beauty")
         extract.assert_not_called()
 
+    def test_shopping_area_does_not_override_an_explicit_food_request(self):
+        for area in ("명동", "성수", "홍대"):
+            with self.subTest(area=area):
+                self.assertEqual(conversation.select_mode(area), "beauty")
+                self.assertEqual(conversation.select_mode(f"{area}에서 비건 음식을 먹고 싶어요"), "culture")
+                self.assertEqual(conversation.select_mode(f"{area}에서 비건 화장품을 찾고 있어요"), "beauty")
+                for food in ("점심 먹고 싶어요", "저녁 식당 알려줘", "맛집 찾아 줘", "밥 먹기 좋은 곳", "아침 추천"):
+                    self.assertEqual(conversation.select_mode(f"{area}에서 {food}"), "culture")
+
     @patch("kbeauty_gate.conversation.extract_profile", return_value={})
     def test_culture_context_ignores_stale_skin_but_can_switch_back_to_beauty(self, extract):
         state = {"_mode": "culture", "skin_type": "dry", "language": "ja"}

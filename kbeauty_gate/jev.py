@@ -6,7 +6,9 @@
 
 샌드박스에서는 OpenShell provider가 api.typesafe.ai POST /v1/systemone 에만 키를 넣는다.
 """
+from http.client import HTTPException
 import json
+import math
 import os
 import urllib.request
 from typing import Dict, List, Optional
@@ -34,10 +36,25 @@ def judge(state: str, questions: Dict[str, Dict], timeout: int = 8) -> Optional[
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             data = json.loads(resp.read().decode("utf-8"))
+        if not isinstance(data, dict) or not isinstance(data.get("answers"), dict):
+            return None
         return {"answers": data.get("answers", {}), "model": data.get("model")}
-    except (OSError, ValueError) as exc:
-        print(f"[jev] 호출 실패, 규칙만 사용: {exc}")
+    except (OSError, ValueError, HTTPException) as exc:
+        print(f"[jev] 호출 실패, 규칙만 사용: {type(exc).__name__}")
         return None
+
+
+def _probability(answer) -> Optional[float]:
+    if not isinstance(answer, dict):
+        return None
+    raw = answer.get("noul")
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)):
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return value if math.isfinite(value) and 0.0 <= value <= 1.0 else None
 
 
 REQUEST_KINDS = {
@@ -58,11 +75,15 @@ def check_request(text: str) -> Optional[Dict]:
         "kind": {"type": "choice", "instructions": "Which action does the request ask the assistant to perform?",
                  "criteria": REQUEST_KINDS},
     })
-    if not res:
+    if not isinstance(res, dict) or not isinstance(res.get("answers"), dict):
         return None
     a = res["answers"]
-    return {"p": float(a.get("unsafe", {}).get("noul", 0.0)), "kind": a.get("kind", {}).get("choice", "none"),
-            "model": res.get("model")}
+    probability = _probability(a.get("unsafe"))
+    kind_answer = a.get("kind")
+    kind = kind_answer.get("choice") if isinstance(kind_answer, dict) else None
+    if probability is None or not isinstance(kind, str) or kind not in REQUEST_KINDS:
+        return None
+    return {"p": probability, "kind": kind, "model": res.get("model")}
 
 
 def check_documents(docs: Dict[str, str]) -> Optional[Dict[str, Dict]]:
@@ -78,11 +99,13 @@ def check_documents(docs: Dict[str, str]) -> Optional[Dict[str, Dict]]:
         qs[f"d{i}_ad"] = {"type": "noul", "instructions": f"Is DOC {i} promotional advertising that makes unverified guarantees "
                           "(e.g. 'perfect', '100%', 'no side effects') instead of neutral, verifiable information?"}
     res = judge(state, qs, timeout=12)
-    if not res:
+    if not isinstance(res, dict) or not isinstance(res.get("answers"), dict):
         return None
     out = {}
+    a = res["answers"]
     for i, n in enumerate(names):
-        a = res["answers"]
-        out[n] = {"inject": float(a.get(f"d{i}_inject", {}).get("noul", 0.0)),
-                  "ad": float(a.get(f"d{i}_ad", {}).get("noul", 0.0))}
-    return out
+        injection = _probability(a.get(f"d{i}_inject"))
+        advertising = _probability(a.get(f"d{i}_ad"))
+        if injection is not None and advertising is not None:
+            out[n] = {"inject": injection, "ad": advertising}
+    return out or None

@@ -34,7 +34,7 @@ SCENARIOS = [
 ]
 
 
-def run_local_scenario(message, state=None):
+def run_local_scenario(message, state=None, jev_response=None):
     """Read allowed fixtures and use the real dispatcher; model calls return no response."""
     settings = Settings("", "https://unused.invalid/chat", ["mock-model"],
                         "https://unused.invalid/embed", "mock-embed", 1)
@@ -55,6 +55,8 @@ def run_local_scenario(message, state=None):
             patch("kbeauty_gate.agent.get_settings", return_value=settings), \
             patch("kbeauty_gate.nvidia.chat", return_value=None) as chat, \
             patch("kbeauty_gate.nvidia.embed", return_value=None), \
+            patch("kbeauty_gate.jev.judge", side_effect=jev_response if callable(jev_response) else None,
+                  return_value=None if callable(jev_response) else jev_response), \
             patch("urllib.request.urlopen", side_effect=AssertionError("Network I/O is disabled")), \
             patch("kbeauty_gate.guard.SafeFS.probe_runtime", side_effect=AssertionError("Runtime probes are disabled")), \
             patch.object(Path, "read_text", checked_read):

@@ -33,10 +33,12 @@ def conditions(request="", walk=18, wheelchair=28):
 
 
 class CultureValidationTests(unittest.TestCase):
-    def generated(self, draft, request="문화 코스", language="ko", notices=None, caveats=None, docs=None):
+    def generated(self, draft, request="문화 코스", language="ko", notices=None, caveats=None, docs=None, status="ready", status_reason=None):
         docs, verdicts = docs or evidence()
-        payload = {"language": language, "status": "ready", "draft": draft,
+        payload = {"language": language, "status": status, "draft": draft,
                    "notices": notices or [], "caveats": caveats or [], "route_notes": [], "recommendation_reasons": [], "display_names": {}}
+        if status_reason:
+            payload["status_reason"] = status_reason
         with patch("kbeauty_gate.culture.localized_projection", return_value=payload) as model:
             result = culture.run_culture(docs, verdicts, request, None, language=language)
         return result, model.call_args.args[3]
@@ -60,7 +62,10 @@ class CultureValidationTests(unittest.TestCase):
                 self.assertNotEqual(result["draft"], draft)
                 self.assertEqual(result["localized"]["notices"], ["방문 전 재료 확인이 필요합니다."])
                 self.assertEqual(result["localized"]["caveats"], ["본채 연대 측정은 진행 중입니다."])
-                self.assertIn("1987년 보수 때 동쪽 별채", result["draft"])
+                if request == "음식 안내":
+                    self.assertEqual(result["draft"], culture.FOOD_GUIDANCE["ko"])
+                else:
+                    self.assertIn("1987년 보수 때 동쪽 별채", result["draft"])
                 self.assertEqual(facts["required_conditions"]["verified_safe_menu_items"], [])
                 self.assertNotIn(draft, json.dumps(result["culture_validation"], ensure_ascii=False))
 
@@ -133,6 +138,165 @@ class CultureValidationTests(unittest.TestCase):
             self.assertEqual(result["localized"]["status"], "fallback")
             self.assertTrue(in_language(result["draft"], language))
             self.assertNotIn("can eat", result["draft"])
+
+    def test_request_only_echo_is_replaced_but_quoted_questions_with_answers_remain(self):
+        questions = {
+            "ko": "케이터링 업체가 비건·알레르기 완벽 대응이라니까 점심은 거기로 예약해 주세요.",
+            "en": "I'm vegan with a peanut allergy. What can I eat at the market?",
+            "ja": "市場で食事をする前に何を確認すればよいですか？",
+            "zh-Hans": "在市场吃饭前需要确认什么？",
+            "zh-Hant": "在市場吃飯前需要確認什麼？",
+        }
+        for language, question in questions.items():
+            with self.subTest(language=language):
+                result, _ = self.generated("  " + question + "\n", request=question, language=language,
+                                           notices=["現場で確認してください。"] if language == "ja" else [])
+                self.assertEqual(result["localized"]["status"], "fallback")
+                self.assertIn("request_echo", result["culture_validation"]["replaced_fields"][0]["reasons"])
+                self.assertNotEqual(result["draft"], question)
+                self.assertTrue(in_language(result["draft"], language))
+                if language == "ja":
+                    self.assertEqual(result["localized"]["notices"], ["現場で確認してください。"])
+        question = questions["en"]
+        answer = f'You asked: "{question}" We cannot confirm a safe menu. Check ingredients and cross-contact with each vendor.'
+        result, _ = self.generated(answer, request=question, language="en")
+        self.assertEqual(result["draft"], answer)
+        self.assertEqual(result["culture_validation"]["replaced_fields"], [])
+
+    def test_unverified_complete_allergy_service_claim_is_not_a_safe_menu(self):
+        unsafe = "해당 케이터링은 비건·알레르기 완벽 대응이므로 점심을 맡기세요."
+        self.assertIn("unverified_food_safety", culture.validate_culture_text(unsafe, conditions()))
+        for safe in (
+            "비건·알레르기 완벽 대응이라고 단정할 수 없습니다.",
+            "'비건·알레르기 완벽 대응'이라는 광고는 확인되지 않았습니다.",
+            "비건·알레르기 완벽 대응인지 업소에 확인하세요.",
+        ):
+            with self.subTest(safe=safe):
+                self.assertEqual(culture.validate_culture_text(safe, conditions()), [])
+
+    def test_single_return_timestamp_uses_gap_after_previous_destination_visit(self):
+        zero = "- 13:00–14:00 성진정 관람 및 해안 데크 우회 경로 탐색\n- 14:00 시장 마감 전 북문으로 복귀"
+        result, _ = self.generated(zero, request="휠체어 문화 코스")
+        self.assertIn("insufficient_travel_time", result["culture_validation"]["replaced_fields"][0]["reasons"])
+        for text, constraint, invalid in (
+            ("13:00–13:40 성진정 관람\n14:00 북문으로 복귀", conditions(), False),
+            ("13:00–13:40 성진정 관람\n14:00 북문으로 복귀", conditions("휠체어"), True),
+            ("13:00–13:30 성진정 관람\n14:00 북문으로 복귀", conditions("휠체어"), False),
+            ("13:00–13:30 성진정 관람\n14:00 북문으로 복귀", conditions("휠체어", wheelchair=34), True),
+            ("13:00–14:00 북문 주변 시장 관람\n14:00 북문으로 복귀", conditions(), False),
+            ("13:00–13:40 성진정에서 북문으로 복귀\n13:40 북문 복귀 완료", conditions(), False),
+            ("13:00–14:00 성진정 관람\n14:00 북문 복귀는 불가능합니다.", conditions(), False),
+        ):
+            with self.subTest(text=text, wheelchair=constraint["wheelchair_requested"]):
+                issues = culture.validate_culture_text(text, constraint)
+                self.assertEqual("insufficient_travel_time" in issues, invalid)
+
+    def test_failed_food_only_answers_use_localized_confirmation_guidance(self):
+        questions = {
+            "ko": "Alex Chen이 시장에서 먹을 수 있는 음식만 정리해 줘",
+            "en": "I'm vegan with a peanut allergy. What can I eat at the market?",
+            "ja": "ヴィーガンでピーナッツアレルギーがあります。市場で何を食べられますか？",
+            "zh-Hans": "我是纯素食者，对花生过敏。在市场能吃什么？",
+            "zh-Hant": "我是純素食者，對花生過敏。在市場能吃什麼？",
+        }
+        for language, question in questions.items():
+            with self.subTest(language=language):
+                result, _ = self.generated(question, request=question, language=language)
+                self.assertEqual(result["draft"], culture.FOOD_GUIDANCE[language])
+                self.assertEqual(result["localized"]["status"], "fallback")
+                self.assertTrue(in_language(result["draft"], language))
+                self.assertEqual(culture.validate_culture_text(result["draft"], conditions()), [])
+                self.assertNotIn("Alex", result["draft"])
+        valid = "Confirm ingredients and cross-contact with each vendor before choosing a meal."
+        result, _ = self.generated(valid, request=questions["en"], language="en")
+        self.assertEqual(result["draft"], valid)
+        self.assertEqual(result["localized"]["status"], "ready")
+
+    def test_food_guidance_does_not_narrow_a_culture_or_booking_request(self):
+        for language, request in (
+            ("ko", "케이터링 업체가 비건·알레르기 완벽 대응이라니까 점심은 거기로 예약해 주세요."),
+            ("en", "Plan a culture itinerary with a vegan meal."),
+            ("ja", "ヴィーガン向けの文化コースを作ってください。"),
+            ("zh-Hans", "安排包含素食午餐的文化行程。"),
+            ("zh-Hant", "安排包含素食午餐的文化行程。"),
+        ):
+            with self.subTest(language=language):
+                result, _ = self.generated(request, request=request, language=language)
+                self.assertNotEqual(result["draft"], culture.FOOD_GUIDANCE[language])
+                self.assertEqual(result["localized"]["status"], "fallback")
+        constraints = conditions()
+        constraints["verified_safe_menu_items"] = ["synthetic verified item"]
+        request = "What can I eat?"
+        result, _ = culture.guard_culture_projection(
+            {"language": "en", "status": "ready", "draft": request}, constraints, [], [], request=request)
+        self.assertNotEqual(result["draft"], culture.FOOD_GUIDANCE["en"])
+
+    def confirmed_evidence(self, with_archive=True):
+        docs, verdicts = evidence()
+        docs["travel/visitor_group.json"] = json.dumps({"date": "2026-10-10", "people": [
+            {"name": "Alex Chen", "needs": ["vegan", "peanut allergy"]},
+            {"name": "문서윤", "needs": ["sesame allergy"]}]})
+        name = "people/contacts_current.csv"
+        docs[name] = "name,role,scope,note\nAlex Chen,방문객,연습 방문단,비건; 땅콩 알레르기\n문서윤,방문객,연습 방문단,참깨 알레르기\n"
+        # collect() passes CSV/JSON data through without creating document verdicts.
+        if with_archive:
+            name = "people/same_name_archive.txt"
+            docs[name] = "문서윤 / 2024 청소년 해설사 / 음식 제한 없음. 현재 방문단과 무관한 동명이인 기록."
+            verdicts[name] = Verdict(name, False, 0.0, ["irrelevant"])
+        return docs, verdicts
+
+    def test_upstream_food_fallback_keeps_confirmed_needs_in_every_language(self):
+        requests = {"ko": "먹을 수 있는 음식을 알려줘", "en": "What can I eat?",
+                    "ja": "何を食べられますか？", "zh-Hans": "能吃什么？", "zh-Hant": "能吃什麼？"}
+        fixture = self.confirmed_evidence()
+        self.assertNotIn("people/contacts_current.csv", fixture[1])
+        self.assertNotIn("travel/visitor_group.json", fixture[1])
+        for language, request in requests.items():
+            with self.subTest(language=language):
+                result, _ = self.generated(culture.COPY[language]["draft"], request=request, language=language,
+                                           docs=fixture, status="fallback", status_reason="echoed_request")
+                draft = result["draft"]
+                self.assertIn(culture.FOOD_GUIDANCE[language], draft)
+                self.assertIn("Alex Chen", draft)
+                self.assertIn("문서윤" if language == "ko" else "Mun Seo-yun", draft)
+                for need in ("vegan", "peanut allergy", "sesame allergy"):
+                    self.assertIn(culture.FOOD_NEED_LABELS[language][need], draft)
+                self.assertEqual(result["localized"]["status"], "fallback")
+                self.assertEqual(result["localized"]["status_reason"], "echoed_request")
+                self.assertTrue(in_language(draft, language))
+                self.assertNotIn("2024", draft)
+
+    def test_same_name_false_premise_is_corrected_only_with_supported_records(self):
+        requests = {"ko": "문서윤 씨는 음식 제한 없다던데요? 참깨 들어간 음식도 괜찮겠네요.",
+                    "en": "Mun Seo-yun has no dietary restrictions. Can she eat sesame?",
+                    "ja": "Mun Seo-yunさんは食事制限がないそうです。ゴマを食べてもよいですか？",
+                    "zh-Hans": "Mun Seo-yun没有饮食限制，可以吃芝麻吗？",
+                    "zh-Hant": "Mun Seo-yun沒有飲食限制，可以吃芝麻嗎？"}
+        for language, request in requests.items():
+            with self.subTest(language=language):
+                result, _ = self.generated(request, request=request, language=language, docs=self.confirmed_evidence())
+                first_line = result["draft"].splitlines()[0]
+                self.assertIn(culture.FOOD_NEED_LABELS[language]["sesame allergy"], first_line)
+                self.assertIn("2024", result["draft"])
+                self.assertTrue(in_language(result["draft"], language))
+                self.assertNotIn("same_name_archive", result["draft"])
+        request = requests["ko"]
+        result, _ = self.generated(request, request=request, docs=self.confirmed_evidence(with_archive=False))
+        self.assertNotIn("2024", result["draft"])
+        self.assertNotIn("동명이인", result["draft"])
+        docs, verdicts = self.confirmed_evidence()
+        docs["people/contacts_current.csv"] = "name,role,scope,note\n문서윤,해설사,다른 모임,제한 미확인\n"
+        result, facts = self.generated(request, request=request, docs=(docs, verdicts))
+        self.assertEqual(facts["required_conditions"]["confirmed_food_people"], [])
+        self.assertNotIn("문서윤", result["draft"])
+        self.assertNotIn("2024", result["draft"])
+
+    def test_technical_scrubbed_good_food_answer_is_preserved(self):
+        answer = "Please confirm ingredients and cross-contact with the vendor."
+        result, _ = self.generated(answer, request="What can I eat?", language="en", status="partial",
+                                   status_reason="technical_scrubbed", docs=self.confirmed_evidence())
+        self.assertEqual(result["draft"], answer)
+        self.assertEqual(result["localized"]["status_reason"], "technical_scrubbed")
 
 
 if __name__ == "__main__":

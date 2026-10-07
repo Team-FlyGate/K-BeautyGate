@@ -18,15 +18,16 @@ BEAUTY_WORDS = re.compile(
     r"화장품|뷰티|피부|스킨|코스메|메이크업|토너|선크림|썬크림|쿠션|(?<![가-힣])립(?:스틱|밤|틴트)?|"
     r"립\s*(?:오일|틴트|밤|글로스)|틴트|에센스|앰플|세럼|마스크\s*팩|시트\s*마스크|정품|가품|짝퉁|위조\s*(?:화장품|제품)|"
     r"건성|지성|복합성|민감성|중성\s*피부|트러블|여드름|각질|모공|홍조|보습|미백|주름|자외선|"
-    r"명동|성수|홍대|한국\s*(?:거|것|제품|화장품)\s*맞|진짜\s*한국|K-?뷰티|"
+    r"한국\s*(?:거|것|제품|화장품)\s*맞|진짜\s*한국|K-?뷰티|"
     r"하루담|숲결|온새미|다솜랩|결연구소|물결랩|단비|솔빛|하늘결|모아데일리|Seoul\s*Glow|"
     r"\b(?:skin(?:[\s-]?care)?|cosmetics?|beauty|make-?up|sunscreen|sunblock|toner|serum|"
     r"lipstick|lip[\s-]?balm|moisturi[sz]er|pores?)\b|"
     r"肌|コスメ|化粧|メイク|日焼け止め|日やけ止め|美容液|口紅|リップ|"
     r"皮肤|皮膚|护肤|護膚|化妆|化妝|美妆|美妝|防晒|防曬|爽肤水|爽膚水|精华|精華|口红|唇膏", re.IGNORECASE)
 BEAUTY_INTENT = BEAUTY_WORDS
+BEAUTY_AREA_WORDS = re.compile(r"명동|성수|홍대")
 COMMON_TASK_WORDS = re.compile(
-    r"음식|식사|먹(?:을|어|는)|비건|채식|땅콩|참깨|육수|젓갈|휠체어|북문|"
+    r"음식|식사|아침|점심|저녁|밥|식당|맛집|먹(?:을|어|는|고|기)|비건|채식|땅콩|참깨|육수|젓갈|휠체어|북문|"
     r"\b(?:food|eat|vegan|vegetarian|peanuts?|sesame|wheelchair|dietary|market)\b|north\s+gate|"
     r"食べ|食事|食物|ヴィーガン|ビーガン|車いす|車椅子|北門|吃|素食|花生|芝麻|轮椅|輪椅|北门", re.IGNORECASE)
 FOLLOWUP_WORDS = re.compile(
@@ -52,7 +53,11 @@ def select_mode(message: str, state: Optional[Dict] = None) -> str:
         return "culture"
     if BEAUTY_WORDS.search(message):
         return "beauty"
-    if COMMON_TASK_WORDS.search(message) or state.get("_mode") == "culture":
+    if COMMON_TASK_WORDS.search(message):
+        return "culture"
+    if BEAUTY_AREA_WORDS.search(message):
+        return "beauty"
+    if state.get("_mode") == "culture":
         return "culture"
     prior_beauty = state.get("_mode") == "beauty" or bool(state.get("skin_type"))
     if prior_beauty and len(message) <= 160 and (SHORT_REPLY.fullmatch(message) or FOLLOWUP_WORDS.search(message)):

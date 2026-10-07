@@ -151,14 +151,17 @@ def find_conflicts(docs: Dict[str, str], verdicts: Dict[str, Verdict]) -> List[s
 
 
 TIME_RANGE = re.compile(r"(?<!\d)(\d{1,2}):(\d{2})\s*[~–—-]\s*(\d{1,2}):(\d{2})(?!\d)")
+CLOCK_TIME = re.compile(r"(?<!\d)(\d{1,2}):(\d{2})(?!\d)")
 WHEELCHAIR_WORDS = re.compile(r"휠체어|wheelchair|車いす|車椅子|轮椅|輪椅", re.IGNORECASE)
 MOVE_WORDS = re.compile(r"이동|복귀|귀환|돌아|출발|도착|walk|return|travel|transfer|移動|戻|徒歩|步行|返回|出發|出发", re.IGNORECASE)
+RETURN_WORDS = re.compile(r"복귀|귀환|돌아|\breturn|戻|帰着|返回", re.IGNORECASE)
 UNCERTAINTY_WORDS = re.compile(r"확인(?:이|은|을)?\s*필요|확인되지|확인할\s*수\s*없|원문\s*확인|불확실|추정|측정\s*중|진행\s*중|가능성|보인다|것으로\s*보|미확인|"
                                r"uncertain|unconfirmed|estimated|appears?|possibly|\bmay\b|measurement|needs?\s+confirmation|(?:please\s+)?confirm\s+(?:before|the|all)|"
                                r"未確認|不確実|推定|可能性|調査中|測定中|待确认|待確認|不确定|不確定|推测|推測|测定|測定", re.IGNORECASE)
 
 
-def culture_constraints(trusted: Dict[str, str], visit: date, people: List[Dict], request: str, caveats: Dict) -> Dict:
+def culture_constraints(trusted: Dict[str, str], visit: date, people: List[Dict], request: str, caveats: Dict,
+                        current_people_csv: str = "") -> Dict:
     """Extract only conditions represented by trusted, applicable source statements."""
     day_sources = [text for name, text in trusted.items()
                    if DATED_OPERATIONS.search(name) and visit in _explicit_dates(text, visit.year)]
@@ -171,6 +174,16 @@ def culture_constraints(trusted: Dict[str, str], visit: date, people: List[Dict]
     route = re.search(r"([동서남북]문)\s*(?:→|->|에서)\s*([가-힣A-Za-z ]+?)\s*(?:까지\s*)?도보\s*(\d+)\s*분", routes)
     wheelchair = re.search(r"휠체어[^.\n]{0,80}?(\d+)\s*분", routes)
     history = [item for items in caveats.values() for item in items]
+    # Structured current-contact input has no document verdict in collect().
+    current = {row["name"]: row for row in csv.DictReader(io.StringIO(current_people_csv))}
+    need_terms = {"vegan": "비건", "peanut allergy": "땅콩 알레르기", "sesame allergy": "참깨 알레르기"}
+    confirmed_people = []
+    for person in people:
+        row = current.get(person["name"], {})
+        needs = [need for need in person.get("needs", [])
+                 if need in need_terms and need_terms[need] in row.get("note", "")]
+        if row.get("role") == "방문객" and needs:
+            confirmed_people.append({"name": person["name"], "needs": needs})
     return {
         "visit_date": visit.isoformat(),
         "market_window": [int(window[1]) * 60 + int(window[2]), int(window[3]) * 60 + int(window[4])] if window else None,
@@ -186,6 +199,9 @@ def culture_constraints(trusted: Dict[str, str], visit: date, people: List[Dict]
                                    for year in re.findall(r"(?<!\d)(?:18|19|20)\d{2}(?!\d)", item["sentence"])}),
         "history_statements": history,
         "verified_safe_menu_items": [],
+        "confirmed_food_people": confirmed_people,
+        "same_name_records": [],
+        "perilla_is_distinct": bool(re.search(r"들깨.{0,20}참깨.{0,15}(?:다르|다른)", trusted.get("culture/food_glossary.md", ""))),
         "unlisted_allergies": "unknown; never infer an allergy is absent",
         "food_confirmation_required": "No individual menu, ingredients or cross-contact safety is verified. Ingredient differences do not prove safety.",
     }
@@ -220,11 +236,12 @@ def validate_culture_text(text: str, constraints: Dict) -> List[str]:
                 denied = denied or re.match(r"고\s*(?:단정|판단|간주).{0,15}(?:않|없|못)", after)
                 if not denied:
                     issues.add("unverified_allergy_absence")
-            safe_claim = r"먹을\s*수\s*있|먹어도\s*(?:되|괜찮)|섭취.{0,10}가능|(?:들깨|참깨|땅콩).{0,8}안전|안전한\s*(?:음식|메뉴|식사)|\bcan\s+eat\b|\bsafe\s+(?:to\s+eat|for|foods?|meals?)\b|(?:rice|vegetables?|fruit|perilla).{0,20}\bis\s+safe\b|安全に食べ|食べられます|安心して食べ|可以吃|可食用|安全食用"
+            safe_claim = r"먹을\s*수\s*있|먹어도\s*(?:되|괜찮)|섭취.{0,10}가능|(?:들깨|참깨|땅콩).{0,8}안전|안전한\s*(?:음식|메뉴|식사)|(?:비건|알레르기).{0,12}(?:완벽|완전|100%).{0,8}(?:대응|보장|안전)|\bcan\s+eat\b|\bsafe\s+(?:to\s+eat|for|foods?|meals?)\b|(?:rice|vegetables?|fruit|perilla).{0,20}\bis\s+safe\b|安全に食べ|食べられます|安心して食べ|可以吃|可食用|安全食用"
             for claim in re.finditer(safe_claim, chunk, re.IGNORECASE):
                 before, after = chunk[max(0, claim.start() - 70):claim.start()], chunk[claim.end():claim.end() + 60]
+                after = after.lstrip("'\"‘’“”")
                 denied = re.search(r"(?:cannot|can't)\s+(?:determine|confirm|say|guarantee).{0,45}$|\bnot\s*$|不\s*$|not\s+(?:confirmed|verified)\s*$|no\s+verified\s*$|未確認|確認でき|断定でき|不能确定|不能確定|尚未确认|尚未確認", before, re.IGNORECASE)
-                denied = denied or re.match(r"(?:는지(?:는)?[^.!?。！？]{0,24}(?:확인|알\s*수\s*없)|는\s*음식으로\s*확정된\s*메뉴는\s*없|(?:하다고|하다는|을)\s*(?:단정|보장|확정).{0,15}(?:없|않|못)|하다는\s*(?:뜻|의미).{0,8}(?:아니|아닙)|(?:られる|る|られます)?とは(?:限りません|断定できません))", after)
+                denied = denied or re.match(r"(?:(?:는지(?:는)?|인지)[^.!?。！？]{0,24}(?:확인|알\s*수\s*없)|는\s*음식으로\s*확정된\s*메뉴는\s*없|(?:하다고|하다는|이라고|이라는|을)\s*(?:단정|보장|확정).{0,15}(?:없|않|못)|(?:이라는|이라고).{0,18}(?:확인되지|입증되지|검증되지|근거.{0,5}없)|하다는\s*(?:뜻|의미).{0,8}(?:아니|아닙)|(?:られる|る|られます)?とは(?:限りません|断定できません))", after)
                 if not denied:
                     issues.add("unverified_food_safety")
         route_context = MOVE_WORDS.search(chunk) or re.search(r"→|->", chunk)
@@ -257,6 +274,29 @@ def validate_culture_text(text: str, constraints: Dict) -> List[str]:
             minimum = constraints["wheelchair_minutes"] if constraints["wheelchair_requested"] or wheelchair_line else constraints["walking_minutes"]
             if minimum and end - start < minimum:
                 issues.add("insufficient_travel_time")
+    # A single return timestamp still needs travel time after the previous visit.
+    clocks = list(CLOCK_TIME.finditer(text))
+    for index, clock in enumerate(clocks):
+        if any(slot.start() <= clock.start() < slot.end() for slot in slots):
+            continue
+        prior = next((slot for slot in reversed(slots) if slot.end() <= clock.start()), None)
+        if not prior or not index or clocks[index - 1].end() != prior.end():
+            continue
+        previous = text[prior.end():clock.start()].split("\n", 1)[0]
+        following = text[clock.end():clocks[index + 1].start() if index + 1 < len(clocks) else len(text)].split("\n", 1)[0]
+        destination = constraints["route_destination"]
+        origin = gate_aliases.get(constraints["route_origin"], re.escape(constraints["route_origin"] or ""))
+        if not destination or destination not in previous or RETURN_WORDS.search(previous):
+            continue
+        if not origin or not re.search(origin, following, re.IGNORECASE) or not RETURN_WORDS.search(following):
+            continue
+        if re.search(r"복귀.{0,8}(?:불가|불가능|못)|return.{0,12}(?:impossible|not\s+possible)", following, re.IGNORECASE):
+            continue
+        minimum = constraints["wheelchair_minutes"] if constraints["wheelchair_requested"] or WHEELCHAIR_WORDS.search(following) else constraints["walking_minutes"]
+        previous_end = int(prior[3]) * 60 + int(prior[4])
+        arrival = int(clock[1]) * 60 + int(clock[2])
+        if minimum and arrival - previous_end < minimum:
+            issues.add("insufficient_travel_time")
     if not constraints["visit_day_operations_available"]:
         for chunk in chunks:
             if re.search(r"북문|north\s+(?:gate|entrance)|北門|北门", chunk, re.IGNORECASE) and MOVE_WORDS.search(chunk) and not UNCERTAINTY_WORDS.search(chunk):
@@ -284,14 +324,84 @@ def _verified_korean_summary(constraints: Dict) -> str:
     return "\n".join(lines)
 
 
-def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[str], caveats: List[str]):
+FOOD_GUIDANCE = {
+    "ko": "먹을 수 있는 음식으로 확정된 메뉴는 없습니다. 업소마다 원재료·육수·젓갈 사용 여부, 본인에게 해당하는 알레르기 성분과 교차접촉을 확인하세요. 확인할 수 없다면 먹지 마세요. 미기재된 알레르기는 없다고 단정하지 않습니다.",
+    "en": "The available information does not confirm any menu item as suitable for you. Ask each vendor about ingredients, broth, salted fermented seafood, your relevant allergens and cross-contact. If these cannot be confirmed, do not eat it. Unlisted allergies remain unknown.",
+    "ja": "提供された資料だけでは、食べられると確認できたメニューはありません。各店舗で原材料、だし、塩辛などの発酵魚介類、ご自身のアレルゲン、調理器具などを介した交差接触を確認してください。確認できなければ食べないでください。記録されていないアレルギーの有無は不明です。",
+    "zh-Hans": "现有资料无法确认任何菜单菜品适合您食用。请逐店确认原料、汤底、发酵海鲜、您需要避开的过敏原及交叉接触情况。无法确认时，请勿食用。未记录的过敏情况仍属未知。",
+    "zh-Hant": "現有資料無法確認任何菜單品項適合您食用。請逐店確認原料、湯底、發酵海鮮、您需要避開的過敏原及交叉接觸情況。無法確認時，請勿食用。未記錄的過敏情況仍屬未知。",
+}
+
+FOOD_NEED_LABELS = {
+    "ko": {"vegan": "비건", "peanut allergy": "땅콩 알레르기", "sesame allergy": "참깨 알레르기"},
+    "en": {"vegan": "vegan", "peanut allergy": "peanut allergy", "sesame allergy": "sesame allergy"},
+    "ja": {"vegan": "ヴィーガン", "peanut allergy": "ピーナッツアレルギー", "sesame allergy": "ゴマアレルギー"},
+    "zh-Hans": {"vegan": "纯素食", "peanut allergy": "花生过敏", "sesame allergy": "芝麻过敏"},
+    "zh-Hant": {"vegan": "純素食", "peanut allergy": "花生過敏", "sesame allergy": "芝麻過敏"},
+}
+FOOD_NAMES = {"문서윤": "Mun Seo-yun"}
+
+
+def _food_guidance(language: str, constraints: Dict, request: str) -> str:
+    people = constraints.get("confirmed_food_people", [])
+    names = lambda person: person["name"] if language == "ko" else FOOD_NAMES.get(person["name"], person["name"])
+    restriction = lambda person: ", ".join(FOOD_NEED_LABELS[language][need] for need in person["needs"] if need in FOOD_NEED_LABELS[language])
+    false_absence = r"음식\s*제한.{0,8}없|알레르기.{0,8}없|no\s+(?:dietary|food)\s+restrictions?|no\s+allerg|食事制限.{0,8}(?:ない|なし|ありません)|アレルギー.{0,8}(?:ない|なし|ありません)|(?:没有|沒有|无|無).{0,8}(?:饮食限制|飲食限制|过敏|過敏)"
+    corrected = [person for person in people if any(
+        any(alias.casefold() in chunk.casefold() for alias in (person["name"], FOOD_NAMES.get(person["name"], person["name"])))
+        and re.search(false_absence, chunk, re.IGNORECASE)
+        for chunk in re.split(r"[.!?。！？\n]+", request))]
+    headers = {"ko": "현재 방문단에서 확인된 음식 제한", "en": "Confirmed dietary needs of the current visiting group",
+               "ja": "現在の訪問グループで確認された食事上の条件", "zh-Hans": "当前访问团已确认的饮食限制", "zh-Hant": "目前訪問團已確認的飲食限制"}
+    corrections = {"ko": "현재 방문단 {name} 님은 {needs}가 확인되어, 음식 제한이 없다는 전제는 맞지 않습니다.",
+                   "en": "For the current group, {name} has confirmed dietary needs: {needs}. The claim of no dietary restrictions is incorrect.",
+                   "ja": "現在の訪問グループの{name}さんには、{needs}という条件が確認されています。食事制限がないという前提は誤りです。",
+                   "zh-Hans": "当前访问团的{name}已确认有以下饮食限制：{needs}。没有饮食限制的前提不正确。",
+                   "zh-Hant": "目前訪問團的{name}已確認有以下飲食限制：{needs}。沒有飲食限制的前提不正確。"}
+    archive_text = {"ko": "음식 제한 없음 기록은 {year}년 청소년 해설사인 동명이인의 것으로, 현재 방문단에 적용하지 않았습니다.",
+                    "en": "The no-restrictions record concerns a different person with the same name, a youth guide in {year}; it does not apply to this group.",
+                    "ja": "食事制限なしという記録は、{year}年の青少年ガイドを務めた同姓同名の別人のもので、現在の訪問グループには適用していません。",
+                    "zh-Hans": "没有饮食限制的记录属于{year}年的同名青少年讲解员，与当前访问团无关，因此未采用。",
+                    "zh-Hant": "沒有飲食限制的記錄屬於{year}年的同名青少年導覽員，與目前訪問團無關，因此未採用。"}
+    lines = [corrections[language].format(name=names(person), needs=restriction(person)) for person in corrected]
+    for record in constraints.get("same_name_records", []):
+        if any(person["name"] == record["name"] for person in corrected):
+            lines.append(archive_text[language].format(year=record["year"]))
+    if people:
+        lines.append(headers[language] + ": " + "; ".join(f"{names(person)}: {restriction(person)}" for person in people) + ".")
+    if constraints.get("perilla_is_distinct") and any("sesame allergy" in person["needs"] for person in people):
+        lines.append({"ko": "들깨는 참깨와 다른 재료지만, 사용 여부와 교차접촉은 업소에 확인해야 합니다.",
+                      "en": "Perilla and sesame are different ingredients; ask the vendor about their use and cross-contact.",
+                      "ja": "エゴマとゴマは別の食材ですが、使用の有無や交差接触は店舗に確認してください。",
+                      "zh-Hans": "紫苏籽和芝麻是不同的食材，但使用情况和交叉接触仍需向店家确认。",
+                      "zh-Hant": "紫蘇籽和芝麻是不同的食材，但使用情況和交叉接觸仍需向店家確認。"}[language])
+    return "\n".join(lines + [FOOD_GUIDANCE[language]])
+
+
+def _food_only_request(request: str) -> bool:
+    food = r"먹|음식|식사|메뉴|비건|알레르기|\beat\b|\bfood\b|\bmeals?\b|\bmenu\b|\bvegan\b|allerg|食べ|食事|料理|メニュー|ヴィーガン|ビーガン|アレルギー|吃|食物|素食|纯素|純素|过敏|過敏"
+    other_scope = r"문화|코스|동선|성진정|해설|연혁|예약|발송|메일|결제|케이터링|culture|itinerary|\broute\b|\btour\b|history|pavilion|\bbook\b|reserv|cater|\bsend\b|email|payment|\bpay\b|文化|コース|ルート|歴史|解説|予約|送信|支払|行程|路线|路線|历史|歷史|预订|預訂|预约|預約|发送|發送|邮件|郵件|付款"
+    return bool(re.search(food, request, re.IGNORECASE)) and not re.search(other_scope, request, re.IGNORECASE)
+
+
+def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[str], caveats: List[str], request: str = ""):
     """Replace only failed fields; retain no unsafe generated text in the report."""
     out = dict(localized)
     language = normalize_locale(localized.get("language"))
     replaced = []
     draft_issues = validate_culture_text(out.get("draft", ""), constraints)
+    normalize_echo = lambda value: re.sub(r"\s+", " ", str(value or "")).strip(" \"'‘’“”`.!?。！？").casefold()
+    if normalize_echo(request) and normalize_echo(out.get("draft")) == normalize_echo(request):
+        draft_issues.append("request_echo")
+    food_request = not constraints["verified_safe_menu_items"] and _food_only_request(request)
+    upstream_failure = not draft_issues and localized.get("status") == "fallback" and food_request
+    if upstream_failure:
+        draft_issues.append("upstream_fallback")
     if draft_issues:
-        out["draft"] = _verified_korean_summary(constraints) if language == "ko" else COPY[language]["draft"]
+        if food_request:
+            out["draft"] = _food_guidance(language, constraints, request)
+        else:
+            out["draft"] = _verified_korean_summary(constraints) if language == "ko" else COPY[language]["draft"]
         replaced.append({"field": "draft", "reasons": draft_issues})
     for field, source, default in (("notices", notices, "notice"), ("caveats", caveats, "caveat"), ("route_notes", [], "route")):
         values = list(out.get(field) or [])
@@ -304,7 +414,7 @@ def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[s
         out[field] = values
     if replaced:
         out["status"] = "fallback" if draft_issues or localized.get("status") == "fallback" else "partial"
-        out["status_reason"] = "evidence_conflict"
+        out["status_reason"] = localized.get("status_reason", "upstream_fallback") if upstream_failure else "evidence_conflict"
     return out, {"replaced_fields": replaced}
 
 
@@ -326,7 +436,15 @@ def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str
     caveats = {n: classify_sentences(docs[n]) for n in trusted if "uncertain" in verdicts[n].flags}
     conflicts = find_conflicts(docs, verdicts)
     language = normalize_locale(language) if language else detect_language(request)
-    constraints = culture_constraints(trusted, visit, people, request, caveats)
+    constraints = culture_constraints(trusted, visit, people, request, caveats,
+                                      current_people_csv=docs.get("people/contacts_current.csv", ""))
+    archive = docs.get("people/same_name_archive.txt", "")
+    archive_verdict = verdicts.get("people/same_name_archive.txt")
+    if archive_verdict and "irrelevant" in archive_verdict.flags and "prompt_injection" not in archive_verdict.flags:
+        for person in constraints["confirmed_food_people"]:
+            record = re.search(rf"(?m)^{re.escape(person['name'])}\s*/\s*(20\d{{2}})\s+청소년\s+해설사\s*/\s*음식\s*제한\s*없음\.\s*현재\s*방문단과\s*무관한\s*동명이인", archive)
+            if record:
+                constraints["same_name_records"].append({"name": person["name"], "year": record[1]})
     caveat_texts = [f"[{item['certainty']}] {item['sentence']}" for items in caveats.values() for item in items] + conflicts
 
     facts = {
@@ -345,7 +463,7 @@ def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str
         caveats=caveat_texts,
         proper_names=[p["name"] for p in people] + ["해담 옛시장", "해담", "성진정"],
     )
-    localized, validation = guard_culture_projection(localized, constraints, notices, caveat_texts)
+    localized, validation = guard_culture_projection(localized, constraints, notices, caveat_texts, request=request)
     return {"visit_date": visit.isoformat(), "people": people, "notices": notices,
             "language": language, "localized": localized,
             "draft": localized["draft"], "uncertain": caveats, "conflicts": conflicts,

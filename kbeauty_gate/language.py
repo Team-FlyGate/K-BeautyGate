@@ -130,7 +130,16 @@ def _echoes_request(text, request) -> bool:
         return False
     norm = lambda value: re.sub(r"[\W_]+", "", value).lower()
     req = norm(request)
-    return len(req) >= 8 and req in norm(text)
+    if len(req) < 8:
+        return False
+    answer = norm(text)
+    # A quoted question followed by an answer is useful context, not an echo.
+    # Allow only neutral labels around a response made entirely of the request.
+    labels = ("요청하신내용", "사용자요청", "사용자질문", "요청내용", "질문내용", "요청", "질문",
+              "userrequest", "yourquestion", "youasked", "request", "question",
+              "ご質問", "質問", "リクエスト", "您的问题", "您的問題", "用户请求", "用戶請求", "问题", "問題")
+    candidates = [answer] + [answer[len(label):] for label in labels if answer.startswith(label)]
+    return any(re.fullmatch(r"(?:" + re.escape(req) + r")+", candidate) for candidate in candidates)
 
 
 def in_language(text: str, language: str, proper_names: Iterable[str] = ()) -> bool:
@@ -187,6 +196,11 @@ def _display_name_sources(facts: Dict, proper_names):
     for stop in facts.get("route", []):
         if isinstance(stop, dict):
             names.extend([stop.get("name"), stop.get("area")])
+            label = stop.get("name")
+            if isinstance(label, str):
+                # A quoted title can also appear independently in an explanation.
+                for opening, closing in (("'", "'"), ('"', '"'), ("‘", "’"), ("“", "”"), ("「", "」"), ("『", "』")):
+                    names.extend(re.findall(re.escape(opening) + r"([^\n]{1,120}?)" + re.escape(closing), label))
     for check in facts.get("authenticity_checks", []):
         if isinstance(check, dict):
             names.append(check.get("target"))
@@ -214,8 +228,15 @@ def _valid_display_name(value, language: str) -> bool:
 
 def _resolve_display_names(language, names, provided, returned=None):
     returned = returned if isinstance(returned, dict) else {}
+    valid_fragments = {original: provided.get(original, returned.get(original)) for original in names
+                       if _valid_display_name(provided.get(original, returned.get(original)), language)}
     resolved, aliases, missing = {}, {}, []
     for original in names:
+        candidate = returned.get(original)
+        if isinstance(candidate, str):
+            # Use only independently valid labels, once; unresolved labels never
+            # replace each other or silently become a valid enclosing place name.
+            candidate = replace_display_names(candidate, valid_fragments)
         if language == "ko":
             resolved[original] = original
         elif original in provided:
@@ -223,8 +244,8 @@ def _resolve_display_names(language, names, provided, returned=None):
             alias = returned.get(original)
             if _valid_display_name(alias, language) and alias != provided[original]:
                 aliases[alias] = provided[original]
-        elif _valid_display_name(returned.get(original), language):
-            resolved[original] = returned[original].strip()
+        elif _valid_display_name(candidate, language):
+            resolved[original] = candidate.strip()
         else:
             resolved[original] = DISPLAY_NAME_FALLBACK[language]
             missing.append(original)
@@ -245,6 +266,53 @@ def display_name(text: str, localized: Dict, language: str) -> str:
         return text
     value = replace_display_names(text, localized.get("display_names", {}))
     return DISPLAY_NAME_FALLBACK[language] if HANGUL.search(value) else value
+
+
+def _verified_beauty_summary(facts: Dict, language: str, display_names: Dict[str, str]):
+    """Use only structured candidate names and integer prices after a language failure."""
+    entries = []
+    recommendations = facts.get("recommendations")
+    if not isinstance(recommendations, list):
+        return None
+    for item in recommendations:
+        if not isinstance(item, dict):
+            continue
+        original = item.get("name")
+        if isinstance(original, str) and TECHNICAL_TEXT.search(original):
+            continue
+        candidates = [original] + [display_names.get(label) for label in (item.get("name_ko"), original)
+                                   if isinstance(label, str)]
+        name = next((value.strip() for value in candidates
+                     if _valid_display_name(value, language)
+                     and value.strip() not in DISPLAY_NAME_FALLBACK.values()
+                     and any(pattern.search(value) for pattern in (LATIN, KANA, HAN))), None)
+        if name is None:
+            continue
+        price = item.get("price_krw")
+        entries.append(f"{name} ({price:,} KRW)" if type(price) is int and price >= 0 else name)
+        if len(entries) == 3:
+            break
+    if not entries:
+        return None
+    templates = {
+        "ko": "자료에 있는 비교 후보는 {items}입니다. 방문 전에 이용 조건과 재고를 확인해 주세요.",
+        "en": "The recorded options to compare are {items}. Confirm visit conditions and stock before visiting.",
+        "ja": "資料にある比較候補は {items} です。訪問前に利用条件と在庫を確認してください。",
+        "zh-Hans": "资料中可供比较的产品有：{items}。到访前请确认使用条件和库存。",
+        "zh-Hant": "資料中可供比較的產品有：{items}。到訪前請確認使用條件和庫存。",
+    }
+    warnings = {
+        "ko": " 확인이 필요한 제품이 있습니다. 공식 판매처와 제품 정보를 확인해 주세요.",
+        "en": " Some products still need verification. Check official sales channels and product information.",
+        "ja": " 確認が必要な商品があります。正規販売店と商品情報をご確認ください。",
+        "zh-Hans": " 部分产品仍需核实，请确认官方销售渠道和产品信息。",
+        "zh-Hant": " 部分產品仍需核實，請確認官方銷售管道和產品資訊。",
+    }
+    summary = templates[language].format(items="; ".join(entries))
+    checks = facts.get("authenticity_checks")
+    if isinstance(checks, list) and any(isinstance(check, dict) and check.get("trusted") is False for check in checks):
+        summary += warnings[language]
+    return summary
 
 
 def localized_projection(settings, language: str, mode: str, facts: Dict,
@@ -273,6 +341,8 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
         "Return display_names mapping every supplied Korean source label to a display label in the requested language. "
         "Use provided_product_names exactly when supplied; those are existing product names, not names to invent. "
         "For other places or names, translate or romanize the existing name without inventing a brand, location or new facts. "
+        "Quoted titles inside place or experience names are also display labels: translate or romanize each supplied title, "
+        "and use that label both on its own and inside the full place name. Quotation marks never justify keeping untranslated Hangul. "
         "Translate profile concerns and ingredients as terms, not as invented proper names. "
         "Use those display labels consistently throughout every explanation. Outside Korean, no Hangul may remain in user-facing values. "
         "Exclude file paths, source filenames, model names, API details, policy logs, internal JSON field names and other implementation details. "
@@ -327,9 +397,21 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
         display_names, replacements, missing_names = _resolve_display_names(
             language, names, provided_names, payload.get("display_names"))
     allowed_names = tuple(n for n in proper_names if isinstance(n, str) and not HANGUL.search(n)) + tuple(display_names.values())
+    seongsu_label = display_names.get("성수")
+    normalize_seongsu = (language == "ja" and "성수" not in missing_names
+                         and seongsu_label != DISPLAY_NAME_FALLBACK[language]
+                         and seongsu_label != "性数" and _valid_display_name(seongsu_label, language)
+                         and any(isinstance(stop, dict) and stop.get("area") == "성수"
+                                 for stop in facts.get("route", [])))
 
     def localize(text):
-        return replace_display_names(text, replacements) if isinstance(text, str) else text
+        if not isinstance(text, str):
+            return text
+        text = replace_display_names(text, replacements)
+        if normalize_seongsu:
+            # Correct only the observed standalone misspelling of a selected area.
+            text = re.sub(r"(?<!\w)性数(?!\w)", lambda _match: seongsu_label, text)
+        return text
 
     def check_named(text):
         if not isinstance(text, str) or not text.strip():
@@ -339,21 +421,27 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
             return "technical_content"
         return None if in_language(text, language, allowed_names) else "language_mismatch"
 
-    problems, mismatches = {}, {}
+    problems, mismatches, scrubbed_paths = {}, {}, set()
+    request = facts.get("request") if isinstance(facts, dict) else None
 
     def salvage(text, fallback, path):
         text = localize(text)
         issue = check_named(text)
         if issue == "technical_content" and isinstance(text, str):
             scrubbed = _scrub_technical(text)
-            if scrubbed and check_named(scrubbed) is None:
-                problems[path] = "technical_scrubbed"
-                return scrubbed
+            if scrubbed:
+                text, issue = scrubbed, check_named(scrubbed)
+                scrubbed_paths.add(path)
+        if path == (key,) and _echoes_request(text, request):
+            problems[path] = "echoed_request"
+            return fallback
         if issue:
             problems[path] = issue
             if issue == "language_mismatch":
                 mismatches[path] = text
             return fallback
+        if path in scrubbed_paths:
+            problems[path] = "technical_scrubbed"
         return text
 
     out = {"language": language, "display_names": display_names}
@@ -362,9 +450,6 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
         out[key] = copy[key]
     else:
         out[key] = salvage(payload.get(key), copy[key], (key,))
-        if _echoes_request(out[key], (facts or {}).get("request") if isinstance(facts, dict) else None):
-            problems[(key,)] = "echoed_request"
-            out[key] = copy[key]
     for field, original in source.items():
         got = payload.get(field) if payload is not None else None
         if not isinstance(got, list) or len(got) != len(original):
@@ -428,6 +513,7 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
             "Do not turn unverified information into certainty or claim any booking, sending, payment or access to restricted data. "
             "Translate only; add no facts, explanations, recommendations or safety assurances. "
             "Outside Korean, no Hangul may remain in user-facing values. Use the requested Chinese writing system. "
+            "Translate or romanize any quoted Korean title still present in the text; do not preserve untranslated Hangul as a proper name. "
             "Exclude file paths, filenames, model names, API details, policy logs and other implementation details."
         )
         try:
@@ -453,8 +539,14 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
                     continue
                 if any(original.count(name) != candidate.count(name) for name in allowed_names if name):
                     continue
+                if path == (key,) and _echoes_request(candidate, request):
+                    problems[path] = "echoed_request"
+                    continue
                 set_at(out, path, candidate)
-                problems.pop(path, None)
+                if path in scrubbed_paths:
+                    problems[path] = "technical_scrubbed"
+                else:
+                    problems.pop(path, None)
 
     lead_problem = problems.get((key,))
     if lead_problem:
@@ -476,4 +568,9 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
             out["status"], out["status_reason"] = "fallback", "display_names_unavailable"
         elif out["status"] == "ready":
             out["status"], out["status_reason"] = "partial", "display_names_unavailable"
+    if mode == "beauty" and lead_problem == "language_mismatch":
+        summary = _verified_beauty_summary(facts, language, display_names)
+        if summary is not None:
+            out["summary"] = summary
+            out["summary_origin"] = "verified_fields"
     return out
