@@ -1,0 +1,28 @@
+[1791356063.240] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
+[1791356063.423] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> api.typesafe.ai:443 [policy:_provider_typesafe engine:opa]
+[1791356063.434] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://api.typesafe.ai:443/v1/systemone [policy:_provider_typesafe engine:l7]
+[1791356063.772] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> api.typesafe.ai:443 [policy:_provider_typesafe engine:opa]
+[1791356063.780] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://api.typesafe.ai:443/v1/systemone [policy:_provider_typesafe engine:l7]
+[1791356064.162] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356064.168] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791356071.924] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356071.930] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791356072.542] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
+[1791356072.605] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
+[1791356072.782] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> api.typesafe.ai:443 [policy:_provider_typesafe engine:opa]
+[1791356072.788] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://api.typesafe.ai:443/v1/systemone [policy:_provider_typesafe engine:l7]
+[1791356073.306] [sandbox] [OCSF ] [ocsf] NET:REFUSE [MED] DENIED coupon-upload.example.net [reason:policy_dns_ineligible]
+[1791356073.308] [sandbox] [OCSF ] [ocsf] NET:OPEN [MED] DENIED /usr/bin/python3.12(0) -> coupon-upload.example.net:443 [reason:transparent_tcp_policy_denied]
+[1791356073.315] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> api.typesafe.ai:443 [policy:_provider_typesafe engine:opa]
+[1791356073.328] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://api.typesafe.ai:443/v1/systemone [policy:_provider_typesafe engine:l7]
+[1791356073.624] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356073.630] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/embeddings [policy:_provider_nvidia engine:l7]
+[1791356073.811] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356073.817] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/embeddings [policy:_provider_nvidia engine:l7]
+[1791356074.010] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356074.015] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791356081.652] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356081.657] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791356088.288] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791356088.295] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791356089.373] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
