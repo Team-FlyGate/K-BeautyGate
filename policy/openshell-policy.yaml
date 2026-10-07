@@ -87,6 +87,7 @@ network_policies:
         enforcement: enforce
         rules:
           - allow: { method: GET, path: "/1471000/**" }
+          - allow: { method: GET, path: "/1471057/**" }   # 기능성화장품 심사품목정보 기관 경로
     binaries:
       - path: /usr/bin/python3
       - path: /usr/bin/python3.12

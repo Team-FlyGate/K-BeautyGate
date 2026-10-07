@@ -9,7 +9,7 @@ from kbeauty_gate import ingredients
 from kbeauty_gate.config import Settings
 from kbeauty_gate.planner import rank_products
 
-MFDS_ENV = {"MFDS_SERVICE_KEY": "test-placeholder",
+MFDS_ENV = {"MFDS_API_KEY": "abc%2Bdef%3D%3D",
             "MFDS_INGREDIENT_URL": "https://apis.data.go.kr/1471000/TestService/getTestList"}
 
 
@@ -67,6 +67,9 @@ class MfdsTests(unittest.TestCase):
         self.assertEqual(ingredients.last_source(), "mfds")
         url = urlopen.call_args[0][0].full_url
         self.assertTrue(url.startswith("https://apis.data.go.kr/1471000/"))
+        # data.go.kr gives an already-encoded key; encoding it again turns % into %25 and auth fails
+        self.assertIn("serviceKey=abc%2Bdef%3D%3D&", url)
+        self.assertNotIn("%25", url)
 
     @patch.dict(os.environ, MFDS_ENV, clear=True)
     @patch("kbeauty_gate.ingredients.urllib.request.urlopen", side_effect=OSError("SERVICE_KEY_IS_NOT_REGISTERED_ERROR"))
@@ -80,6 +83,14 @@ class MfdsTests(unittest.TestCase):
     def test_only_the_official_host_is_called(self, urlopen):
         ingredients.expand_avoid(["fragrance"])
         urlopen.assert_not_called()
+
+
+    @patch.dict(os.environ, {**MFDS_ENV, "MFDS_INGREDIENT_URL": "https://apis.data.go.kr/1471057/TestService/getTestList"}, clear=True)
+    @patch("kbeauty_gate.ingredients.urllib.request.urlopen")
+    def test_second_mfds_agency_path_is_allowed(self, urlopen):
+        urlopen.return_value = FakeResponse(b'{"body": {"items": []}}')
+        ingredients.expand_avoid(["fragrance"])
+        urlopen.assert_called_once()
 
 
 class PlannerTests(unittest.TestCase):

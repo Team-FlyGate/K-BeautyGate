@@ -5,7 +5,7 @@
 Parfum, Perfume 까지 걸러지게 하려는 것이다.
 
 설정(환경 변수):
-  MFDS_SERVICE_KEY     공공데이터포털 인증키. 없으면 네트워크를 쓰지 않는다
+  MFDS_API_KEY         공공데이터포털 일반 인증키(Encoding 값 그대로). 없으면 네트워크를 쓰지 않는다
   MFDS_INGREDIENT_URL  오퍼레이션 전체 주소. 공공데이터포털 명세 화면의 요청주소를 그대로 넣는다
   MFDS_QUERY_PARAM     성분명 검색 변수 이름 (명세 화면에서 확인, 기본값은 추정)
 """
@@ -19,7 +19,8 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set
 
 GLOSSARY = Path(__file__).resolve().parent.parent / "hackathon" / "input" / "beauty" / "ingredients" / "ingredient_glossary.csv"
-OFFICIAL_PREFIX = "https://apis.data.go.kr/1471000/"  # OpenShell 정책도 이 호스트의 GET 만 허용한다
+# 식약처 기관 경로 둘(1471000, 1471057). OpenShell 정책도 이 경로의 GET 만 허용한다
+OFFICIAL_PREFIXES = ("https://apis.data.go.kr/1471000/", "https://apis.data.go.kr/1471057/")
 TIMEOUT = 4
 
 _glossary: Optional[List[Dict]] = None
@@ -88,14 +89,16 @@ def _items(payload) -> List[Dict]:
 
 
 def _mfds(word: str) -> Optional[Set[str]]:
-    key, url = os.environ.get("MFDS_SERVICE_KEY"), os.environ.get("MFDS_INGREDIENT_URL", "")
-    if not key or not url.startswith(OFFICIAL_PREFIX):
+    key = os.environ.get("MFDS_API_KEY") or os.environ.get("MFDS_SERVICE_KEY")
+    url = os.environ.get("MFDS_INGREDIENT_URL", "")
+    if not key or not url.startswith(OFFICIAL_PREFIXES):
         return None
     if word in _api_cache:
         return _api_cache[word]
-    params = {"serviceKey": key, "type": "json", "pageNo": 1, "numOfRows": 5,
-              os.environ.get("MFDS_QUERY_PARAM", "INGR_ENG_NAME"): word}
-    req = urllib.request.Request(f"{url}?{urllib.parse.urlencode(params)}", headers={"Accept": "application/json"})
+    params = {"type": "json", "pageNo": 1, "numOfRows": 5, os.environ.get("MFDS_QUERY_PARAM", "INGR_ENG_NAME"): word}
+    # The portal's key is already URL-encoded; passing it through urlencode again turns % into %25 and auth fails
+    req = urllib.request.Request(f"{url}?serviceKey={key}&{urllib.parse.urlencode(params)}",
+                                 headers={"Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
             payload = json.loads(resp.read().decode("utf-8"))
