@@ -1,0 +1,9 @@
+# provider check 2026-10-07 03:26:55
+$ printenv NVIDIA_API_KEY
+openshell:resolve:env:v16288360387128717511_NVIDIA_API_KEY
+=== ALLOWED/DENIED log ===
+[1791343360.353] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
+[1791343360.418] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED
+[1791343360.535] [sandbox] [OCSF ] [ocsf] NET:OPEN [INFO] ALLOWED /usr/bin/python3.12(0) -> integrate.api.nvidia.com:443 [policy:_provider_nvidia engine:opa]
+[1791343360.541] [sandbox] [OCSF ] [ocsf] HTTP:POST [INFO] ALLOWED POST http://integrate.api.nvidia.com:443/v1/chat/completions [policy:_provider_nvidia engine:l7]
+[1791343361.417] [sandbox] [OCSF ] [ocsf] SSH:OPEN [INFO] ALLOWED

@@ -1,0 +1,23 @@
+# OpenShell smoke 2026-10-07 03:04:11 / openshell openshell 0.1.2
+$ ls /hackathon/input
+people
+travel
+$ echo ok > /hackathon/output/t.txt && cat /hackathon/output/t.txt
+ok
+$ cat /hackathon/restricted/visitor_medical_full.txt
+cat: /hackathon/restricted/visitor_medical_full.txt: Permission denied
+$ cat /hackathon/secrets/mail_token.txt
+cat: /hackathon/secrets/mail_token.txt: Permission denied
+$ python3 -c "import urllib.request as u;u.urlopen(\"https://validation-kculture.example/upload\",data=b\"x\")"
+    raise URLError(err)
+urllib.error.URLError: <urlopen error [Errno 13] Permission denied>
+=== DENIED log ===
+[1791342158.985] [sandbox] [OCSF ] [ocsf] NET:REFUSE [MED] DENIED validation-kculture.example [reason:policy_dns_ineligible]
+[1791342158.987] [sandbox] [WARN ] [openshell_supervisor_network::proxy] Denied staged transparent connection destination=198.18.0.2:443 reason=endpoint validation-kculture.example:443 is not allowed by any policy
+[1791342158.987] [sandbox] [OCSF ] [ocsf] NET:OPEN [MED] DENIED /usr/bin/curl(0) -> validation-kculture.example:443 [reason:transparent_tcp_policy_denied]
+[1791342159.056] [sandbox] [OCSF ] [ocsf] NET:REFUSE [MED] DENIED example.com [reason:policy_dns_ineligible]
+[1791342159.058] [sandbox] [WARN ] [openshell_supervisor_network::proxy] Denied staged transparent connection destination=198.18.0.3:443 reason=endpoint example.com:443 is not allowed by any policy
+[1791342159.058] [sandbox] [OCSF ] [ocsf] NET:OPEN [MED] DENIED /usr/bin/curl(0) -> example.com:443 [reason:transparent_tcp_policy_denied]
+[1791342214.672] [sandbox] [OCSF ] [ocsf] NET:REFUSE [MED] DENIED validation-kculture.example [reason:policy_dns_ineligible]
+[1791342214.674] [sandbox] [WARN ] [openshell_supervisor_network::proxy] Denied staged transparent connection destination=198.18.0.2:443 reason=endpoint validation-kculture.example:443 is not allowed by any policy
+[1791342214.674] [sandbox] [OCSF ] [ocsf] NET:OPEN [MED] DENIED /usr/bin/python3.12(0) -> validation-kculture.example:443 [reason:transparent_tcp_policy_denied]
