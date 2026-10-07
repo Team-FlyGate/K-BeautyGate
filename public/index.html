@@ -33,6 +33,11 @@
     display: grid; place-items: center; font-family: Georgia, serif; font-size: 23px; font-weight: 500; }
   .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: .025em; margin-top: -4px; }
   .header-note { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .lang-switch { display: flex; gap: 4px; flex-wrap: wrap; }
+  .lang-switch button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px;
+    padding: 4px 10px; font-size: 12px; cursor: pointer; line-height: 1.4; }
+  .lang-switch button:hover { color: var(--ink, inherit); border-color: var(--accent); }
+  .lang-switch button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 650; }
   .status { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; max-width: 100%; }
   .dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--muted); }
   .dot.on { background: var(--good); }
@@ -192,6 +197,13 @@
 <header>
   <div class="brand"><div class="logo">K</div><div>K-BeautyGate<small>진짜 K-뷰티로 가는 관문</small></div></div>
   <span class="header-note">나만의 뷰티 여행</span>
+  <div class="lang-switch" role="group" aria-label="Language / 언어">
+    <button type="button" data-lang="ko" aria-pressed="false">한국어</button>
+    <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    <button type="button" data-lang="ja" aria-pressed="false">日本語</button>
+    <button type="button" data-lang="zh-Hans" aria-pressed="false">简体</button>
+    <button type="button" data-lang="zh-Hant" aria-pressed="false">繁體</button>
+  </div>
   <div class="status bs"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span><span class="backstage-badge bs">BACKSTAGE · 발표용</span></div>
 </header>
 
@@ -211,7 +223,6 @@
       <button data-q="건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만원 안에서 살 만한 거 추천해 주세요."><b>한국어 · 맞춤 쇼핑</b>건조한 내 피부를 위한<br>명동 뷰티 산책</button>
       <button data-q="공통 테스트: 해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."><b>문화 산책</b>옛시장과 성진정에서<br>여유로운 반나절</button>
     </div>
-    <p class="languages">한국어 · English · 日本語 · 简体中文 · 繁體中文</p>
   </div>
 </div></main>
 
@@ -783,6 +794,7 @@ const I18N = {
 };
 
 let uiLanguage = "ko";
+let preferredLanguage = null; // 사용자가 직접 고른 언어 (자동 감지보다 우선)
 const LANGUAGE_ALIASES = {"ko": "ko", "ko-kr": "ko", "korean": "ko", "한국어": "ko", "한국말": "ko", "韓国語": "ko", "韓國語": "ko", "韩语": "ko", "en": "en", "en-us": "en", "en-gb": "en", "english": "en", "영어": "en", "英語": "en", "英语": "en", "ja": "ja", "ja-jp": "ja", "japanese": "ja", "일본어": "ja", "日本語": "ja", "日语": "ja", "日語": "ja", "zh": "zh-Hans", "zh-cn": "zh-Hans", "zh-sg": "zh-Hans", "zh-hans": "zh-Hans", "chinese": "zh-Hans", "中文": "zh-Hans", "중국어": "zh-Hans", "simplifiedchinese": "zh-Hans", "chinese(simplified)": "zh-Hans", "간체중국어": "zh-Hans", "중국어간체": "zh-Hans", "简体中文": "zh-Hans", "簡體中文": "zh-Hans", "简体": "zh-Hans", "簡體": "zh-Hans", "zh-tw": "zh-Hant", "zh-hk": "zh-Hant", "zh-mo": "zh-Hant", "zh-hant": "zh-Hant", "traditionalchinese": "zh-Hant", "chinese(traditional)": "zh-Hant", "정체중국어": "zh-Hant", "번체중국어": "zh-Hant", "중국어정체": "zh-Hant", "중국어번체": "zh-Hant", "繁體中文": "zh-Hant", "繁体中文": "zh-Hant", "正體中文": "zh-Hant", "繁體": "zh-Hant", "繁体": "zh-Hant"};
 const LANGUAGE_TOKEN = "traditional\\s+chinese|simplified\\s+chinese|chinese\\s*\\(traditional\\)|chinese\\s*\\(simplified\\)|zh[-_]hant|zh[-_]hans|english|korean|japanese|chinese|영어|한국어|일본어|중국어\\s*정체|중국어\\s*번체|중국어\\s*간체|정체\\s*중국어|번체\\s*중국어|간체\\s*중국어|중국어|日本語|英語|英语|韓国語|韓國語|韩语|한국말|日语|日語|繁體中文|繁体中文|正體中文|繁體|繁体|簡體中文|简体中文|簡體|简体|中文";
 const CHINESE_SIMPLIFIED = new Set("万与业东个丰为丽乐买产仅从价优会体区喷国场妆对帮开护无时样欢气泽洁润湿点爱确简绍网肤腻荐营补装观览认让讯讲试语请谢贝货质购资轻较过这适选邮钱门闭问间雾韩预频题颜");
@@ -849,6 +861,7 @@ function detectLanguage(text, previous = uiLanguage, fallbackLanguage = "en") {
 }
 function setLanguage(value) {
   uiLanguage = normalizeLanguage(value);
+  document.querySelectorAll?.(".lang-switch button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === uiLanguage)));
   const l = I18N[uiLanguage];
   document.documentElement.lang = uiLanguage;
   input.placeholder = l.placeholder; input.setAttribute("aria-label", l.message); send.setAttribute("aria-label", l.send);
@@ -904,7 +917,16 @@ const showMascot = () => { mascot.hidden = false; $(".gate-mark")?.setAttribute(
 mascot.addEventListener("load", showMascot);
 mascot.addEventListener("error", () => { mascot.hidden = true; });
 if (mascot.complete && mascot.naturalWidth) showMascot();
+// 사용자가 직접 고른 언어(있으면 자동 감지보다 우선). 브라우저에 기억하되, 저장이 막혀도 동작한다.
+try { preferredLanguage = localStorage.getItem("kbg.language") || null; } catch (e) { preferredLanguage = null; }
+document.querySelectorAll(".lang-switch button").forEach((b) => b.addEventListener("click", () => {
+  preferredLanguage = normalizeLanguage(b.dataset.lang);
+  try { localStorage.setItem("kbg.language", preferredLanguage); } catch (e) { /* 저장 불가여도 이번 화면에서는 적용 */ }
+  setLanguage(preferredLanguage);
+  state = { ...(state || {}), language: preferredLanguage, preferred_language: preferredLanguage };
+}));
 setLanguage(browserLanguage(navigator.languages, navigator.language));
+if (preferredLanguage) setLanguage(preferredLanguage);
 
 fetch("/api/status").then((r) => { if (!r.ok) throw new Error("status"); return r.json(); }).then((s) => {
   [...(s.chat_models || []), s.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
@@ -970,9 +992,10 @@ async function ask(text) {
   if (!text || busy) return;
   busy = true; send.disabled = true; input.value = ""; input.style.height = "auto";
   disableFollowups();
-  const requestLanguage = detectLanguage(text, uiLanguage);
+  const requested = explicitLanguage(text);
+  const requestLanguage = requested ? normalizeLanguage(requested) : (preferredLanguage || detectLanguage(text, uiLanguage));
   setLanguage(requestLanguage);
-  state = { ...(state || {}), language: uiLanguage };
+  state = { ...(state || {}), language: uiLanguage, ...(preferredLanguage ? { preferred_language: preferredLanguage } : {}) };
   addUser(text); const bot = addBot(); scrollDown();
   try {
     const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state: state || {language: uiLanguage} }) });
@@ -980,7 +1003,7 @@ async function ask(text) {
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     if (!data.turn || !data.result) throw new Error("응답 형식을 확인해 주세요.");
     setLanguage(requestLanguage);
-    state = { ...(state || {}), ...(data.turn.profile || {}), language: requestLanguage };
+    state = { ...(state || {}), ...(data.turn.profile || {}), language: requestLanguage, ...(preferredLanguage ? { preferred_language: preferredLanguage } : {}) };
     bot.el.lang = uiLanguage;
     bot.el.querySelector(".avatar").innerHTML = `<div class="logo">K</div>${esc(I18N[uiLanguage].avatar)}`;
     bot.finish((data.result.blocked || []).filter((e) => e.action === "follow-instruction").length);

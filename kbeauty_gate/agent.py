@@ -17,7 +17,7 @@ from .fact_guard import BEAUTY_FIX, check_beauty
 from .followups import suggest
 from .guard import AuditLog, SafeFS
 from .request_guard import refusal_answer, screen_request
-from .language import COPY, LANG_NAME, detect_language, display_name, in_language, localized_projection, normalize_locale
+from .language import explicit_language, COPY, LANG_NAME, detect_language, display_name, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
 from .trust import assess_product, assess_unlisted
 
@@ -46,6 +46,9 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         mode = select_mode(request, profile)
     profile = dict(profile or {})
     language = detect_language(request, previous=profile.get("language"), default=normalize_locale(profile.get("language")))
+    # 화면에서 직접 고른 언어가 있으면 그 언어로 답한다. 문장 안의 명시적 요청("일본어로 답해 줘")만 이보다 우선한다.
+    if profile.get("preferred_language") and not explicit_language(request):
+        language = normalize_locale(profile["preferred_language"])
     profile["language"] = language
     # 0) 사용자 요청 자체를 먼저 본다 (금지 구역, 비밀, 발송, 예약, 자료 속 지시)
     refusals = screen_request(request)
