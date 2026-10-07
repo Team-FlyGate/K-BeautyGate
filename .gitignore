@@ -7,3 +7,6 @@
 __pycache__/
 hackathon/output/*
 !hackathon/output/.gitkeep
+
+# 팀 작업 공간 (기획서, 카톡 기록, 에이전트 메모) — 공개 레포에 올리지 않음
+workspace/

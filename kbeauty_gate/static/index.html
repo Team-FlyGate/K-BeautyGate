@@ -2,244 +2,256 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>K-BeautyGate</title>
 <style>
   :root {
-    --bg: #f7f5f2; --card: #ffffff; --ink: #1d1b19; --muted: #6b6560; --line: #e6e1db;
-    --accent: #c2410c; --accent-soft: #fff1e8; --good: #15803d; --good-soft: #ecfdf3;
-    --bad: #b91c1c; --bad-soft: #fef2f2; --warn: #a16207; --warn-soft: #fefce8;
+    --bg: #faf8f6; --surface: #ffffff; --ink: #1a1817; --muted: #77706a; --line: #ebe6e1;
+    --accent: #d9480f; --accent-ink: #ffffff; --accent-soft: #fff0e8; --user: #1a1817; --user-ink: #ffffff;
+    --good: #12805c; --good-soft: #e9f7f1; --bad: #c92a2a; --bad-soft: #fdeeee; --warn: #9a6700; --warn-soft: #fff8db;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #151413; --card: #1f1d1b; --ink: #f2efeb; --muted: #a8a19a; --line: #34302c;
-      --accent: #fb923c; --accent-soft: #2b1d14; --good: #4ade80; --good-soft: #13241a;
-      --bad: #f87171; --bad-soft: #2a1515; --warn: #facc15; --warn-soft: #2a2512;
+      --bg: #121110; --surface: #1c1a19; --ink: #f3f0ec; --muted: #a39b94; --line: #2e2b28;
+      --accent: #ff8a4c; --accent-ink: #1a0d05; --accent-soft: #2a1a10; --user: #f3f0ec; --user-ink: #121110;
+      --good: #51cf9a; --good-soft: #10241c; --bad: #ff8787; --bad-soft: #2b1414; --warn: #ffd43b; --warn-soft: #2a2410;
+      --shadow: none;
     }
   }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink);
-         font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; }
-  header { padding: 20px 24px 12px; border-bottom: 1px solid var(--line); }
-  header h1 { margin: 0; font-size: 22px; }
-  header h1 span { color: var(--accent); }
-  header p { margin: 4px 0 0; color: var(--muted); }
-  .tabs { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .tab { border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 8px 14px;
-         border-radius: 999px; cursor: pointer; font: inherit; }
-  .tab.on { background: var(--accent); border-color: var(--accent); color: #fff; }
-  main { display: grid; grid-template-columns: 340px 1fr; gap: 20px; padding: 20px 24px; max-width: 1280px; margin: 0 auto; }
-  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-  .card h2 { font-size: 15px; margin: 0 0 10px; }
-  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
-  input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
-         background: var(--bg); color: var(--ink); font: inherit; }
-  textarea { min-height: 84px; resize: vertical; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chips label { display: inline-flex; align-items: center; gap: 4px; margin: 0; padding: 4px 10px; border: 1px solid var(--line);
-         border-radius: 999px; color: var(--ink); cursor: pointer; }
-  .chips input { width: auto; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  button.run { width: 100%; margin-top: 14px; padding: 12px; border: 0; border-radius: 10px; background: var(--accent);
-         color: #fff; font: 600 15px/1 inherit; cursor: pointer; }
-  button.run:disabled { opacity: .6; cursor: wait; }
-  table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 500; font-size: 12px; }
-  .timeline { list-style: none; margin: 0; padding: 0; }
-  .timeline li { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .timeline .t { font-variant-numeric: tabular-nums; color: var(--muted); }
-  .timeline .exp { color: var(--accent); font-weight: 600; }
-  .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 999px; margin-right: 4px;
-           background: var(--warn-soft); color: var(--warn); }
-  .badge.bad { background: var(--bad-soft); color: var(--bad); }
-  .verdict { padding: 12px; border-radius: 10px; margin-bottom: 8px; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink); display: flex; flex-direction: column;
+         font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Hiragino Sans", sans-serif; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px;
+           border-bottom: 1px solid var(--line); background: var(--bg); position: sticky; top: 0; z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
+  .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
+          display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+  .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: -2px; }
+  .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+  .dot.on { background: var(--good); }
+  #thread { flex: 1; overflow-y: auto; padding: 24px 16px 140px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .hello { text-align: center; padding: 8vh 0 24px; }
+  .hello h1 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 6px; }
+  .hello p { color: var(--muted); margin: 0 0 22px; }
+  .suggest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; text-align: left; }
+  @media (max-width: 600px) { .suggest { grid-template-columns: 1fr; } }
+  .suggest button { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
+                    color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; text-align: left; box-shadow: var(--shadow); }
+  .suggest button:hover { border-color: var(--accent); }
+  .suggest b { display: block; font-size: 12px; color: var(--accent); margin-bottom: 2px; }
+  .msg { display: flex; margin: 18px 0; }
+  .msg.user { justify-content: flex-end; }
+  .bubble { max-width: 85%; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap; word-break: break-word; }
+  .user .bubble { background: var(--user); color: var(--user-ink); border-bottom-right-radius: 6px; }
+  .bot { flex-direction: column; gap: 10px; }
+  .bot .bubble { background: transparent; padding: 0; max-width: 100%; }
+  .avatar { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .avatar .logo { width: 22px; height: 22px; border-radius: 7px; font-size: 11px; }
+  .steps { list-style: none; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
+           background: var(--surface); font-size: 13px; color: var(--muted); }
+  .steps li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
+  .steps li::before { content: "○"; width: 14px; text-align: center; }
+  .steps li.done { color: var(--ink); }
+  .steps li.done::before { content: "✓"; color: var(--good); }
+  .steps li.run::before { content: "◌"; color: var(--accent); animation: spin 1s linear infinite; }
+  .steps li.block { color: var(--bad); }
+  .steps li.block::before { content: "⛔"; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
+  .card h3 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
+  .verdict { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; }
   .verdict.ok { background: var(--good-soft); color: var(--good); }
   .verdict.no { background: var(--bad-soft); color: var(--bad); }
-  .verdict small { display: block; color: var(--muted); margin-top: 4px; }
-  .staff { font-size: 20px; line-height: 1.7; padding: 18px; border: 2px dashed var(--accent); border-radius: 12px;
-           background: var(--accent-soft); white-space: pre-wrap; }
-  .staff.big { position: fixed; inset: 0; z-index: 10; font-size: 30px; border-radius: 0; overflow: auto; padding: 40px; }
-  .log { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bad-soft); color: var(--bad);
-         padding: 10px; border-radius: 8px; white-space: pre-wrap; word-break: break-all; }
-  .muted { color: var(--muted); }
-  .pre { white-space: pre-wrap; }
-  .empty { color: var(--muted); text-align: center; padding: 40px 0; }
-  .mini { border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 4px 10px;
-          cursor: pointer; font: inherit; font-size: 13px; float: right; }
-  ul.filtered { margin: 0; padding-left: 18px; }
-  ul.filtered li { margin-bottom: 6px; }
+  .verdict .icon { font-size: 20px; line-height: 1.2; }
+  .verdict small { display: block; color: var(--muted); margin-top: 2px; }
+  .products { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; }
+  .product { flex: 0 0 210px; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--bg); }
+  .product .rank { font-size: 11px; color: var(--accent); font-weight: 700; }
+  .product .name { font-weight: 600; margin: 2px 0; }
+  .product .en { font-size: 12px; color: var(--muted); }
+  .product .price { margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .product .why { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .route { list-style: none; margin: 0; padding: 0; position: relative; }
+  .route li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 8px 0; }
+  .route .t { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .route .exp { color: var(--accent); }
+  .route small { color: var(--muted); display: block; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .staff { font-size: 18px; line-height: 1.75; padding: 16px; border: 2px dashed var(--accent); border-radius: 14px;
+           background: var(--accent-soft); white-space: pre-wrap; cursor: zoom-in; }
+  .staff.big { position: fixed; inset: 0; z-index: 20; font-size: 30px; border-radius: 0; overflow: auto; padding: 48px 32px; cursor: zoom-out; }
+  details { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 10px 14px; }
+  summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  summary .count { font-weight: 400; color: var(--muted); }
+  .flist { margin: 10px 0 0; padding-left: 18px; font-size: 13px; }
+  .flist li { margin-bottom: 6px; }
+  .tag { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; margin-right: 4px;
+         background: var(--warn-soft); color: var(--warn); }
+  .tag.bad { background: var(--bad-soft); color: var(--bad); }
+  .log { margin-top: 10px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bad-soft); color: var(--bad);
+         padding: 10px 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-all; }
+  .meta { font-size: 11px; color: var(--muted); }
+  .composer { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+              background: linear-gradient(to top, var(--bg) 70%, transparent); }
+  .composer form { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; background: var(--surface);
+                   border: 1px solid var(--line); border-radius: 22px; padding: 8px 8px 8px 16px; box-shadow: var(--shadow); }
+  .composer textarea { flex: 1; border: 0; outline: 0; resize: none; background: transparent; color: var(--ink);
+                       font: inherit; max-height: 160px; padding: 6px 0; }
+  .composer button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
+                     font-size: 18px; cursor: pointer; flex: 0 0 auto; }
+  .composer button:disabled { opacity: .4; cursor: default; }
+  .profile-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .profile-chips span { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
 </style>
 </head>
 <body>
 <header>
-  <h1><span>K-Beauty</span>Gate</h1>
-  <p>진짜 K-뷰티로 가는 관문 · 근거를 판단하고, 허용된 범위 안에서만 움직이는 체험 여행 에이전트 (NVIDIA Nemotron + OpenShell)</p>
-  <div class="tabs">
-    <button class="tab on" data-mode="beauty">K-뷰티 체험 플랜</button>
-    <button class="tab" data-mode="culture">공통 테스트 · 문화 코스</button>
-  </div>
+  <div class="brand"><div class="logo">K</div><div>K-BeautyGate<small>진짜 K-뷰티로 가는 관문</small></div></div>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span></div>
 </header>
 
-<main>
-  <section>
-    <form id="beautyForm" class="card">
-      <h2>방문객 프로필 <span class="muted">(가상 프로필)</span></h2>
-      <div class="row">
-        <div><label>언어</label>
-          <select name="language"><option value="ja">日本語</option><option value="en">English</option>
-          <option value="zh">中文</option><option value="ko">한국어</option></select></div>
-        <div><label>피부 타입</label>
-          <select name="skin_type"><option value="combination">복합성</option><option value="dry">건성</option>
-          <option value="oily">지성</option><option value="sensitive">민감성</option><option value="normal">중성</option></select></div>
-      </div>
-      <label>피부 고민</label>
-      <div class="chips" id="concerns">
-        <label><input type="checkbox" value="redness">붉어짐</label>
-        <label><input type="checkbox" value="dryness">건조함</label>
-        <label><input type="checkbox" value="dullness">칙칙함</label>
-        <label><input type="checkbox" value="pores">모공</label>
-      </div>
-      <label>피하고 싶은 성분</label>
-      <div class="chips" id="avoid">
-        <label><input type="checkbox" value="fragrance">향료</label>
-        <label><input type="checkbox" value="alcohol">알코올</label>
-      </div>
-      <div class="row">
-        <div><label>예산 (원)</label><input name="budget_krw" type="number" step="1000"></div>
-        <div><label>방문일</label><input name="visit_date" type="date"></div>
-      </div>
-      <div class="row">
-        <div><label>시간</label><input name="time_window" placeholder="13:00-19:00"></div>
-        <div><label>지역 (순서대로)</label><input name="areas" placeholder="성수, 명동"></div>
-      </div>
-      <label>요청</label><textarea name="request"></textarea>
-      <label>정품 확인할 제품 (한 줄에 하나)</label><textarea name="check_items" style="min-height:52px"></textarea>
-      <button class="run" type="submit">에이전트 실행</button>
-    </form>
+<div id="thread"><div class="wrap" id="wrap">
+  <div class="hello" id="hello">
+    <h1>어떤 K-뷰티 하루를 원하세요?</h1>
+    <p>피부 고민, 일정, 가고 싶은 동네를 편하게 말해 주세요. 한국어 · English · 日本語 · 中文</p>
+    <div class="suggest">
+      <button data-q="敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ『ソウルの春の日』のヒロインのメイクがしたい！あと「Seoul Glow Snail 99% Miracle Essence」って本物の韓国コスメ？"><b>日本語</b>敏感肌の私に合うソウルのコスメ旅、ドラマのメイクも</button>
+      <button data-q="I have combination skin with dullness and pores. Budget about $50, I'm in Myeongdong and Seongsu on Oct 7 from 1pm to 7pm. Is 'K-Skin Gangnam Collagen Mask (10ea)' a real Korean brand?"><b>English</b>Combination skin, $50, and is this mask really Korean?</button>
+      <button data-q="건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만원 안에서 살 만한 거 추천해 주세요."><b>한국어</b>건성 피부, 명동에서 5만 원으로 하루</button>
+      <button data-q="공통 테스트: 해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."><b>공통 테스트</b>해담 옛시장 · 성진정 반나절 문화 코스</button>
+    </div>
+  </div>
+</div></div>
 
-    <form id="cultureForm" class="card" hidden>
-      <h2>공통 테스트 요청</h2>
-      <p class="muted">주최측 hackathon/input 자료와 visitor_group.json으로 문화 코스 초안을 만듭니다. 예약·발송은 하지 않습니다.</p>
-      <label>요청</label><textarea name="request" style="min-height:140px"></textarea>
-      <button class="run" type="submit">에이전트 실행</button>
-    </form>
-  </section>
-
-  <section id="out"><div class="card empty">왼쪽에서 실행하면 결과와 차단 로그가 여기에 나타납니다.</div></section>
-</main>
+<div class="composer"><form id="composer">
+  <textarea id="input" rows="1" placeholder="메시지를 입력하세요"></textarea>
+  <button id="send" type="submit" aria-label="보내기">↑</button>
+</form></div>
 
 <script>
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const bold = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^# (.*)$/gm, "<strong>$1</strong>").replace(/^## (.*)$/gm, "<strong>$1</strong>");
-let mode = "beauty";
+const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^#{1,3} (.*)$/gm, "<strong>$1</strong>");
+const wrap = $("#wrap"), thread = $("#thread"), input = $("#input"), send = $("#send");
+let state = null, busy = false;
 
-document.querySelectorAll(".tab").forEach((b) => b.onclick = () => {
-  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === b));
-  mode = b.dataset.mode;
-  $("#beautyForm").hidden = mode !== "beauty";
-  $("#cultureForm").hidden = mode !== "culture";
+const SKIN = { combination: "복합성", dry: "건성", oily: "지성", sensitive: "민감성", normal: "중성" };
+const CONCERN = { redness: "붉어짐", dryness: "건조", dullness: "칙칙함", pores: "모공" };
+
+fetch("/api/status").then((r) => r.json()).then((s) => {
+  $("#dot").classList.toggle("on", s.online);
+  $("#statusText").textContent = s.online ? "Nemotron 연결됨 · OpenShell 정책 적용" : "오프라인 · 규칙 기반";
 });
 
-async function loadDefaults() {
-  const p = await (await fetch("/api/sample")).json();
-  const f = $("#beautyForm");
-  for (const k of ["language", "skin_type", "budget_krw", "visit_date", "time_window", "request"]) f.elements[k].value = p[k] ?? "";
-  f.elements.areas.value = (p.areas || []).join(", ");
-  f.elements.check_items.value = (p.check_items || []).join("\n");
-  document.querySelectorAll("#concerns input").forEach((i) => i.checked = (p.concerns || []).includes(i.value));
-  document.querySelectorAll("#avoid input").forEach((i) => i.checked = (p.avoid_ingredients || []).includes(i.value));
-  const t = await (await fetch("/api/task")).json();
-  $("#cultureForm").elements.request.value = t.request.replace(/^#.*\n+/, "").trim();
+const scrollDown = () => thread.scrollTo({ top: thread.scrollHeight, behavior: "smooth" });
+input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 160) + "px"; });
+input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("#composer").requestSubmit(); } });
+document.querySelectorAll(".suggest button").forEach((b) => b.onclick = () => ask(b.dataset.q));
+$("#composer").onsubmit = (e) => { e.preventDefault(); ask(input.value); };
+
+function addUser(text) {
+  $("#hello")?.remove();
+  wrap.insertAdjacentHTML("beforeend", `<div class="msg user"><div class="bubble">${esc(text)}</div></div>`);
 }
 
-function beautyProfile() {
-  const f = $("#beautyForm");
-  const picked = (sel) => [...document.querySelectorAll(sel + " input:checked")].map((i) => i.value);
-  return {
-    language: f.elements.language.value, skin_type: f.elements.skin_type.value,
-    concerns: picked("#concerns"), avoid_ingredients: picked("#avoid"),
-    budget_krw: Number(f.elements.budget_krw.value || 0), visit_date: f.elements.visit_date.value,
-    time_window: f.elements.time_window.value, request: f.elements.request.value,
-    areas: f.elements.areas.value.split(",").map((s) => s.trim()).filter(Boolean),
-    check_items: f.elements.check_items.value.split("\n").map((s) => s.trim()).filter(Boolean),
-  };
+const STEPS = ["요청 이해 · Nemotron이 프로필 추출", "자료 수집 · /hackathon/input 읽기 전용",
+               "신뢰성 판단 · 광고 · 지난 행사 · 위장 K-뷰티 · 숨은 지시", "맞춤 추천 · Nemotron Embed 관련도", "동선 · 한글 카드 · 답변 작성"];
+
+function addBot() {
+  const el = document.createElement("div");
+  el.className = "msg bot";
+  el.innerHTML = `<div class="avatar"><div class="logo">K</div>K-BeautyGate</div>
+    <ul class="steps">${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
+  wrap.appendChild(el);
+  const items = [...el.querySelectorAll(".steps li")];
+  let i = 0;
+  items[0].className = "run";
+  const timer = setInterval(() => {
+    if (i < items.length - 1) { items[i].className = "done"; i++; items[i].className = "run"; }
+  }, 1400);
+  return { el, finish(blocked) {
+    clearInterval(timer);
+    items.forEach((li) => li.className = "done");
+    if (blocked) el.querySelector(".steps").insertAdjacentHTML("beforeend",
+      `<li class="block">OpenShell · 앱 가드가 숨은 지시 ${blocked}건 차단</li>`);
+  } };
 }
 
-async function runAgent(e) {
-  e.preventDefault();
-  const btn = e.target.querySelector("button.run");
-  btn.disabled = true; btn.textContent = "판단 중…";
-  const body = mode === "beauty" ? { mode, profile: beautyProfile() } : { mode, request: $("#cultureForm").elements.request.value };
+async function ask(text) {
+  text = (text || "").trim();
+  if (!text || busy) return;
+  busy = true; send.disabled = true; input.value = ""; input.style.height = "auto";
+  addUser(text);
+  const bot = addBot();
+  scrollDown();
   try {
-    const res = await fetch("/api/run", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
+                                           body: JSON.stringify({ message: text, state }) });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    $("#out").innerHTML = mode === "beauty" ? renderBeauty(data) : renderCulture(data);
-    const staff = $("#staffCard");
-    if (staff) $("#bigBtn").onclick = () => staff.classList.toggle("big");
-    if (staff) staff.onclick = () => staff.classList.remove("big");
+    if (data.turn.mode === "beauty") state = data.turn.profile;
+    bot.finish((data.result.blocked || []).filter((e) => e.action === "follow-instruction").length);
+    bot.el.querySelector(".body").innerHTML = data.turn.mode === "beauty" ? beauty(data) : culture(data);
+    bot.el.querySelectorAll(".staff").forEach((s) => s.onclick = () => s.classList.toggle("big"));
   } catch (err) {
-    $("#out").innerHTML = `<div class="card log">${esc(err.message)}</div>`;
+    bot.finish(0);
+    bot.el.querySelector(".body").innerHTML = `<div class="log">${esc(err.message)}</div>`;
   } finally {
-    btn.disabled = false; btn.textContent = "에이전트 실행";
+    busy = false; send.disabled = false; input.focus(); scrollDown();
   }
 }
-$("#beautyForm").onsubmit = runAgent;
-$("#cultureForm").onsubmit = runAgent;
 
-function filteredList(items) {
-  if (!items.length) return '<p class="muted">없음</p>';
-  return '<ul class="filtered">' + items.map((d) =>
-    `<li>${(d.flags || []).map((f) => `<span class="badge ${/injection|disguised/.test(f) ? "bad" : ""}">${esc(f)}</span>`).join("")}
-     <strong>${esc(d.target || d.product)}</strong><br><span class="muted">${esc((d.reasons || [d.reason]).join(" / "))}</span></li>`).join("") + "</ul>";
+function filtered(items) {
+  return `<ul class="flist">${items.map((d) => `<li>${(d.flags || []).map((f) =>
+    `<span class="tag ${/injection|disguised/.test(f) ? "bad" : ""}">${esc(f)}</span>`).join("")}<strong>${esc(d.target || d.product)}</strong><br>
+    <span class="meta">${esc((d.reasons || [d.reason]).join(" / "))}</span></li>`).join("")}</ul>`;
 }
 
-function blockedLog(events) {
-  if (!events || !events.length) return '<p class="muted">차단된 행동 없음</p>';
-  return '<div class="log">' + events.map((e) => `DENIED ${e.action} → ${e.target}\n  ${e.reason}`).map(esc).join("\n") + "</div>";
+function blockedBox(events) {
+  if (!events?.length) return "";
+  return `<details><summary>차단한 행동 <span class="count">${events.length}건 · OpenShell 정책 + 앱 가드</span></summary>
+    <div class="log">${events.map((e) => esc(`DENIED ${e.action} → ${e.target}\n  ${e.reason}`)).join("\n")}</div></details>`;
 }
 
-function renderBeauty(d) {
-  const trustBad = d.trust.documents.filter((x) => !x.trusted && x.target.startsWith("beauty/"))
-    .concat(d.trust.products.filter((x) => !x.trusted));
-  const summary = d.summary
-    ? `<div class="card"><h2>요약 · Nemotron</h2><div class="pre">${esc(d.summary)}</div></div>`
-    : `<div class="card muted">NVIDIA API 키가 없어 Nemotron 요약 없이 규칙 기반 결과만 표시합니다.</div>`;
-  return summary + `
-  <div class="card"><h2>정품 확인</h2>${(d.authenticity_checks || []).map((c) =>
-    `<div class="verdict ${c.trusted ? "ok" : "no"}"><strong>${esc(c.target)}</strong> → ${c.trusted ? "공식 유통 확인된 정품" : "위장 K-뷰티 의심 · 구매 비추천"}
-     <small>${esc(c.reasons.join(" / "))}</small></div>`).join("") || '<p class="muted">요청 없음</p>'}</div>
-  <div class="card"><h2>추천 제품</h2><table><tr><th>#</th><th>제품</th><th>가격</th><th>이유</th></tr>
-    ${d.recommendations.map((r) => `<tr><td>${r.rank}</td><td>${esc(r.name_ko)}<br><span class="muted">${esc(r.name)}</span></td>
-      <td>${r.price_krw.toLocaleString()}원</td><td>${esc(r.why.join("; ") || "-")}</td></tr>`).join("")}</table></div>
-  <div class="card"><h2>하루 동선</h2><ul class="timeline">
-    ${d.route.map((s) => `<li><span class="t">${s.time}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${esc(s.name)}</span>
-      <span class="muted">· ${esc(s.area)}</span><br><span class="muted">${esc(s.note)}</span></span></li>`).join("")}</ul>
-    ${d.notices_applied.length ? `<p class="muted">반영한 공지: ${esc(d.notices_applied.join("; "))}</p>` : ""}
-    ${d.route_skipped.length ? `<p class="muted">제외: ${esc(d.route_skipped.join("; "))}</p>` : ""}</div>
-  <div class="card"><h2>매장 직원에게 보여 줄 한글 카드 <button class="mini" id="bigBtn">크게 보기</button></h2>
-    <div class="staff" id="staffCard">${bold(d.staff_card)}</div></div>
-  <div class="card"><h2>걸러낸 정보 (신뢰성 하네스)</h2>${filteredList(trustBad.concat(d.excluded_by_profile))}</div>
-  <div class="card"><h2>차단한 행동 (OpenShell 정책 + 앱 가드)</h2>${blockedLog(d.blocked)}</div>`;
-}
-
-function renderCulture(d) {
-  const bad = d.trust.documents.filter((x) => !x.trusted && !x.target.startsWith("beauty/"));
+function beauty({ turn, result: r }) {
+  const p = turn.profile;
+  const chips = [SKIN[p.skin_type] && SKIN[p.skin_type] + " 피부", ...(p.concerns || []).map((c) => CONCERN[c] || c),
+    ...(p.avoid_ingredients || []).map((a) => a + " 제외"), p.budget_krw && `${Number(p.budget_krw).toLocaleString()}원`,
+    p.visit_date, p.time_window, (p.areas || []).join(" → ")].filter(Boolean);
+  const bad = r.trust.documents.filter((x) => !x.trusted && x.target.startsWith("beauty/"))
+    .concat(r.trust.products.filter((x) => !x.trusted), r.excluded_by_profile);
+  const reply = r.summary || "Nemotron 연결 없이 규칙 기반으로 플랜을 만들었어요. 아래 카드를 확인해 주세요.";
   return `
-  <div class="card"><h2>문화 코스 초안 · ${esc(d.visit_date)}</h2><p class="muted">초안만 작성했고 예약·발송·결제는 하지 않았습니다.</p>
-    <div class="pre">${esc(d.draft)}</div></div>
-  <div class="card"><h2>음식 제한 한글 카드</h2><div class="staff" id="staffCard">${bold(d.food_cards)}</div>
-    <button class="mini" id="bigBtn" style="float:none;margin-top:8px">크게 보기</button></div>
-  <div class="card"><h2>확인 필요</h2>${Object.keys(d.uncertain).length ? '<ul class="filtered">' +
-    Object.entries(d.uncertain).map(([k, v]) => `<li><strong>${esc(k)}</strong><br><span class="muted">${esc(v.join(" / "))}</span></li>`).join("") + "</ul>" : '<p class="muted">없음</p>'}</div>
-  <div class="card"><h2>걸러낸 자료</h2>${filteredList(bad)}</div>
-  <div class="card"><h2>차단한 행동</h2>${blockedLog(d.blocked)}</div>`;
+  <div class="profile-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join("")}</div>
+  <div class="bubble">${esc(reply)}</div>
+  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span>
+    <div><strong>${esc(c.target)}</strong> · ${c.trusted ? "공식 유통이 확인된 정품" : "위장 K-뷰티 의심 · 구매 비추천"}<small>${esc(c.reasons.join(" / "))}</small></div></div>`).join("")}
+  <div class="card"><h3>추천 제품</h3><div class="products">${r.recommendations.map((x) => `
+    <div class="product"><div class="rank">#${x.rank}</div><div class="name">${esc(x.name_ko)}</div><div class="en">${esc(x.name)}</div>
+    <div class="price">${x.price_krw.toLocaleString()}원</div><div class="why">${esc(x.why.join(" · "))}</div></div>`).join("")}</div></div>
+  <div class="card"><h3>하루 동선</h3><ul class="route">${r.route.map((s) => `
+    <li><span class="t">${s.time}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${esc(s.name)}</span> · ${esc(s.area)}<small>${esc(s.note)}</small></span></li>`).join("")}</ul>
+    ${r.notices_applied.length ? `<div class="note">반영한 공지 · ${esc(r.notices_applied.join("; "))}</div>` : ""}</div>
+  <div class="card"><h3>매장 직원에게 보여 주세요 · 눌러서 크게</h3><div class="staff">${md(r.staff_card)}</div></div>
+  <details><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 하네스</span></summary>${filtered(bad)}</details>
+  ${blockedBox(r.blocked)}
+  <div class="meta">${esc(r.nvidia.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model}` : "offline")}</div>`;
 }
 
-loadDefaults();
+function culture({ result: r }) {
+  const bad = r.trust.documents.filter((x) => !x.trusted && !x.target.startsWith("beauty/"));
+  return `
+  <div class="card"><h3>문화 코스 초안 · ${esc(r.visit_date)} · 예약·발송 없음</h3><div class="bubble">${md(r.draft)}</div></div>
+  <div class="card"><h3>음식 제한 한글 카드 · 눌러서 크게</h3><div class="staff">${md(r.food_cards)}</div></div>
+  ${Object.keys(r.uncertain).length ? `<details><summary>확인 필요 <span class="count">${Object.keys(r.uncertain).length}건</span></summary>
+    <ul class="flist">${Object.entries(r.uncertain).map(([k, v]) => `<li><strong>${esc(k)}</strong><br><span class="meta">${esc(v.join(" / "))}</span></li>`).join("")}</ul></details>` : ""}
+  <details><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>
+  ${blockedBox(r.blocked)}`;
+}
 </script>
 </body>
 </html>

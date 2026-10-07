@@ -1,4 +1,4 @@
-"""라이브 데모용 웹앱. 외부 패키지 없이 표준 라이브러리 http.server만 쓴다.
+"""라이브 데모용 대화형 웹앱. 외부 패키지 없이 표준 라이브러리 http.server만 쓴다.
 
     python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --port 8080
 """
@@ -8,6 +8,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .agent import run
+from .config import get_settings
+from .conversation import build_turn
 
 STATIC = Path(__file__).resolve().parent / "static"
 ROOT = Path(__file__).resolve().parent.parent
@@ -24,34 +26,40 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _json(self, code: int, data: dict) -> None:
+        self._send(code, json.dumps(data, ensure_ascii=False).encode("utf-8"), "application/json; charset=utf-8")
+
     def do_GET(self) -> None:
         if self.path in ("/", "/index.html"):
             self._send(200, (STATIC / "index.html").read_bytes(), "text/html; charset=utf-8")
-        elif self.path == "/api/sample":
-            sample = (ROOT / "profiles" / "visitor_jp.json").read_bytes()
-            self._send(200, sample, "application/json; charset=utf-8")
-        elif self.path == "/api/task":
-            task = ROOT / "TASK.md"
-            text = task.read_text(encoding="utf-8") if task.is_file() else ""
-            self._send(200, json.dumps({"request": text}, ensure_ascii=False).encode(), "application/json")
+        elif self.path == "/api/status":
+            s = get_settings()
+            self._json(200, {"online": s.online, "chat_models": s.chat_models, "embed_model": s.embed_model})
         else:
             self._send(404, b"not found", "text/plain")
 
     def do_POST(self) -> None:
-        if self.path != "/api/run":
+        if self.path != "/api/chat":
             self._send(404, b"not found", "text/plain")
             return
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length) or b"{}")
-        mode = body.get("mode", "beauty")
-        profile = body.get("profile") if mode == "beauty" else None
-        request = body.get("request") or (profile or {}).get("request", "")
+        message = (body.get("message") or "").strip()
+        if not message:
+            self._json(400, {"error": "메시지가 비어 있어요."})
+            return
         try:
+            settings = get_settings()
+            defaults = json.loads((ROOT / "profiles" / "visitor_jp.json").read_text(encoding="utf-8"))
+            for k in ("request", "check_items", "name"):
+                defaults.pop(k, None)
+            turn = build_turn(settings, message, body.get("state"), defaults)
             self.output_dir.mkdir(parents=True, exist_ok=True)
-            result = run(self.input_dir, self.output_dir, profile, request, mode)
-            self._send(200, json.dumps(result, ensure_ascii=False).encode("utf-8"), "application/json")
+            profile = turn["profile"] if turn["mode"] == "beauty" else None
+            result = run(self.input_dir, self.output_dir, profile, turn["request"], turn["mode"])
+            self._json(200, {"turn": turn, "result": result})
         except Exception as exc:  # 데모 화면에 오류를 그대로 보여 준다
-            self._send(500, json.dumps({"error": str(exc)}, ensure_ascii=False).encode("utf-8"), "application/json")
+            self._json(500, {"error": str(exc)})
 
     def log_message(self, fmt: str, *args) -> None:
         print("[web]", fmt % args)

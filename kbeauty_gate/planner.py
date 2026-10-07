@@ -62,12 +62,12 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
     passages = [f"{r['product']['name']} ({r['product']['category']}): "
                 f"{', '.join(r['product']['ingredients'])}; for {', '.join(r['product']['skin_types'])}"
                 for r in ranked]
-    logits = nvidia.rerank(settings, query, passages)
-    if logits:
-        lo, hi = min(logits), max(logits)
-        for r, lg in zip(ranked, logits):
-            r["rerank"] = round((lg - lo) / (hi - lo + 1e-9), 3)
-            r["score"] += 2 * r["rerank"]
+    sims = nvidia.relevance(settings, query, passages)
+    if sims:
+        lo, hi = min(sims), max(sims)
+        for r, sim in zip(ranked, sims):
+            r["relevance"] = round((sim - lo) / (hi - lo + 1e-9), 3)
+            r["score"] += 2 * r["relevance"]
 
     ranked.sort(key=lambda r: -r["score"])
     picked, total = [], 0
