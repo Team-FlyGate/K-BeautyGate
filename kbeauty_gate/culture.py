@@ -441,8 +441,9 @@ def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[s
 PLACE_PATTERNS = (
     re.compile(r"[가-힣]{2,10}(?:시장|궁(?!금)|공원|마을|타워|박물관|미술관|해수욕장|산성|성당|사찰|대교)"),
     re.compile(r"\b(?:[A-Z][a-z]+\s)*[A-Z][a-z]+\s(?:Palace|Market|Temple|Park|Village|Tower|Museum|Beach|Fortress|Bridge)\b"),
-    re.compile(r"[一-龥ァ-ヶー]{1,8}(?:市場|市场|宮|宫|寺|公園|公园|村|タワー|塔|博物館|博物馆)"),
+    re.compile(r"[一-龥ァ-ヶー]{2,8}(?:市場|市场|宮|宫|寺|公園|公园|村|タワー|塔|博物館|博物馆)"),
 )
+GENERIC_PLACE = re.compile(r"(?:전통|재래|동네|근처|주변|야|수산|농수산|어느|그|이)\s*(?:시장|공원|마을|박물관)|(?:Traditional|Local|Night|Fish|The|A)\s(?:Market|Park|Village|Museum)|(?:传统|傳統|夜|附近|在)(?:市场|市場|公园|公園)", re.IGNORECASE)
 KNOWN_PLACE = re.compile(r"해담|성진|haedam|seongjin|ヘダム|ソンジン|海潭|海談|城鎮|城镇|成鎮|成镇", re.IGNORECASE)
 UNLISTED_PLACE = {
     "ko": "요청하신 {places}은(는) 제공된 자료에 없어서 운영 시간·출입구·이동 시간·음식 정보를 확인할 수 없어요. 확인되지 않은 정보로 코스를 만들지 않았어요.\n방문 전에 공식 안내에서 당일 운영 시간, 휴무일, 출입 제한, 음식 재료·알레르기 성분을 확인해 주세요.\n자료에 있는 해담 옛시장·성진정 코스가 필요하면 그렇게 요청해 주세요. 예약·발송·결제는 하지 않았어요.",
@@ -460,8 +461,9 @@ def unlisted_places(request: str, docs: Dict[str, str]) -> List[str]:
     for pattern in PLACE_PATTERNS:
         for match in pattern.finditer(request or ""):
             name = match.group(0).strip()
-            if not KNOWN_PLACE.search(name) and name not in corpus and name not in found:
-                found.append(name)
+            if GENERIC_PLACE.fullmatch(name) or KNOWN_PLACE.search(name) or name in corpus or name in found:
+                continue
+            found.append(name)
     return found
 
 
