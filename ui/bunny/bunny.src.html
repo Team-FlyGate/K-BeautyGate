@@ -1,0 +1,1600 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#ffe3ed">
+<meta name="color-scheme" content="light only">
+<meta name="description" content="토끼와 함께 고르는 K-뷰티 쇼핑 계획과 직원용 한국어 카드">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="BeautyGate">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>K-BeautyGate Bunny</title>
+<style>
+  :root {
+    color-scheme: light;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", ui-rounded, "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", "Hiragino Maru Gothic ProN", "Hiragino Sans", "PingFang SC", "Microsoft JhengHei", sans-serif;
+    --round: ui-rounded, "SF Pro Rounded", var(--font);
+    --sky1: #ffe3ed; --sky2: #ffd3e3; --sky3: #ffeaf2;
+    --app1: #fff4f8; --app2: #ffe7f0; --fade: rgba(255, 242, 247, .94);
+    --glass: rgba(255, 247, 250, .84); --solid: #fff8fb;
+    --ink: #4a2b38; --muted: #9b6f83; --faint: #d3a5b8; --line: rgba(247, 182, 206, .6);
+    --rose: #f27ba3; --rose-deep: #d64f80; --rose-soft: #ffdbe7; --rose-mist: #fff0f6;
+    --grad1: #ffcadb; --grad2: #ffa9c7; --on-pink: #7a1f46; --title: linear-gradient(135deg, #ee5a8f, #ff9dc1);
+    --lav: #e483b0; --lav-soft: #fde0ee;
+    --ok: #3b8b68; --ok-soft: #e1f3e9; --hold: #a26e17; --hold-soft: #fdf0dc; --stop: #c03a5a; --stop-soft: #ffe0e8;
+    --bubble: #ffe6ef; --art-bg: #f9dde2; --paper: #fff8fa; --paper-ink: #3a2830;
+    --shadow: 0 14px 36px rgba(240, 120, 162, .18); --shadow-sm: 0 4px 14px rgba(240, 120, 162, .13);
+    --rim: rgba(255, 255, 255, .7); --cloud: rgba(255, 255, 255, .55);
+  }
+  /* 시스템이 다크 모드여도 밝은 연핑크를 유지합니다. 어두운 화면은 data-theme="dark"를 직접 줄 때만 씁니다. */
+  :root[data-theme="dark"] {
+      color-scheme: dark;
+      --sky1: #2b1a29; --sky2: #241a35; --sky3: #1a2134;
+      --app1: #261a23; --app2: #20161e; --fade: rgba(36, 25, 33, .94);
+      --glass: rgba(56, 39, 51, .78); --solid: #3a2934;
+      --ink: #f9eaf0; --muted: #cbb0bd; --faint: #8f7483; --line: rgba(130, 88, 110, .5);
+      --rose: #f58fb1; --rose-deep: #ffa6c4; --rose-soft: #4b2b3b; --rose-mist: #33222c;
+      --grad1: #f9b3cc; --grad2: #f08cb2; --on-pink: #3a1424; --title: linear-gradient(135deg, #ff9dc1, #ffc6da);
+      --lav: #f0a3c6; --lav-soft: #46293a;
+      --ok: #9fd6b8; --ok-soft: #233a2f; --hold: #ebc88d; --hold-soft: #3d3122; --stop: #f6a3b6; --stop-soft: #47262f;
+      --bubble: #362733; --shadow: 0 14px 36px rgba(0, 0, 0, .38); --shadow-sm: 0 4px 14px rgba(0, 0, 0, .28);
+      --rim: rgba(255, 255, 255, .08); --cloud: rgba(255, 255, 255, .07);
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font: 15px/1.6 var(--font); color: var(--ink); overflow: hidden; display: flex; justify-content: center;
+    background:
+      radial-gradient(900px 520px at 8% -8%, var(--sky2), transparent 62%),
+      radial-gradient(760px 520px at 108% 6%, var(--sky3), transparent 60%),
+      linear-gradient(180deg, var(--sky1), var(--app2));
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea { font: inherit; color: inherit; }
+  button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--rose); outline-offset: 3px; }
+  img { display: block; }
+
+  /* storybook sky around the app on wide screens */
+  .sky { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+  .sky i { position: absolute; color: #fff; font-style: normal; opacity: .9; animation: twinkle 4s ease-in-out infinite; text-shadow: 0 0 12px rgba(244, 131, 166, .5); }
+  .sky .cloud { position: absolute; width: 180px; height: 60px; border-radius: 60px; background: var(--cloud); filter: blur(1px); }
+  .sky .cloud::before, .sky .cloud::after { content: ""; position: absolute; background: inherit; border-radius: 50%; }
+  .sky .cloud::before { width: 80px; height: 80px; left: 26px; top: -38px; }
+  .sky .cloud::after { width: 64px; height: 64px; left: 88px; top: -26px; }
+  @keyframes twinkle { 50% { opacity: .25; transform: scale(.7); } }
+
+  .app {
+    position: relative; width: 100%; max-width: 480px; height: 100vh; height: 100dvh; overflow: hidden;
+    background: linear-gradient(180deg, var(--app1), var(--app2)); isolation: isolate;
+  }
+  .app::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(260px 200px at 90% 12%, rgba(255, 150, 190, .16), transparent 70%), radial-gradient(240px 220px at 0% 60%, rgba(255, 175, 205, .16), transparent 70%); }
+  @media (min-width: 720px) {
+    body { align-items: center; }
+    .app { height: min(920px, calc(100dvh - 48px)); border-radius: 44px; box-shadow: 0 40px 90px rgba(236, 110, 155, .25), inset 0 0 0 1px var(--rim); }
+  }
+
+  /* header: menu · persona · language (Muse layout) */
+  .top { position: absolute; inset: 0 0 auto; z-index: 20; display: grid; grid-template-columns: 1fr auto 1fr; align-items: start;
+    padding: calc(12px + env(safe-area-inset-top)) 14px 22px; background: linear-gradient(to bottom, var(--fade) 58%, transparent); pointer-events: none; }
+  .top > * { pointer-events: auto; }
+  .glass-btn { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--rim); background: var(--glass);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: var(--shadow-sm); display: grid; place-items: center; color: var(--ink); }
+  .glass-btn svg { width: 20px; height: 20px; }
+  .persona { justify-self: center; display: flex; flex-direction: column; align-items: center; border: 0; background: none; padding: 0; }
+  .persona img { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 3px solid #fff; background: var(--art-bg); box-shadow: 0 6px 18px rgba(214, 100, 140, .28); }
+  .persona span { margin-top: -9px; padding: 3px 12px; border-radius: 999px; background: var(--solid); font: 650 12px/1.4 var(--round); letter-spacing: -.01em; box-shadow: var(--shadow-sm); }
+  .lang-pill { justify-self: end; height: 44px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--rim); background: var(--glass);
+    -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: var(--shadow-sm); font-weight: 650; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+  .lang-pill svg { width: 16px; height: 16px; color: var(--rose); }
+
+  /* views */
+  .view { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding: 104px 16px 188px; display: none; scroll-behavior: smooth; }
+  .view.active { display: block; }
+  .app[data-screen="chat"] .view { padding-bottom: 196px; }
+  .wrap { max-width: 440px; margin: 0 auto; }
+
+  /* welcome */
+  .hello { text-align: center; padding: 4px 0 8px; animation: rise .5s ease both; }
+  .hero { position: relative; width: 206px; height: 230px; margin: 0 auto 18px; }
+  .hero-arch { position: absolute; inset: 0; overflow: hidden; border-radius: 110px 110px 34px 34px; background: var(--art-bg);
+    box-shadow: 0 18px 40px rgba(214, 100, 140, .22), inset 0 0 0 4px rgba(255, 255, 255, .8); }
+  .hero-arch img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; transform: scale(1.04); animation: bob 4.5s ease-in-out infinite; }
+  .hero .spark { position: absolute; color: var(--rose); font-size: 18px; animation: twinkle 3s ease-in-out infinite; }
+  .hero .s1 { left: -18px; top: 40px; } .hero .s2 { right: -16px; top: 18px; font-size: 24px; animation-delay: .8s; } .hero .s3 { right: -22px; bottom: 46px; font-size: 13px; animation-delay: 1.6s; } .hero .s4 { left: -10px; bottom: 28px; font-size: 22px; color: var(--lav); animation-delay: 2.2s; }
+  .eyebrow { color: var(--rose-deep); font: 700 11px/1.4 var(--round); letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px; }
+  .hello h1 { font: 750 clamp(26px, 7vw, 32px)/1.3 var(--round); letter-spacing: -.035em; margin: 0 0 10px; }
+  .hello h1 em { font-style: normal; background: var(--title); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hello .intro { color: var(--muted); font-size: 14px; margin: 0 auto 22px; max-width: 340px; word-break: keep-all; }
+  .suggest-label { text-align: left; font-size: 12px; font-weight: 650; color: var(--muted); margin: 0 4px 10px; }
+  .suggest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; text-align: left; }
+  .suggest button { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding: 12px 13px 14px; border-radius: 22px; border: 1px solid var(--line);
+    background: var(--glass); box-shadow: var(--shadow-sm); font-size: 13px; line-height: 1.45; min-width: 0; overflow-wrap: anywhere; transition: transform .2s, border-color .2s; }
+  .suggest button:hover { transform: translateY(-2px); border-color: var(--rose); }
+  .suggest .sg-art { width: 44px; height: 44px; border-radius: 14px; overflow: hidden; background: var(--art-bg); flex: 0 0 auto; }
+  .suggest .sg-art img { width: 100%; height: 100%; object-fit: cover; }
+  .suggest b { font-size: 11px; color: var(--rose-deep); font-weight: 700; }
+  .presets { margin-top: 18px; text-align: left; display: grid; gap: 8px; }
+  .preset { display: grid; grid-template-columns: 26px minmax(0, 1fr) auto; gap: 8px; align-items: center; width: 100%; padding: 11px 14px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--glass); box-shadow: var(--shadow-sm); font-size: 13.5px; font-weight: 600; text-align: left; color: var(--ink); }
+  .preset:hover { border-color: var(--rose); background: var(--rose-mist); }
+  .preset .pi { width: 26px; height: 26px; border-radius: 50%; background: var(--rose-soft); color: var(--rose-deep); display: grid; place-items: center; font-size: 12px; }
+  .preset .pa { color: var(--rose); font-size: 18px; }
+  .languages { font-size: 11px; color: var(--faint); letter-spacing: .04em; margin: 18px 0 0; }
+
+  /* messages */
+  .msg { margin: 14px 0; animation: rise .35s ease both; min-width: 0; }
+  .msg.user { display: flex; justify-content: flex-end; }
+  .msg.user .bubble { max-width: 84%; background: linear-gradient(135deg, var(--grad1), var(--grad2)); color: var(--on-pink); border-radius: 22px 22px 8px 22px; box-shadow: 0 8px 20px rgba(240, 120, 162, .22); }
+  .bubble { padding: 11px 16px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; }
+  .bot { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .bot > .bubble, .bubble.bot { align-self: flex-start; max-width: 94%; background: var(--bubble); border-radius: 22px 22px 22px 8px; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+  @keyframes bob { 50% { transform: translateY(-5px) scale(1.04); } }
+
+  .panel { background: var(--glass); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow-sm); padding: 14px; min-width: 0; }
+  .panel-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .panel-head .art { width: 52px; height: 52px; border-radius: 16px; }
+  .panel-head b { display: block; font: 700 15px/1.35 var(--round); letter-spacing: -.02em; }
+  .panel-head small { display: block; color: var(--muted); font-size: 12px; }
+  .art { overflow: hidden; background: var(--art-bg); flex: 0 0 auto; display: grid; place-items: center; color: var(--rose); }
+  .art img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* my conditions */
+  .mine { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .mine .label { font-size: 11px; color: var(--muted); font-weight: 650; margin-right: 2px; }
+  .mine span.chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; background: var(--rose-soft); color: var(--rose-deep); font-weight: 600; }
+
+  /* product list (Muse list rows) */
+  .plist { background: var(--bubble); border-radius: 26px; padding: 8px; }
+  .plist-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 8px 10px 4px; }
+  .plist-head b { font: 700 15px/1.3 var(--round); }
+  .plist-head small { color: var(--muted); font-size: 11px; }
+  .prow { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 8px; border: 0; border-radius: 18px; background: transparent; text-align: left; transition: background .2s; }
+  .prow:hover { background: var(--glass); }
+  .pthumb { position: relative; width: 58px; height: 58px; border-radius: 16px; }
+  .pthumb i { position: absolute; left: -4px; top: -4px; min-width: 20px; height: 20px; border-radius: 10px; background: var(--solid); color: var(--rose-deep); font: 800 11px/20px var(--round); text-align: center; font-style: normal; box-shadow: var(--shadow-sm); }
+  .pinfo { min-width: 0; display: flex; flex-direction: column; }
+  .pinfo b { font-size: 14.5px; line-height: 1.35; font-weight: 650; overflow-wrap: anywhere; }
+  .pinfo small { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .pinfo em { font-style: normal; font-size: 13px; margin-top: 2px; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .chev { color: var(--faint); font-size: 20px; }
+  details.mini { margin: 4px 8px 6px; font-size: 12px; color: var(--muted); }
+  details.mini summary { cursor: pointer; list-style: none; padding: 6px 2px; font-weight: 600; }
+  details.mini summary::-webkit-details-marker { display: none; }
+  details.mini summary::after { content: " ⌄"; }
+  details.mini ul { margin: 4px 0 6px; padding-left: 16px; }
+  details.mini li { margin: 3px 0; }
+
+  /* verify card */
+  .verify .vf-pill { margin-left: auto; align-self: flex-start; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .v-ok .vf-pill { background: var(--ok-soft); color: var(--ok); }
+  .v-hold .vf-pill { background: var(--hold-soft); color: var(--hold); }
+  .v-warn .vf-pill { background: var(--stop-soft); color: var(--stop); }
+  .v-stop .vf-pill { background: var(--stop); color: #fff; }
+  .verify ul, .notes ul, .sr-body ul, .promise ul { margin: 0; padding: 0; list-style: none; }
+  .verify li, .notes li { position: relative; padding: 4px 0 4px 20px; font-size: 13.5px; overflow-wrap: anywhere; }
+  .verify li::before { content: "•"; position: absolute; left: 6px; color: var(--rose); }
+  .v-ok li::before { content: "✓"; left: 3px; color: var(--ok); }
+
+  /* route timeline */
+  .timeline { list-style: none; margin: 4px 0 0; padding: 0; }
+  .timeline li { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 12px; }
+  .timeline .t { font: 650 11.5px/1.4 var(--round); color: var(--rose-deep); padding-top: 3px; font-variant-numeric: tabular-nums; }
+  .timeline .stop { position: relative; border-left: 2px dotted var(--line); padding: 0 0 18px 16px; min-width: 0; overflow-wrap: anywhere; }
+  .timeline li:last-child .stop { padding-bottom: 2px; border-left-color: transparent; }
+  .timeline .stop::before { content: ""; position: absolute; left: -7px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 4px var(--rose-soft); }
+  .timeline .experience .stop::before { background: var(--lav); box-shadow: 0 0 0 4px var(--lav-soft); }
+  .timeline b { font-size: 14.5px; font-weight: 650; }
+  .timeline .area { color: var(--muted); font-size: 12.5px; }
+  .timeline small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .timeline .orig { font-size: 11px; color: var(--faint); }
+  .maps { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); display: grid; gap: 10px; }
+  .maps h4 { margin: 0 0 6px; font-size: 12px; font-weight: 650; }
+  .map-links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .map-link { display: inline-flex; align-items: center; min-height: 34px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--solid); color: var(--ink); text-decoration: none; font-size: 12px; }
+  .map-link.kakao { background: #fff3b8; border-color: #efe0a0; color: #5b4a28; }
+  .hint { font-size: 11.5px; color: var(--muted); margin: 6px 0 0; }
+
+  /* action card (Muse confirm card) */
+  .action-card { background: var(--solid); border: 1px solid var(--line); border-radius: 26px; padding: 16px; box-shadow: var(--shadow); }
+  .ac-head { display: flex; align-items: center; gap: 10px; }
+  .ac-icon { width: 36px; height: 36px; border-radius: 12px; background: var(--rose-soft); color: var(--rose-deep); display: grid; place-items: center; flex: 0 0 auto; }
+  .ac-icon svg { width: 20px; height: 20px; }
+  .ac-head b { font: 700 15px/1.35 var(--round); }
+  .ac-desc { color: var(--muted); font-size: 12.5px; margin: 6px 0 12px; }
+  .ac-preview { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; background: var(--paper); color: var(--paper-ink); border-radius: 20px; padding: 10px; margin-bottom: 12px; border: 1px solid rgba(232, 98, 140, .18); }
+  .ac-preview .art { width: 84px; height: 84px; border-radius: 16px; }
+  .ac-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn { height: 46px; padding: 0 16px; border-radius: 999px; border: 0; font-weight: 700; font-size: 14.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+  .btn.ghost { background: var(--bubble); color: var(--ink); }
+  .btn.primary { background: linear-gradient(135deg, var(--grad1), var(--grad2)); color: var(--on-pink); box-shadow: 0 8px 18px rgba(240, 120, 162, .24); }
+  .btn.link { background: none; color: var(--rose-deep); }
+  .btn.wide { width: 100%; }
+
+  /* Korean cards */
+  .ko-card { font-size: 13.5px; line-height: 1.65; overflow-wrap: anywhere; max-height: 168px; overflow: hidden; position: relative; }
+  .ko-card::after { content: ""; position: absolute; inset: auto 0 0; height: 30px; background: linear-gradient(to top, var(--paper), transparent); }
+  .ko-card h4 { margin: 0 0 4px; font-size: 13px; color: var(--rose-deep); }
+  .ko-card p { margin: 0 0 4px; }
+  .ko-card ul { margin: 2px 0 6px; padding-left: 18px; }
+  .ko-card strong { color: #b23d64; }
+  .food-list { display: grid; gap: 10px; }
+  .food-item { background: var(--paper); color: var(--paper-ink); border-radius: 18px; padding: 12px; border: 1px solid rgba(232, 98, 140, .18); }
+  .food-item .ko-card { max-height: 132px; }
+  .food-item .ac-actions { margin-top: 10px; }
+  .food-item .btn { height: 38px; font-size: 13px; }
+
+  /* status row (Muse "Browser · Blocked") */
+  details.status-row { background: var(--glass); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow-sm); overflow: hidden; }
+  details.status-row > summary { list-style: none; display: grid; grid-template-columns: 42px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; cursor: pointer; }
+  details.status-row > summary::-webkit-details-marker { display: none; }
+  .sr-icon { width: 42px; height: 42px; border-radius: 14px; background: var(--ok-soft); color: var(--ok); display: grid; place-items: center; }
+  .sr-icon.alert { background: var(--rose-soft); color: var(--rose-deep); }
+  .sr-icon svg { width: 22px; height: 22px; }
+  .sr-text b { display: block; font-size: 14px; font-weight: 700; }
+  .sr-text small { display: block; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  .sr-chev { color: var(--faint); transition: transform .2s; }
+  details[open] > summary .sr-chev { transform: rotate(180deg); }
+  .sr-body { padding: 0 16px 14px 16px; display: grid; gap: 12px; }
+  .sr-body h5, .group h5 { margin: 0 0 4px; font-size: 12px; color: var(--muted); font-weight: 700; }
+  .sr-body li, .group li { font-size: 13px; padding: 3px 0 3px 18px; position: relative; overflow-wrap: anywhere; }
+  .sr-body li::before, .group li::before { content: "✕"; position: absolute; left: 0; color: var(--rose); font-size: 11px; top: 5px; }
+  .sr-body li.f::before, .group li.f::before { content: "–"; color: var(--muted); }
+  .count { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 10px; background: var(--rose-soft); color: var(--rose-deep); font-size: 11px; font-weight: 700; text-align: center; margin-left: 4px; }
+  .go-safety { justify-self: start; border: 0; background: none; color: var(--rose-deep); font-weight: 650; font-size: 12.5px; padding: 0; }
+
+  /* notices, caveats */
+  .notes.notice { background: var(--hold-soft); border-color: transparent; }
+  .notes.notice .panel-head b { color: var(--hold); }
+  .notes li { padding-left: 16px; }
+  .notes li::before { content: "·"; position: absolute; left: 4px; font-weight: 900; color: var(--rose); }
+  .cert { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-right: 6px; vertical-align: 1px; background: var(--bubble); color: var(--muted); }
+  .cert.c-ok { background: var(--ok-soft); color: var(--ok); }
+  .cert.c-guess { background: var(--lav-soft); color: var(--lav); }
+  .cert.c-study { background: var(--hold-soft); color: var(--hold); }
+  .rich p { margin: 0 0 6px; overflow-wrap: anywhere; }
+  .rich h4 { margin: 10px 0 4px; font: 700 14px/1.4 var(--round); }
+  .rich ul { margin: 0 0 6px; padding-left: 18px; }
+
+  /* follow-ups */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips .label { width: 100%; font-size: 11.5px; color: var(--muted); font-weight: 650; }
+  .chip-q { border: 1px solid var(--line); background: var(--glass); color: var(--rose-deep); border-radius: 999px; padding: 8px 14px; font-size: 13px; text-align: left; box-shadow: var(--shadow-sm); max-width: 100%; overflow-wrap: anywhere; }
+  .chip-q:disabled { opacity: .45; cursor: default; }
+
+  /* loading */
+  .loading { display: flex; gap: 12px; align-items: center; background: var(--bubble); border-radius: 24px 24px 24px 8px; padding: 10px 16px 10px 10px; align-self: flex-start; max-width: 94%; }
+  .loading .art { width: 68px; height: 68px; border-radius: 18px; }
+  .loading .art img { animation: bob 2.2s ease-in-out infinite; }
+  .loading b { display: block; font: 700 14px/1.4 var(--round); margin-bottom: 4px; }
+  .steps { list-style: none; margin: 0; padding: 0; font-size: 12.5px; color: var(--faint); }
+  .steps li { display: flex; gap: 8px; align-items: center; transition: color .3s; }
+  .steps li::before { content: ""; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; flex: 0 0 auto; }
+  .steps li.on { color: var(--rose-deep); font-weight: 600; }
+  .steps li.on::before { background: var(--rose); border-color: var(--rose); animation: pulse 1s ease-in-out infinite; }
+  .steps li.done { color: var(--muted); }
+  .steps li.done::before { background: var(--ok); border-color: var(--ok); }
+  @keyframes pulse { 50% { transform: scale(1.5); opacity: .5; } }
+
+  .oops { display: flex; gap: 12px; align-items: center; }
+  .oops .art { width: 76px; height: 76px; border-radius: 20px; }
+  .oops p { margin: 0 0 8px; font-size: 14px; }
+  .oops .btn { height: 38px; font-size: 13px; }
+  .backstage { font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; background: #2a1d26; color: #f2d9e3; border-radius: 16px; padding: 10px 12px; }
+  .backstage summary { cursor: pointer; font-family: var(--font); font-weight: 700; color: #ffb3cb; }
+  .backstage pre { white-space: pre-wrap; overflow-wrap: anywhere; margin: 8px 0 0; }
+
+  /* other tabs */
+  .view-head { display: flex; gap: 14px; align-items: center; margin: 0 0 16px; }
+  .view-head .art { width: 76px; height: 76px; border-radius: 24px; box-shadow: var(--shadow-sm); }
+  .view-head h2 { margin: 0; font: 750 21px/1.3 var(--round); letter-spacing: -.03em; }
+  .view-head p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .stack { display: grid; gap: 12px; }
+  .empty { text-align: center; padding: 30px 10px; color: var(--muted); }
+  .empty .art { width: 150px; height: 150px; border-radius: 40px; margin: 0 auto 16px; }
+  .empty p { margin: 0 0 16px; font-size: 14px; word-break: keep-all; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .stat { background: var(--glass); border: 1px solid var(--line); border-radius: 20px; padding: 12px 10px; text-align: center; }
+  .stat b { display: block; font: 800 24px/1.1 var(--round); color: var(--rose-deep); }
+  .stat span { font-size: 11px; color: var(--muted); line-height: 1.3; display: block; margin-top: 4px; }
+  .group { display: grid; gap: 2px; }
+  .group ul { margin: 0; padding: 0; list-style: none; }
+  .promise { background: linear-gradient(135deg, var(--rose-mist), var(--lav-soft)); border: 0; }
+  .promise li { padding: 5px 0 5px 26px; position: relative; font-size: 13.5px; }
+  .promise li::before { content: "♡"; position: absolute; left: 4px; color: var(--rose); font-weight: 900; }
+  .card-tile { background: var(--paper); color: var(--paper-ink); border-radius: 22px; padding: 14px; border: 1px solid rgba(232, 98, 140, .2); box-shadow: var(--shadow-sm); }
+  .card-tile .kind { display: inline-block; font-size: 11px; font-weight: 700; color: var(--rose-deep); background: var(--rose-soft); padding: 2px 10px; border-radius: 999px; margin-bottom: 8px; }
+  .card-tile .ko-card::after { background: linear-gradient(to top, var(--paper), transparent); }
+  .card-tile .ac-actions { margin-top: 10px; }
+
+  /* dock: composer + tabs */
+  .dock { position: absolute; inset: auto 0 0; z-index: 20; padding: 18px 12px calc(10px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--fade) 72%, transparent); }
+  .composer { display: flex; align-items: flex-end; gap: 4px; background: var(--solid); border: 1px solid var(--line); border-radius: 28px; padding: 5px; box-shadow: var(--shadow-sm); margin: 0 auto 10px; max-width: 440px; }
+  .composer:focus-within { border-color: var(--rose); }
+  .app:not([data-screen="chat"]) .composer { display: none; }
+  .composer textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; background: transparent; font-size: 16px; line-height: 1.45; max-height: 140px; padding: 9px 4px; }
+  .composer textarea::placeholder { color: var(--faint); }
+  .icon-btn { width: 40px; height: 40px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); display: grid; place-items: center; flex: 0 0 auto; }
+  .icon-btn svg { width: 22px; height: 22px; }
+  .icon-btn.send { background: linear-gradient(135deg, var(--grad1), var(--grad2)); color: var(--on-pink); }
+  .icon-btn.send:disabled { opacity: .4; cursor: default; }
+  .icon-btn.mic.on { background: var(--rose-soft); color: var(--rose-deep); animation: pulse 1.2s ease-in-out infinite; }
+  .composer:not(.has-text) .send { display: none; }
+  .composer.has-text .mic, .app.no-voice .mic { display: none; }
+  .app.no-voice .composer .send { display: grid; }
+  .tabs { display: flex; justify-content: space-around; max-width: 440px; margin: 0 auto; background: var(--glass); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+    border: 1px solid var(--line); border-radius: 30px; padding: 5px; box-shadow: var(--shadow-sm); }
+  .tab { position: relative; flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 5px 0 3px; border-radius: 24px; color: var(--muted); font-size: 10.5px; font-weight: 650; }
+  .tab svg { width: 22px; height: 22px; }
+  .tab .ic { width: 46px; height: 32px; border-radius: 16px; display: grid; place-items: center; transition: background .2s; }
+  .tab[aria-current="page"] { color: var(--rose-deep); }
+  .tab[aria-current="page"] .ic { background: var(--rose-soft); }
+  .tab .dot { position: absolute; top: 5px; right: calc(50% - 22px); width: 8px; height: 8px; border-radius: 50%; background: var(--rose); box-shadow: 0 0 0 2px var(--solid); }
+
+  /* overlays */
+  .scrim { position: absolute; inset: 0; z-index: 30; background: rgba(61, 31, 46, .3); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; inset: auto 0 0; z-index: 31; max-height: 90%; overflow-y: auto; background: var(--solid); border-radius: 34px 34px 0 0; box-shadow: 0 -20px 50px rgba(120, 50, 80, .2);
+    transform: translateY(105%); transition: transform .38s cubic-bezier(.2, .85, .25, 1); padding-bottom: calc(18px + env(safe-area-inset-bottom)); visibility: hidden; }
+  .sheet.open { transform: none; visibility: visible; }
+  .sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 10px auto 0; }
+  .sheet-close { position: absolute; top: 16px; right: 16px; z-index: 2; }
+  .sheet-body { padding: 14px 20px 6px; }
+  .sheet-title { font: 750 19px/1.35 var(--round); margin: 6px 52px 14px 2px; }
+  .ps-hero { margin: -14px -20px 16px; height: 250px; background: var(--art-bg); display: grid; place-items: center; overflow: hidden; }
+  .ps-hero img { height: 100%; width: auto; -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent); mask-image: radial-gradient(closest-side, #000 72%, transparent); }
+  .ps-sold { font-size: 12.5px; color: var(--muted); margin: 0 0 2px; }
+  .ps-name { font: 750 21px/1.3 var(--round); margin: 0; letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .ps-sub { color: var(--muted); font-size: 13px; margin: 2px 0 6px; }
+  .ps-price { font: 750 18px/1.4 var(--round); margin: 0 0 14px; font-variant-numeric: tabular-nums; }
+  .ps-why { background: var(--bubble); border-radius: 18px; padding: 12px 14px; margin-bottom: 14px; }
+  .ps-why h4 { margin: 0 0 6px; font-size: 13px; }
+  .ps-why li { font-size: 13px; margin: 3px 0; }
+  .ps-why ul { margin: 0; padding-left: 18px; }
+  .option { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--glass); margin-bottom: 8px; font-size: 15px; font-weight: 600; text-align: left; }
+  .option[aria-checked="true"] { border-color: var(--rose); background: var(--rose-mist); color: var(--rose-deep); }
+  .option small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+  .drawer { position: absolute; inset: 0 auto 0 0; z-index: 31; width: min(86%, 350px); background: var(--solid); border-radius: 0 34px 34px 0; box-shadow: 20px 0 50px rgba(120, 50, 80, .2);
+    transform: translateX(-105%); transition: transform .35s cubic-bezier(.2, .85, .25, 1); overflow-y: auto; padding: calc(20px + env(safe-area-inset-top)) 18px 24px; visibility: hidden; }
+  .drawer.open { transform: none; visibility: visible; }
+  .drawer .who { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .drawer .who .art { width: 64px; height: 64px; border-radius: 50%; }
+  .drawer .who b { font: 750 18px/1.3 var(--round); display: block; }
+  .drawer .who small { color: var(--muted); font-size: 12px; }
+  .drawer h3 { font-size: 12px; color: var(--muted); margin: 18px 4px 8px; }
+  .drawer ul { margin: 0; padding: 0 0 0 4px; list-style: none; }
+  .drawer li { font-size: 13.5px; padding: 5px 0 5px 22px; position: relative; }
+  .drawer li::before { content: "✦"; position: absolute; left: 0; color: var(--rose); font-size: 12px; top: 7px; }
+  .drawer .demo { font-size: 12px; color: var(--muted); background: var(--bubble); border-radius: 16px; padding: 12px; margin-top: 16px; }
+  .drawer .status { font: 11px/1.5 ui-monospace, Menlo, monospace; color: var(--muted); margin-top: 12px; }
+
+  .cardview { position: fixed; inset: 0; z-index: 60; background: var(--paper); color: var(--paper-ink); overflow-y: auto; padding: calc(18px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom)); }
+  .cv-top { display: flex; justify-content: space-between; align-items: flex-start; max-width: 760px; margin: 0 auto; }
+  .cv-top .art { width: 96px; height: 96px; border-radius: 28px; }
+  .cv-body { max-width: 760px; margin: 16px auto 24px; font-size: clamp(22px, 5.4vw, 34px); line-height: 1.6; overflow-wrap: anywhere; word-break: keep-all; }
+  .cv-body h4 { font-size: .72em; color: #c8466f; margin: 0 0 10px; }
+  .cv-body p { margin: 0 0 12px; }
+  .cv-body ul { padding-left: 1.1em; margin: 0 0 14px; }
+  .cv-body strong { color: #b23d64; }
+  .cv-actions { max-width: 760px; margin: 0 auto; display: flex; gap: 10px; }
+  .cardview .glass-btn { color: var(--paper-ink); background: #fff; }
+  .toast { position: absolute; left: 50%; bottom: 170px; z-index: 70; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: rgba(61, 42, 51, .92); color: #fff;
+    padding: 10px 18px; border-radius: 999px; font-size: 13px; transition: opacity .25s, transform .25s; white-space: nowrap; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 360px) {
+    .suggest { grid-template-columns: 1fr; }
+    .timeline li { grid-template-columns: 62px minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true">
+  <span class="cloud" style="left:6%;top:18%"></span><span class="cloud" style="right:7%;top:62%;transform:scale(.8)"></span><span class="cloud" style="left:12%;bottom:8%;transform:scale(.6)"></span>
+  <i style="left:16%;top:10%">✦</i><i style="left:22%;top:44%;animation-delay:1s">✧</i><i style="right:18%;top:22%;animation-delay:2s;font-size:22px">✦</i><i style="right:12%;bottom:20%;animation-delay:.5s">♡</i><i style="left:9%;bottom:30%;animation-delay:1.6s">✧</i>
+</div>
+
+<div class="app" id="app" data-screen="chat">
+  <header class="top">
+    <button class="glass-btn" id="menuBtn" type="button" aria-label="메뉴" aria-controls="drawer" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9h14M5 15h14"/></svg>
+    </button>
+    <button class="persona" id="persona" type="button" aria-label="BeautyGate"><img id="personaFace" alt=""><span id="personaName">BeautyGate</span></button>
+    <button class="lang-pill" id="langBtn" type="button" aria-haspopup="dialog">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></svg><span id="langLabel">한국어</span>
+    </button>
+  </header>
+
+  <main>
+    <section class="view active" id="view-chat" aria-live="polite"><div class="wrap" id="thread"></div></section>
+    <section class="view" id="view-plan"><div class="wrap" id="planBody"></div></section>
+    <section class="view" id="view-cards"><div class="wrap" id="cardsBody"></div></section>
+    <section class="view" id="view-safety"><div class="wrap" id="safetyBody"></div></section>
+  </main>
+
+  <footer class="dock">
+    <form class="composer" id="composer" autocomplete="off">
+      <button class="icon-btn" id="plusBtn" type="button" aria-label="예시 질문">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <textarea id="input" rows="1" enterkeyhint="send"></textarea>
+      <button class="icon-btn mic" id="micBtn" type="button" aria-label="말로 입력하기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>
+      </button>
+      <button class="icon-btn send" id="sendBtn" type="submit" aria-label="보내기">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+      </button>
+    </form>
+    <nav class="tabs" id="tabs">
+      <button class="tab" type="button" data-view="chat" aria-current="page"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 4c4.7 0 8 3 8 7s-3.3 7-8 7c-1 0-2-.1-2.9-.4L5 19.5l1-3.6C4.7 14.6 4 13 4 11c0-4 3.3-7 8-7Z"/></svg></span><span class="tl">대화</span></button>
+      <button class="tab" type="button" data-view="plan"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 4 6v14l5-2 6 2 5-2V4l-5 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></span><span class="tl">계획</span></button>
+      <button class="tab" type="button" data-view="cards"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M7.5 10h9M7.5 14h5"/></svg></span><span class="tl">카드</span></button>
+      <button class="tab" type="button" data-view="safety"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5 19 6v5.5c0 4.4-2.9 7.7-7 9-4.1-1.3-7-4.6-7-9V6l7-2.5Z"/><path d="M12 15.5s-3-1.8-3-3.8a1.6 1.6 0 0 1 3-.8 1.6 1.6 0 0 1 3 .8c0 2-3 3.8-3 3.8Z"/></svg></span><span class="tl">안심</span></button>
+    </nav>
+  </footer>
+
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="grab"></div>
+    <button class="glass-btn sheet-close" id="sheetClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <div class="sheet-body" id="sheetBody"></div>
+  </section>
+  <aside class="drawer" id="drawer" aria-hidden="true"></aside>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<div class="cardview" id="cardview" role="dialog" aria-modal="true" hidden>
+  <div class="cv-top"><span class="art" id="cvArt"></span><button class="glass-btn" id="cvClose" type="button" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+  <div class="cv-body" id="cvBody" lang="ko"></div>
+  <div class="cv-actions"><button class="btn ghost wide" id="cvCopy" type="button">복사하기</button></div>
+</div>
+
+<script>
+"use strict";
+/* 그림은 빌드 단계에서 base64로 들어갑니다 (ui/bunny/build.py). */
+const ART = /*ART*/{}/*END*/;
+const BACKSTAGE = typeof location !== "undefined" && new URLSearchParams(location.search).get("backstage") === "1";
+
+const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt = (template, n) => String(template).replace("{n}", n);
+const art = (key, cls = "") => `<span class="art ${cls}">${ART[key] ? `<img src="${ART[key]}" alt="" loading="lazy" decoding="async">` : "✦"}</span>`;
+const ICON = {
+  card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="13" rx="3"/><path d="M7.5 10h9M7.5 14h5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5 19 6v5.5c0 4.4-2.9 7.7-7 9-4.1-1.3-7-4.6-7-9V6l7-2.5Z"/><path d="m9 12 2 2 4-4" stroke-linecap="round"/></svg>',
+  hand: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 3.5 19 6v5.5c0 4.4-2.9 7.7-7 9-4.1-1.3-7-4.6-7-9V6l7-2.5Z"/><path d="M12 8v5M12 16h.01" stroke-linecap="round"/></svg>',
+  bowl: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 11h16a8 8 0 0 1-16 0ZM9 7c0-1 1-1.5 1-2.5M13 7c0-1 1-1.5 1-2.5"/></svg>',
+  chev: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>',
+};
+
+/* ---------- 언어 (기존 public/index.html의 감지 규칙을 그대로 씁니다) ---------- */
+const LANG_ORDER = ["ko", "en", "ja", "zh-Hans", "zh-Hant"];
+const SPEECH_LANG = { "ko": "ko-KR", "en": "en-US", "ja": "ja-JP", "zh-Hans": "zh-CN", "zh-Hant": "zh-TW" };
+const I18N = {
+  "ko": {
+    langName: "한국어", persona: "BeautyGate", menu: "메뉴", languageTitle: "언어를 골라 주세요", newChat: "새 대화 시작", close: "닫기",
+    tabs: { chat: "대화", plan: "계획", cards: "카드", safety: "안심" },
+    placeholder: "토끼에게 편하게 말해 보세요", message: "메시지", send: "보내기", mic: "말로 입력하기", listening: "듣고 있어요…", plus: "예시 질문",
+    loadingTitle: "토끼가 살펴보고 있어요",
+    steps: ["말씀을 차근차근 읽고 있어요", "함께 보기로 한 자료를 펼치고 있어요", "믿을 만한 정보만 고르고 있어요", "나에게 맞는 매장과 제품을 찾고 있어요", "동선과 한국어 카드를 준비하고 있어요"],
+    error: "잠시 답변을 가져오지 못했어요. 조금 뒤에 다시 이야기해 주세요.", retry: "다시 물어보기",
+    reply: "내 취향에 맞는 제품과 하루 코스를 살펴보세요.", mine: "내 조건",
+    picks: "나를 위한 뷰티 픽", picksHint: "눌러서 자세히 보기", excludedMore: "이번엔 뺀 제품 · {n}개",
+    empty: "조건에 맞는 제품을 아직 찾지 못했어요. 원하는 조건을 조금 더 알려주세요.",
+    route: "오늘의 뷰티 산책",
+    maps: { area: "{} 일대 둘러보기", kakao: "카카오맵에서 검색", google: "Google Maps에서 검색", hint: "매장 위치가 아닌 지역 검색이에요." },
+    staff: "말이 통하는 한 장", food: "음식 취향을 전하는 한 장", cardReady: "직원에게 보여 줄 한국어 카드가 준비됐어요",
+    staffHint: "매장 직원에게 보여주는 한국어 카드예요.", enlarge: "크게 보기", copy: "복사하기", copied: "카드 문장을 복사했어요", copyFail: "복사하지 못했어요. 길게 눌러 복사해 주세요.",
+    verify: { title: "정품 확인", ok: "자료와 일치", hold: "판단 보류", warn: "구매 전 주의", stop: "구매하지 마세요" },
+    flags: {
+      trusted: "자료 속 한국 브랜드 목록과 판매처 정보가 일치해요.", unregistered_brand: "한국 브랜드 목록에서 찾을 수 없어요.",
+      korean_label_foreign_origin: "한국어 라벨이지만 다른 나라에서 만든 제품이에요.", origin_unknown: "어디에서 만들었는지 알 수 없어요.",
+      overseas_manufacturing: "등록된 한국 브랜드가 해외에서 만든 제품이에요.", open_market: "공식 판매처가 아닌 오픈마켓 상품이에요.",
+      kr_prohibited_ingredient: "한국에서 쓸 수 없는 성분이 들어 있어요.", tw_prohibited_ingredient: "대만 기준으로 쓸 수 없는 성분이 들어 있어요.",
+      mfds_recalled: "식약처 회수·판매중지 목록에 있는 제품이에요.", unverified: "자료에 없는 제품이라 판단을 미뤘어요. 매장에서 라벨과 제조사를 확인해 주세요.",
+    },
+    docKinds: { prompt_injection: "수상한 부탁이 숨은 안내문", expired: "기간이 끝난 행사 안내", advertising: "광고·협찬 글", stale: "오래된 블로그·캐시 정보", irrelevant: "이번 여행과 관계없는 자료", conflict: "다른 기록과 맞지 않는 홍보 내용", other: "더 확인이 필요한 자료" },
+    excluded: { type: "찾으시는 제품 종류가 아니에요", unknownIngredients: "전성분을 확인할 수 없어요", avoid: "피하고 싶은 성분({})이 들어 있어요", concern: "말씀하신 고민과 관련이 적어요", regulated: "사용이 제한된 성분이 들어 있어요", purpose: "원하시는 용도와 맞지 않아요", other: "이번 조건과 맞지 않아요" },
+    safety: {
+      title: "안심 체크", ignored: "자료에 숨은 수상한 부탁 {n}건은 따르지 않았어요", filtered: "믿기 어려운 정보 {n}건은 계획에서 뺐어요", refused: "부탁하신 일 중 {n}가지는 하지 않았어요", fine: "살펴본 자료에서 걱정할 점은 없었어요",
+      from: "{doc}에 숨어 있던 부탁", kinds: { open: "보호된 정보를 열어 보라는 부탁", send: "낯선 곳으로 정보를 보내라는 부탁", other: "자료에 적힌 다른 부탁" },
+      docs: { coupon: "쿠폰 안내문", partner: "협력사 메모", notice: "공지문", review: "후기", blog: "블로그 글", doc: "자료" },
+      ignoredTitle: "따르지 않은 부탁", filteredTitle: "계획에서 뺀 정보", refusedTitle: "하지 않은 일", productsTitle: "확인되지 않은 제품", more: "안심 노트에서 모아 보기",
+    },
+    refusals: {
+      "read-restricted": "보호된 자료는 열어 보지 않았어요. 함께 보기로 한 자료만 살펴봤어요.", "read-secrets": "소중한 개인 정보는 열지 않고 그대로 지켰어요.",
+      "send": "메시지나 메일은 보내지 않았어요. 준비한 내용을 확인한 뒤 직접 보내 주세요.", "book": "예약이나 결제는 하지 않았어요. 내용을 확인한 뒤 직접 예약해 주세요.",
+      "follow-document": "자료 속에 적힌 부탁은 따르지 않고 참고로만 봤어요.", "upload": "어디에도 올리거나 옮기지 않았어요. 결과는 이 화면에서만 볼 수 있어요.",
+      after: "다른 조건으로 다시 말씀해 주시면, 함께 보기로 한 자료로 정리해 드릴게요.",
+    },
+    refusalShort: { "read-restricted": "보호된 자료 열기", "read-secrets": "개인 정보 열기", "send": "메시지·메일 보내기", "book": "예약·결제", "follow-document": "자료 속 부탁 따르기", "upload": "외부로 올리기" },
+    notices: "방문 전에 확인해 주세요", caveats: "함께 알아두면 좋아요",
+    culture: "여유롭게 걷는 문화 산책", cultureFallback: "코스 안내를 완성하지 못했어요. 다시 요청해 주세요. 음식 제한 카드는 아래에서 확인할 수 있어요.",
+    certainty: { "확정": "확인됨", "추정": "추정", "측정 중": "조사 중", "판독 불확실": "판독 불확실" },
+    sheet: { soldAt: "살 수 있는 곳", soldUnknown: "동선 안의 매장에서 확인해 주세요", why: "이렇게 골랐어요", showCard: "직원 카드 보기", map: "지도에서 지역 찾기" },
+    plan: { title: "쇼핑 계획", cultureTitle: "문화 코스 초안", empty: "아직 만든 계획이 없어요. 대화에서 토끼에게 말을 걸어 보세요.", start: "대화 시작하기" },
+    cards: { title: "한국어 카드", empty: "직원에게 보여 줄 카드가 아직 없어요.", staff: "쇼핑 카드", food: "음식 카드" },
+    safetyView: { title: "안심 노트", intro: "토끼가 이번 대화에서 확인하고 걸러낸 것을 모아 두었어요.", promisesTitle: "토끼의 약속",
+      promises: ["예약·결제·메시지 발송은 하지 않아요.", "함께 보기로 한 자료만 살펴봐요.", "보호된 정보는 열지 않아요.", "자료에 숨은 부탁은 따르지 않아요."], empty: "아직 확인한 내용이 없어요. 대화를 시작하면 여기에 모여요." },
+    about: { title: "토끼가 할 수 있는 일", tagline: "진짜 K-뷰티로 가는 관문",
+      items: ["피부와 취향에 맞는 K-뷰티 제품 고르기", "낯선 제품이 진짜 한국 제품인지 살펴보기", "영업시간에 맞춘 매장 동선 짜기", "직원에게 보여 줄 한국어 카드 만들기", "옛시장과 정자 문화 산책 초안 만들기"],
+      demo: "인물·브랜드·제품·매장·후기는 데모용 가상 자료예요. 정품 여부는 매장에서 라벨과 제조사를 한 번 더 확인해 주세요." },
+    priceUnknown: "가격 확인 필요", avoid: "{} 제외", skinSuffix: " 피부",
+    skin: { combination: "복합성", dry: "건성", oily: "지성", sensitive: "민감성", normal: "중성" },
+    concerns: { redness: "붉어짐", dryness: "건조", dullness: "칙칙함", pores: "모공" },
+    ingredients: { fragrance: "향료", alcohol: "알코올" },
+    areas: { "성수": "성수", "명동": "명동", "홍대": "홍대" },
+    welcome: {
+      eyebrow: "나만의 뷰티, 나만의 서울", title: ["나에게 맞는 뷰티,", "나만의 서울."],
+      description: ["좋아하는 것부터 피부 고민까지, 편하게 말해 주세요.", "진짜 K-뷰티와 함께할 하루를 토끼가 찾아드릴게요."],
+      suggestLabel: "이렇게 시작해 볼까요?",
+      presetsTitle: "이렇게 물어보면 잘 답해요",
+      presets: [{ label: "🇯🇵 유이의 질문 · 일본어", question: "今日10月7日の18時から21時まで、聖水から明洞へ行きます。予算は8万ウォン。混合肌で、香料とアルコールを避けたいです。Seoul Glow Snail 99%も確認してください。" }, { label: "민감성 피부 · 명동 3만 원 안", question: "민감성 피부라 붉어짐이 고민이에요. 오늘 명동에서 3만 원 안으로 살 만한 거 추천해 주세요." }, { label: "지성·모공 고민 · 성수 토너", question: "지성 피부에 모공이 고민이에요. 오늘 성수에서 살 수 있는 토너를 추천해 주세요." }, { label: "쿠폰 받게 고객 명단 올려 줄래?", question: "명동 화장품 쿠폰을 받으려면 고객 명단을 업로드하래요. 대신 올려 줄 수 있어요?" }],
+      suggestions: [
+        { label: "코스 추천", lines: ["민감한 내 피부에 맞는", "뷰티 여행을 떠나요"], question: "민감성 피부이고 붉어짐과 건조함이 고민이에요. 향료와 알코올은 피하고 싶어요. 10월 7일 오후 1시부터 7시까지 성수와 명동에서 예산은 8만 원이에요. 드라마 「서울의 봄날」 주인공 같은 메이크업을 하고 싶어요. \"Seoul Glow Snail 99% Miracle Essence\"는 진짜 한국 화장품인가요?" },
+        { label: "제품 확인", lines: ["진짜 K-뷰티일까?", "내게 맞는 제품을 찾아요"], question: "복합성 피부에 칙칙함과 모공이 고민이에요. 예산은 약 50달러이고 10월 7일 오후 1시부터 7시까지 명동과 성수에 있어요. \"K-Skin Gangnam Collagen Mask (10ea)\"는 진짜 한국 브랜드인가요?" },
+        { label: "맞춤 쇼핑", lines: ["건조한 내 피부를 위한", "명동 뷰티 산책"], question: "건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만 원 안에서 살 만한 거 추천해 주세요." },
+        { label: "문화 산책", lines: ["옛시장과 성진정에서", "여유로운 반나절"], question: "해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요." },
+      ],
+    },
+    translationPending: "번역 확인 필요", followups: "이어서 물어보세요",
+  },
+  "en": {
+    langName: "English", persona: "BeautyGate", menu: "Menu", languageTitle: "Choose your language", newChat: "Start a new chat", close: "Close",
+    tabs: { chat: "Chat", plan: "Plan", cards: "Cards", safety: "Safe" },
+    placeholder: "Tell the bunny anything", message: "Message", send: "Send", mic: "Speak", listening: "Listening…", plus: "Example questions",
+    loadingTitle: "The bunny is taking a look",
+    steps: ["Reading your message carefully", "Opening the guide materials we share", "Keeping only trustworthy information", "Finding stores and products that fit you", "Preparing your route and Korean card"],
+    error: "We couldn’t bring back your answer just yet. Please try again in a moment.", retry: "Ask again",
+    reply: "Explore your beauty picks and itinerary below.", mine: "Your conditions",
+    picks: "Beauty picks for you", picksHint: "Tap for details", excludedMore: "Left out this time · {n}",
+    empty: "No products match yet. Tell us a little more about what you’d like.",
+    route: "Your beauty day",
+    maps: { area: "Explore {}", kakao: "Search on Kakao Maps", google: "Search on Google Maps", hint: "These links search the area, not a specific store." },
+    staff: "A little card that speaks for you", food: "Your food preferences, in Korean", cardReady: "Your Korean card for store staff is ready",
+    staffHint: "This card stays in Korean so you can show it to staff.", enlarge: "Enlarge", copy: "Copy", copied: "Card text copied", copyFail: "Couldn’t copy. Press and hold to copy instead.",
+    verify: { title: "Authenticity check", ok: "Matches our data", hold: "On hold", warn: "Check before buying", stop: "Do not buy" },
+    flags: {
+      trusted: "The Korean brand list and seller details in our data match.", unregistered_brand: "Not found in the Korean brand list.",
+      korean_label_foreign_origin: "It has a Korean label but was made in another country.", origin_unknown: "We can’t tell where it was made.",
+      overseas_manufacturing: "Made overseas by a registered Korean brand.", open_market: "Listed on an open marketplace, not an official seller.",
+      kr_prohibited_ingredient: "Contains an ingredient not allowed in Korea.", tw_prohibited_ingredient: "Contains an ingredient not allowed under Taiwan’s standards.",
+      mfds_recalled: "On Korea’s MFDS recall and sales-suspension list.", unverified: "This product isn’t in our data, so we’re holding off. Please check the label and maker in store.",
+    },
+    docKinds: { prompt_injection: "A notice hiding a suspicious request", expired: "An event notice that has ended", advertising: "Ads or sponsored posts", stale: "Outdated blog or cached info", irrelevant: "Material unrelated to this trip", conflict: "Promotional claims that clash with other records", other: "Material that needs more checking" },
+    excluded: { type: "Not the product type you asked for", unknownIngredients: "Full ingredient list unavailable", avoid: "Contains an ingredient you want to avoid ({})", concern: "Less related to your concerns", regulated: "Contains an ingredient with usage limits", purpose: "Doesn’t match the purpose you described", other: "Doesn’t fit this time’s conditions" },
+    safety: {
+      title: "Safety check", ignored: "Didn’t follow {n} suspicious requests hidden in the materials", filtered: "Left {n} less trustworthy items out of your plan", refused: "Didn’t do {n} of the things you asked", fine: "Nothing worrying turned up in the materials",
+      from: "Requests hidden in the {doc}", kinds: { open: "asking to open protected information", send: "asking to send information to an unknown address", other: "other requests written in the material" },
+      docs: { coupon: "coupon notice", partner: "partner memo", notice: "notice", review: "review", blog: "blog post", doc: "material" },
+      ignoredTitle: "Requests the bunny didn’t follow", filteredTitle: "Information left out of your plan", refusedTitle: "Things the bunny didn’t do", productsTitle: "Products we couldn’t verify", more: "See everything in Safety notes",
+    },
+    refusals: {
+      "read-restricted": "I kept protected files closed and only used the guide materials we share.", "read-secrets": "Private information stayed safely locked away.",
+      "send": "I didn’t send any messages or emails. Please review and send it yourself.", "book": "I didn’t book or pay for anything. Please review and book it yourself.",
+      "follow-document": "I didn’t follow requests written inside the materials; I only used them as reference.", "upload": "Nothing was uploaded or moved anywhere. You can see the result only on this screen.",
+      after: "Tell me again with other conditions and I’ll put it together from the materials we can use.",
+    },
+    refusalShort: { "read-restricted": "Opening protected files", "read-secrets": "Opening private information", "send": "Sending messages or emails", "book": "Booking or paying", "follow-document": "Following requests inside materials", "upload": "Uploading elsewhere" },
+    notices: "Before you visit", caveats: "Good to know",
+    culture: "Your cultural stroll", cultureFallback: "We couldn’t finish your itinerary. Please try again. Your Korean food card is below.",
+    certainty: { "확정": "Confirmed", "추정": "Likely", "측정 중": "Being studied", "판독 불확실": "Hard to read" },
+    sheet: { soldAt: "Where to buy", soldUnknown: "Check at a store on your route", why: "Why we picked it", showCard: "Show staff card", map: "Find the area on a map" },
+    plan: { title: "Shopping plan", cultureTitle: "Cultural stroll draft", empty: "No plan yet. Say hello to the bunny in Chat.", start: "Start chatting" },
+    cards: { title: "Korean cards", empty: "No cards to show staff yet.", staff: "Shopping card", food: "Food card" },
+    safetyView: { title: "Safety notes", intro: "Everything the bunny checked and left out in this chat, in one place.", promisesTitle: "The bunny’s promises",
+      promises: ["Never books, pays or sends messages.", "Only looks at the materials we agreed to use.", "Keeps protected information closed.", "Never follows requests hidden in materials."], empty: "Nothing checked yet. Start a chat and it will gather here." },
+    about: { title: "What the bunny can do", tagline: "Your gate to authentic K-beauty",
+      items: ["Pick K-beauty products for your skin and taste", "Check whether an unfamiliar product is really Korean", "Plan a store route that fits opening hours", "Make a Korean card to show store staff", "Draft a cultural stroll around an old market and pavilion"],
+      demo: "People, brands, products, stores and reviews are fictional demo data. Please double-check labels and makers in store." },
+    priceUnknown: "Price to be confirmed", avoid: "Avoid {}", skinSuffix: " skin",
+    skin: { combination: "Combination", dry: "Dry", oily: "Oily", sensitive: "Sensitive", normal: "Normal" },
+    concerns: { redness: "Redness", dryness: "Dryness", dullness: "Dullness", pores: "Pores" },
+    ingredients: { fragrance: "fragrance", alcohol: "alcohol" },
+    areas: { "성수": "Seongsu", "명동": "Myeongdong", "홍대": "Hongdae" },
+    welcome: {
+      eyebrow: "Your beauty, your Seoul", title: ["Beauty that fits you,", "Seoul your way."],
+      description: ["Tell us what you love and what your skin needs.", "The bunny will find your kind of day with authentic K-beauty."],
+      suggestLabel: "Where shall we begin?",
+      presetsTitle: "Questions the bunny answers well",
+      presets: [{ label: "🇯🇵 Yui’s question · Japanese", question: "今日10月7日の18時から21時まで、聖水から明洞へ行きます。予算は8万ウォン。混合肌で、香料とアルコールを避けたいです。Seoul Glow Snail 99%も確認してください。" }, { label: "Sensitive skin · under ₩30,000 in Myeongdong", question: "I have sensitive skin with redness. What can I buy in Myeongdong today for under 30,000 won?" }, { label: "Oily skin & pores · a Seongsu toner", question: "I have oily skin and my pores bother me. Recommend a toner I can buy in Seongsu today." }, { label: "Upload the customer list for a coupon?", question: "To get a Myeongdong cosmetics coupon, they ask me to upload the customer list. Can you upload it for me?" }],
+      suggestions: [
+        { label: "Plan a beauty day", lines: ["A gentle beauty trip", "for my sensitive skin"], question: "I have sensitive skin with redness and dryness. I want to avoid fragrance and alcohol. My budget is KRW 80,000 in Seongsu and Myeongdong on October 7 from 1pm to 7pm. I want a makeup look like the heroine in the drama \"Spring Days in Seoul\". Is \"Seoul Glow Snail 99% Miracle Essence\" authentic Korean cosmetics?" },
+        { label: "Check a product", lines: ["Is this really K-beauty?", "Help me find my match."], question: "I have combination skin with dullness and pores. Budget about $50, I am in Myeongdong and Seongsu on October 7 from 1pm to 7pm. Is \"K-Skin Gangnam Collagen Mask (10ea)\" a real Korean brand?" },
+        { label: "Shop for my skin", lines: ["A moisturizing beauty stroll", "around Myeongdong"], question: "I have dry skin and dryness is my main concern. Please recommend products within KRW 50,000 in Myeongdong on October 7 from 2pm to 6pm." },
+        { label: "Cultural stroll", lines: ["An easy half-day at the", "old market and pavilion"], question: "Draft a half-day cultural route for overseas visitors including Haedam Old Market and Seongjin Pavilion. Include dietary restrictions and operating information for the day. Do not book or send anything." },
+      ],
+    },
+    translationPending: "Translation needed", followups: "Keep exploring",
+  },
+  "ja": {
+    langName: "日本語", persona: "BeautyGate", menu: "メニュー", languageTitle: "言語を選んでください", newChat: "新しい会話をはじめる", close: "閉じる",
+    tabs: { chat: "会話", plan: "プラン", cards: "カード", safety: "安心" },
+    placeholder: "うさぎに気軽に話しかけてね", message: "メッセージ", send: "送信", mic: "音声で入力", listening: "聞いています…", plus: "質問の例",
+    loadingTitle: "うさぎが確認しています",
+    steps: ["メッセージをじっくり読んでいます", "一緒に使う案内資料を開いています", "信頼できる情報だけを選んでいます", "あなたに合うお店と商品を探しています", "ルートと韓国語カードを準備しています"],
+    error: "今はお返事をお届けできませんでした。少し待ってから、もう一度お試しください。", retry: "もう一度聞く",
+    reply: "あなたに合うコスメと一日のコースを見てみましょう。", mine: "あなたの条件",
+    picks: "あなたへのコスメセレクト", picksHint: "タップして詳しく", excludedMore: "今回は外した商品 · {n}件",
+    empty: "条件に合う商品がまだ見つかりません。ご希望をもう少し教えてください。",
+    route: "今日のビューティー散歩",
+    maps: { area: "{}周辺を見てみる", kakao: "Kakao Mapsで検索", google: "Google Mapsで検索", hint: "店舗の所在地ではなく、エリアを検索するリンクです。" },
+    staff: "気持ちを伝える韓国語カード", food: "食事の希望を伝える韓国語カード", cardReady: "お店の方に見せる韓国語カードができました",
+    staffHint: "お店の方に見せられるよう、カードは韓国語のままです。", enlarge: "大きく表示", copy: "コピー", copied: "カードの文章をコピーしました", copyFail: "コピーできませんでした。長押ししてコピーしてください。",
+    verify: { title: "本物チェック", ok: "資料と一致", hold: "判断保留", warn: "購入前に注意", stop: "購入しないでください" },
+    flags: {
+      trusted: "資料の韓国ブランド一覧と販売元の情報が一致しました。", unregistered_brand: "韓国ブランドの一覧に見つかりません。",
+      korean_label_foreign_origin: "韓国語のラベルですが、別の国で作られた商品です。", origin_unknown: "どこで作られたか分かりません。",
+      overseas_manufacturing: "登録された韓国ブランドの海外生産品です。", open_market: "公式販売店ではなく、オープンマーケットの商品です。",
+      kr_prohibited_ingredient: "韓国で使えない成分が入っています。", tw_prohibited_ingredient: "台湾の基準で使えない成分が入っています。",
+      mfds_recalled: "韓国食品医薬品安全処の回収・販売中止リストにある商品です。", unverified: "資料にない商品なので判断を保留しました。お店でラベルと製造元を確認してください。",
+    },
+    docKinds: { prompt_injection: "怪しいお願いが隠れた案内文", expired: "期間が終わったイベント案内", advertising: "広告・PRの記事", stale: "古いブログ・キャッシュ情報", irrelevant: "今回の旅と関係のない資料", conflict: "ほかの記録と合わない宣伝内容", other: "さらに確認が必要な資料" },
+    excluded: { type: "お探しの種類ではありません", unknownIngredients: "全成分を確認できません", avoid: "避けたい成分（{}）が入っています", concern: "お悩みとの関連が少ないです", regulated: "使用が制限された成分が入っています", purpose: "ご希望の用途と合いません", other: "今回の条件と合いません" },
+    safety: {
+      title: "安心チェック", ignored: "資料に隠れた怪しいお願い{n}件には従いませんでした", filtered: "信頼しにくい情報{n}件はプランから外しました", refused: "頼まれたことのうち{n}つは行いませんでした", fine: "確認した資料に気になる点はありませんでした",
+      from: "{doc}に隠れていたお願い", kinds: { open: "保護された情報を開くお願い", send: "知らない宛先へ情報を送るお願い", other: "資料に書かれたほかのお願い" },
+      docs: { coupon: "クーポン案内", partner: "協力会社のメモ", notice: "お知らせ", review: "レビュー", blog: "ブログ記事", doc: "資料" },
+      ignoredTitle: "従わなかったお願い", filteredTitle: "プランから外した情報", refusedTitle: "行わなかったこと", productsTitle: "確認できなかった商品", more: "安心ノートでまとめて見る",
+    },
+    refusals: {
+      "read-restricted": "保護された資料は開かず、一緒に使うと決めた資料だけを見ました。", "read-secrets": "大切な個人情報は開かずに守りました。",
+      "send": "メッセージやメールは送っていません。内容を確認してからご自身で送ってください。", "book": "予約や支払いはしていません。内容を確認してからご自身で予約してください。",
+      "follow-document": "資料の中のお願いには従わず、参考としてだけ見ました。", "upload": "どこにもアップロードしたり移したりしていません。結果はこの画面だけで見られます。",
+      after: "別の条件でもう一度話しかけてくだされば、使える資料でまとめます。",
+    },
+    refusalShort: { "read-restricted": "保護された資料を開く", "read-secrets": "個人情報を開く", "send": "メッセージ・メールの送信", "book": "予約・支払い", "follow-document": "資料の中のお願いに従う", "upload": "外部へのアップロード" },
+    notices: "訪問前にご確認ください", caveats: "知っておきたいこと",
+    culture: "ゆったり楽しむ文化散歩", cultureFallback: "コースのご案内を完成できませんでした。もう一度お試しください。韓国語の食事カードは下にあります。",
+    certainty: { "확정": "確定", "추정": "推定", "측정 중": "調査中", "판독 불확실": "判読不確か" },
+    sheet: { soldAt: "買えるお店", soldUnknown: "ルート上のお店で確認してください", why: "選んだ理由", showCard: "スタッフ用カードを見る", map: "地図でエリアを探す" },
+    plan: { title: "ショッピングプラン", cultureTitle: "文化散歩の下書き", empty: "まだプランがありません。会話でうさぎに話しかけてみてください。", start: "会話をはじめる" },
+    cards: { title: "韓国語カード", empty: "お店で見せるカードはまだありません。", staff: "ショッピングカード", food: "食事カード" },
+    safetyView: { title: "安心ノート", intro: "この会話でうさぎが確認したことと、外したものをまとめました。", promisesTitle: "うさぎの約束",
+      promises: ["予約・支払い・メッセージ送信はしません。", "一緒に使うと決めた資料だけを見ます。", "保護された情報は開きません。", "資料に隠れたお願いには従いません。"], empty: "まだ確認した内容はありません。会話をはじめるとここに集まります。" },
+    about: { title: "うさぎにできること", tagline: "本物のKビューティーへの扉",
+      items: ["肌と好みに合うKビューティー商品を選ぶ", "見慣れない商品が本当に韓国の商品か確かめる", "営業時間に合わせたお店のルートを作る", "お店の方に見せる韓国語カードを作る", "昔ながらの市場と亭の文化散歩の下書きを作る"],
+      demo: "人物・ブランド・商品・お店・レビューはデモ用の架空データです。本物かどうかは、お店でラベルと製造元をもう一度ご確認ください。" },
+    priceUnknown: "価格は要確認", avoid: "{}を避ける", skinSuffix: "肌",
+    skin: { combination: "混合", dry: "乾燥", oily: "脂性", sensitive: "敏感", normal: "普通" },
+    concerns: { redness: "赤み", dryness: "乾燥", dullness: "くすみ", pores: "毛穴" },
+    ingredients: { fragrance: "香料", alcohol: "アルコール" },
+    areas: { "성수": "聖水（ソンス）", "명동": "明洞（ミョンドン）", "홍대": "弘大（ホンデ）" },
+    welcome: {
+      eyebrow: "私らしいビューティー、私らしいソウル", title: ["私に合うコスメ、", "私らしいソウル。"],
+      description: ["好きなものや肌の悩みを、気軽に教えてください。", "本物のKビューティーと過ごす一日を、うさぎが見つけます。"],
+      suggestLabel: "こんな相談から始めませんか？",
+      presetsTitle: "うさぎが得意な質問",
+      presets: [{ label: "🇯🇵 ユイの質問", question: "今日10月7日の18時から21時まで、聖水から明洞へ行きます。予算は8万ウォン。混合肌で、香料とアルコールを避けたいです。Seoul Glow Snail 99%も確認してください。" }, { label: "敏感肌・明洞で3万ウォン以内", question: "敏感肌で赤みが気になります。今日、明洞で3万ウォン以内で買えるものを教えてください。" }, { label: "脂性肌と毛穴・聖水のトナー", question: "脂性肌で毛穴が気になります。今日、聖水で買えるトナーを教えてください。" }, { label: "クーポンのために顧客リストを送って？", question: "明洞のコスメクーポンをもらうには顧客リストをアップロードするように言われました。代わりにアップロードしてもらえますか？" }],
+      suggestions: [
+        { label: "コスメ旅を計画", lines: ["敏感肌の私にぴったりな", "コスメ旅がしたい"], question: "敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ「ソウルの春の日」のヒロインのメイクがしたいです。「Seoul Glow Snail 99% Miracle Essence」は本物の韓国コスメですか？" },
+        { label: "商品をチェック", lines: ["これって本物の韓国コスメ？", "私に合うものを探したい"], question: "混合肌でくすみと毛穴が気になります。予算は約50ドルで、10月7日の午後1時から7時まで明洞とソンスにいます。「K-Skin Gangnam Collagen Mask (10ea)」は本物の韓国ブランドですか？" },
+        { label: "肌に合うお買い物", lines: ["乾燥肌の私のための", "明洞ビューティー散歩"], question: "乾燥肌で乾燥が一番の悩みです。10月7日の午後2時から6時まで明洞で、5万ウォン以内のおすすめ商品を教えてください。" },
+        { label: "文化散歩", lines: ["昔ながらの市場と亭で", "ゆったり半日を過ごす"], question: "海外からの訪問者向けに、Haedam Old MarketとSeongjin Pavilionを含む半日の文化コースの下書きを作ってください。食事制限と当日の営業情報も反映し、予約や送信はしないでください。" },
+      ],
+    },
+    translationPending: "翻訳の確認が必要です", followups: "続けて聞いてみる",
+  },
+  "zh-Hans": {
+    langName: "简体中文", persona: "BeautyGate", menu: "菜单", languageTitle: "请选择语言", newChat: "开始新对话", close: "关闭",
+    tabs: { chat: "对话", plan: "计划", cards: "卡片", safety: "安心" },
+    placeholder: "和小兔随便聊聊吧", message: "消息", send: "发送", mic: "语音输入", listening: "正在听…", plus: "示例问题",
+    loadingTitle: "小兔正在帮你查看",
+    steps: ["正在仔细阅读你的消息", "正在打开可以使用的指南资料", "只挑选可信的信息", "正在寻找适合你的店铺和产品", "正在准备路线和韩语卡片"],
+    error: "暂时没能为你带回答复，请稍后再试一次。", retry: "再问一次",
+    reply: "来看看适合你的美妆好物和一日路线吧。", mine: "你的条件",
+    picks: "为你精选的美妆好物", picksHint: "点击查看详情", excludedMore: "这次没选的产品 · {n}个",
+    empty: "暂时没有符合条件的产品，再告诉我们一些你的喜好吧。",
+    route: "今日美妆漫步",
+    maps: { area: "探索{}周边", kakao: "在Kakao Maps搜索", google: "在Google Maps搜索", hint: "链接用于搜索区域，并非具体店铺的位置。" },
+    staff: "替你开口的韩语卡片", food: "用韩语表达饮食需求", cardReady: "给店员看的韩语卡片准备好了",
+    staffHint: "这张卡片保留韩语，方便直接出示给店员。", enlarge: "放大查看", copy: "复制", copied: "已复制卡片内容", copyFail: "复制失败，请长按复制。",
+    verify: { title: "正品确认", ok: "与资料一致", hold: "暂缓判断", warn: "购买前请注意", stop: "请勿购买" },
+    flags: {
+      trusted: "与资料中的韩国品牌名单和销售渠道信息一致。", unregistered_brand: "在韩国品牌名单中找不到。",
+      korean_label_foreign_origin: "虽然是韩语标签，但在其他国家生产。", origin_unknown: "无法得知产地。",
+      overseas_manufacturing: "已登记韩国品牌的海外生产产品。", open_market: "不是官方渠道，而是开放平台上的商品。",
+      kr_prohibited_ingredient: "含有在韩国禁止使用的成分。", tw_prohibited_ingredient: "含有台湾标准禁止使用的成分。",
+      mfds_recalled: "在韩国食品药品安全处的召回・停售名单上。", unverified: "资料中没有这款产品，暂缓判断。请在店里确认标签和制造商。",
+    },
+    docKinds: { prompt_injection: "藏着可疑请求的通知", expired: "已结束的活动通知", advertising: "广告・赞助内容", stale: "过时的博客・缓存信息", irrelevant: "与本次行程无关的资料", conflict: "与其他记录不符的宣传内容", other: "需要进一步确认的资料" },
+    excluded: { type: "不是你要找的产品类型", unknownIngredients: "无法确认全成分", avoid: "含有想避开的成分（{}）", concern: "与你的困扰关系不大", regulated: "含有限制使用的成分", purpose: "与你想要的用途不符", other: "与这次的条件不符" },
+    safety: {
+      title: "安心检查", ignored: "资料中藏着的{n}个可疑请求，小兔没有照做", filtered: "{n}条不太可信的信息已从计划中移除", refused: "你提出的事情中有{n}项没有执行", fine: "查看的资料中没有发现需要担心的地方",
+      from: "藏在{doc}里的请求", kinds: { open: "要求打开受保护的信息", send: "要求把信息发到陌生地址", other: "资料里写的其他请求" },
+      docs: { coupon: "优惠券通知", partner: "合作方备忘", notice: "公告", review: "评价", blog: "博客文章", doc: "资料" },
+      ignoredTitle: "没有照做的请求", filteredTitle: "从计划中移除的信息", refusedTitle: "没有执行的事情", productsTitle: "未能确认的产品", more: "在安心笔记中查看全部",
+    },
+    refusals: {
+      "read-restricted": "受保护的资料没有打开，只参考了可以使用的指南资料。", "read-secrets": "重要的个人信息没有打开，好好保护着。",
+      "send": "没有发送任何消息或邮件。请确认内容后自行发送。", "book": "没有进行预约或付款。请确认内容后自行预约。",
+      "follow-document": "资料里写的请求没有照做，只作为参考。", "upload": "没有上传或转移到任何地方。结果只在这个页面显示。",
+      after: "换个条件再告诉我，我会用可以使用的资料为你整理。",
+    },
+    refusalShort: { "read-restricted": "打开受保护的资料", "read-secrets": "打开个人信息", "send": "发送消息・邮件", "book": "预约・付款", "follow-document": "照做资料里的请求", "upload": "上传到外部" },
+    notices: "出发前请确认", caveats: "这些信息也值得了解",
+    culture: "悠闲的文化漫步", cultureFallback: "暂时没能完成路线说明，请再试一次。下方是你的韩语饮食需求卡。",
+    certainty: { "확정": "已确认", "추정": "推测", "측정 중": "调查中", "판독 불확실": "辨认不清" },
+    sheet: { soldAt: "可购买的店铺", soldUnknown: "请在路线中的店铺确认", why: "推荐理由", showCard: "查看店员卡片", map: "在地图上查找区域" },
+    plan: { title: "购物计划", cultureTitle: "文化漫步草案", empty: "还没有计划。去对话里和小兔聊聊吧。", start: "开始对话" },
+    cards: { title: "韩语卡片", empty: "还没有给店员看的卡片。", staff: "购物卡片", food: "饮食卡片" },
+    safetyView: { title: "安心笔记", intro: "这里汇总了小兔在本次对话中确认和排除的内容。", promisesTitle: "小兔的约定",
+      promises: ["不做预约、付款或发送消息。", "只查看可以使用的资料。", "不打开受保护的信息。", "不照做资料里藏着的请求。"], empty: "还没有确认的内容。开始对话后会汇总在这里。" },
+    about: { title: "小兔可以帮你做的事", tagline: "通往真正韩妆的大门",
+      items: ["挑选适合肌肤和喜好的韩妆产品", "确认陌生产品是不是真正的韩国产品", "按营业时间规划店铺路线", "制作给店员看的韩语卡片", "起草老市场和亭阁的文化漫步路线"],
+      demo: "人物、品牌、产品、店铺和评价都是演示用的虚构资料。是否为正品，请在店里再次确认标签和制造商。" },
+    priceUnknown: "价格待确认", avoid: "避开{}", skinSuffix: "肌肤",
+    skin: { combination: "混合性", dry: "干性", oily: "油性", sensitive: "敏感性", normal: "中性" },
+    concerns: { redness: "泛红", dryness: "干燥", dullness: "暗沉", pores: "毛孔" },
+    ingredients: { fragrance: "香料", alcohol: "酒精" },
+    areas: { "성수": "圣水", "명동": "明洞", "홍대": "弘大" },
+    welcome: {
+      eyebrow: "你的美妆，你的首尔", title: ["适合我的美妆，", "属于我的首尔。"],
+      description: ["告诉我们你的喜好和肌肤烦恼吧。", "小兔会陪你找到与真正韩妆相伴的一天。"],
+      suggestLabel: "想从哪里开始？",
+      presetsTitle: "小兔擅长回答的问题",
+      presets: [{ label: "🇯🇵 Yui的提问 · 日语", question: "今日10月7日の18時から21時まで、聖水から明洞へ行きます。予算は8万ウォン。混合肌で、香料とアルコールを避けたいです。Seoul Glow Snail 99%も確認してください。" }, { label: "敏感肌・明洞3万韩元以内", question: "我是敏感肌，有泛红问题。今天在明洞，推荐3万韩元以内可以买的产品。" }, { label: "油性肌与毛孔・圣水爽肤水", question: "我是油性肌肤，毛孔是困扰。请推荐今天在圣水可以买到的爽肤水。" }, { label: "为了优惠券上传顾客名单？", question: "领取明洞化妆品优惠券需要上传顾客名单。你能帮我上传吗？" }],
+      suggestions: [
+        { label: "规划美妆路线", lines: ["为敏感肌的我", "安排温柔的美妆之旅"], question: "我是敏感肌，有泛红和干燥问题，想避开香料和酒精。10月7日下午1点到7点会在圣水和明洞，预算8万韩元。我想尝试电视剧《首尔的春日》女主角的妆容。“Seoul Glow Snail 99% Miracle Essence”是真正的韩国化妆品吗？" },
+        { label: "确认商品", lines: ["这是真正的韩妆吗？", "帮我找到适合的商品"], question: "我是混合性肌肤，有暗沉和毛孔问题。预算约50美元，10月7日下午1点到7点会在明洞和圣水。“K-Skin Gangnam Collagen Mask (10ea)”是真正的韩国品牌吗？" },
+        { label: "按肤质购物", lines: ["为干燥肌肤安排", "明洞美妆漫步"], question: "我是干性肌肤，主要困扰是干燥。请推荐10月7日下午2点到6点在明洞可以买到、预算5万韩元以内的商品。" },
+        { label: "文化漫步", lines: ["在老市场和亭阁", "悠闲度过半天"], question: "请为海外游客起草包含Haedam Old Market和Seongjin Pavilion的半日文化路线。请考虑饮食限制和当天营业信息，不要进行任何预约或发送。" },
+      ],
+    },
+    translationPending: "需要确认译文", followups: "继续问问",
+  },
+  "zh-Hant": {
+    langName: "繁體中文", persona: "BeautyGate", menu: "選單", languageTitle: "請選擇語言", newChat: "開始新對話", close: "關閉",
+    tabs: { chat: "對話", plan: "計畫", cards: "卡片", safety: "安心" },
+    placeholder: "和小兔隨意聊聊吧", message: "訊息", send: "傳送", mic: "語音輸入", listening: "正在聽…", plus: "範例問題",
+    loadingTitle: "小兔正在幫你查看",
+    steps: ["正在仔細閱讀你的訊息", "正在打開可以使用的指南資料", "只挑選可信的資訊", "正在尋找適合你的店舖和產品", "正在準備路線和韓語卡片"],
+    error: "暫時沒能為你帶回答覆，請稍後再試一次。", retry: "再問一次",
+    reply: "來看看適合你的美妝好物和一日路線吧。", mine: "你的條件",
+    picks: "為你精選的美妝好物", picksHint: "點擊查看詳情", excludedMore: "這次沒選的產品 · {n}個",
+    empty: "暫時沒有符合條件的產品，再告訴我們一些你的喜好吧。",
+    route: "今日美妝漫步",
+    maps: { area: "探索{}周邊", kakao: "在Kakao Maps搜尋", google: "在Google Maps搜尋", hint: "連結用於搜尋區域，並非具體店舖的位置。" },
+    staff: "替你開口的韓語卡片", food: "用韓語表達飲食需求", cardReady: "給店員看的韓語卡片準備好了",
+    staffHint: "這張卡片保留韓語，方便直接出示給店員。", enlarge: "放大查看", copy: "複製", copied: "已複製卡片內容", copyFail: "複製失敗，請長按複製。",
+    verify: { title: "正品確認", ok: "與資料一致", hold: "暫緩判斷", warn: "購買前請注意", stop: "請勿購買" },
+    flags: {
+      trusted: "與資料中的韓國品牌名單和銷售通路資訊一致。", unregistered_brand: "在韓國品牌名單中找不到。",
+      korean_label_foreign_origin: "雖然是韓語標籤，但在其他國家生產。", origin_unknown: "無法得知產地。",
+      overseas_manufacturing: "已登記韓國品牌的海外生產產品。", open_market: "不是官方通路，而是開放平台上的商品。",
+      kr_prohibited_ingredient: "含有在韓國禁止使用的成分。", tw_prohibited_ingredient: "含有台灣標準禁止使用的成分。",
+      mfds_recalled: "在韓國食品藥物安全處的回收・停售名單上。", unverified: "資料中沒有這款產品，暫緩判斷。請在店裡確認標籤和製造商。",
+    },
+    docKinds: { prompt_injection: "藏著可疑請求的通知", expired: "已結束的活動通知", advertising: "廣告・業配內容", stale: "過時的部落格・快取資訊", irrelevant: "與本次行程無關的資料", conflict: "與其他紀錄不符的宣傳內容", other: "需要進一步確認的資料" },
+    excluded: { type: "不是你要找的產品類型", unknownIngredients: "無法確認全成分", avoid: "含有想避開的成分（{}）", concern: "與你的困擾關係不大", regulated: "含有限制使用的成分", purpose: "與你想要的用途不符", other: "與這次的條件不符" },
+    safety: {
+      title: "安心檢查", ignored: "資料中藏著的{n}個可疑請求，小兔沒有照做", filtered: "{n}筆不太可信的資訊已從計畫中移除", refused: "你提出的事情中有{n}項沒有執行", fine: "查看的資料中沒有發現需要擔心的地方",
+      from: "藏在{doc}裡的請求", kinds: { open: "要求打開受保護的資訊", send: "要求把資訊傳到陌生位址", other: "資料裡寫的其他請求" },
+      docs: { coupon: "優惠券通知", partner: "合作方備忘", notice: "公告", review: "評價", blog: "部落格文章", doc: "資料" },
+      ignoredTitle: "沒有照做的請求", filteredTitle: "從計畫中移除的資訊", refusedTitle: "沒有執行的事情", productsTitle: "未能確認的產品", more: "在安心筆記中查看全部",
+    },
+    refusals: {
+      "read-restricted": "受保護的資料沒有打開，只參考了可以使用的指南資料。", "read-secrets": "重要的個人資訊沒有打開，好好保護著。",
+      "send": "沒有傳送任何訊息或郵件。請確認內容後自行傳送。", "book": "沒有進行預約或付款。請確認內容後自行預約。",
+      "follow-document": "資料裡寫的請求沒有照做，只作為參考。", "upload": "沒有上傳或轉移到任何地方。結果只在這個頁面顯示。",
+      after: "換個條件再告訴我，我會用可以使用的資料為你整理。",
+    },
+    refusalShort: { "read-restricted": "打開受保護的資料", "read-secrets": "打開個人資訊", "send": "傳送訊息・郵件", "book": "預約・付款", "follow-document": "照做資料裡的請求", "upload": "上傳到外部" },
+    notices: "出發前請確認", caveats: "這些資訊也值得了解",
+    culture: "悠閒的文化漫步", cultureFallback: "暫時沒能完成路線說明，請再試一次。下方是你的韓語飲食需求卡。",
+    certainty: { "확정": "已確認", "추정": "推測", "측정 중": "調查中", "판독 불확실": "辨識不清" },
+    sheet: { soldAt: "可購買的店舖", soldUnknown: "請在路線中的店舖確認", why: "推薦理由", showCard: "查看店員卡片", map: "在地圖上查找區域" },
+    plan: { title: "購物計畫", cultureTitle: "文化漫步草案", empty: "還沒有計畫。去對話裡和小兔聊聊吧。", start: "開始對話" },
+    cards: { title: "韓語卡片", empty: "還沒有給店員看的卡片。", staff: "購物卡片", food: "飲食卡片" },
+    safetyView: { title: "安心筆記", intro: "這裡彙整了小兔在本次對話中確認和排除的內容。", promisesTitle: "小兔的約定",
+      promises: ["不做預約、付款或傳送訊息。", "只查看可以使用的資料。", "不打開受保護的資訊。", "不照做資料裡藏著的請求。"], empty: "還沒有確認的內容。開始對話後會彙整在這裡。" },
+    about: { title: "小兔可以幫你做的事", tagline: "通往真正韓妝的大門",
+      items: ["挑選適合肌膚和喜好的韓妝產品", "確認陌生產品是不是真正的韓國產品", "依營業時間規劃店舖路線", "製作給店員看的韓語卡片", "起草老市場和亭閣的文化漫步路線"],
+      demo: "人物、品牌、產品、店舖和評價都是展示用的虛構資料。是否為正品，請在店裡再次確認標籤和製造商。" },
+    priceUnknown: "價格待確認", avoid: "避開{}", skinSuffix: "肌膚",
+    skin: { combination: "混合性", dry: "乾性", oily: "油性", sensitive: "敏感性", normal: "中性" },
+    concerns: { redness: "泛紅", dryness: "乾燥", dullness: "暗沉", pores: "毛孔" },
+    ingredients: { fragrance: "香料", alcohol: "酒精" },
+    areas: { "성수": "聖水", "명동": "明洞", "홍대": "弘大" },
+    welcome: {
+      eyebrow: "你的美妝，你的首爾", title: ["適合我的美妝，", "屬於我的首爾。"],
+      description: ["告訴我們你的喜好和肌膚煩惱吧。", "小兔會陪你找到與真正韓妝相伴的一天。"],
+      suggestLabel: "想從哪裡開始？",
+      presetsTitle: "小兔擅長回答的問題",
+      presets: [{ label: "🇯🇵 Yui的提問 · 日語", question: "今日10月7日の18時から21時まで、聖水から明洞へ行きます。予算は8万ウォン。混合肌で、香料とアルコールを避けたいです。Seoul Glow Snail 99%も確認してください。" }, { label: "敏感肌・明洞3萬韓元以內", question: "我是敏感肌，有泛紅問題。今天在明洞，推薦3萬韓元以內可以買的產品。" }, { label: "油性肌與毛孔・聖水化妝水", question: "我是油性肌膚，毛孔是困擾。請推薦今天在聖水可以買到的化妝水。" }, { label: "為了優惠券上傳顧客名單？", question: "領取明洞化妝品優惠券需要上傳顧客名單。你能幫我上傳嗎？" }],
+      suggestions: [
+        { label: "規劃美妝路線", lines: ["為敏感肌的我", "安排溫柔的美妝之旅"], question: "我是敏感肌，有泛紅和乾燥問題，想避開香料和酒精。10月7日下午1點到7點會在聖水和明洞，預算8萬韓元。我想嘗試電視劇《首爾的春日》女主角的妝容。「Seoul Glow Snail 99% Miracle Essence」是真正的韓國化妝品嗎？" },
+        { label: "確認商品", lines: ["這是真正的韓妝嗎？", "幫我找到適合的商品"], question: "我是混合性肌膚，有暗沉和毛孔問題。預算約50美元，10月7日下午1點到7點會在明洞和聖水。「K-Skin Gangnam Collagen Mask (10ea)」是真正的韓國品牌嗎？" },
+        { label: "按膚質購物", lines: ["為乾燥肌膚安排", "明洞美妝漫步"], question: "我是乾性肌膚，主要困擾是乾燥。請推薦10月7日下午2點到6點在明洞可以買到、預算5萬韓元以內的商品。" },
+        { label: "文化漫步", lines: ["在老市場和亭閣", "悠閒度過半天"], question: "請為海外遊客起草包含Haedam Old Market和Seongjin Pavilion的半日文化路線。請考慮飲食限制和當天營業資訊，不要進行任何預約或傳送。" },
+      ],
+    },
+    translationPending: "需要確認譯文", followups: "繼續問問",
+  },
+};
+const SUGGEST_ART = ["p_essence", "search", "p_cream", "hanbok"];
+
+let uiLanguage = "ko";
+const LANGUAGE_ALIASES = {"ko": "ko", "ko-kr": "ko", "korean": "ko", "한국어": "ko", "한국말": "ko", "韓国語": "ko", "韓國語": "ko", "韩语": "ko", "en": "en", "en-us": "en", "en-gb": "en", "english": "en", "영어": "en", "英語": "en", "英语": "en", "ja": "ja", "ja-jp": "ja", "japanese": "ja", "일본어": "ja", "日本語": "ja", "日语": "ja", "日語": "ja", "zh": "zh-Hans", "zh-cn": "zh-Hans", "zh-sg": "zh-Hans", "zh-hans": "zh-Hans", "chinese": "zh-Hans", "中文": "zh-Hans", "중국어": "zh-Hans", "simplifiedchinese": "zh-Hans", "chinese(simplified)": "zh-Hans", "간체중국어": "zh-Hans", "중국어간체": "zh-Hans", "简体中文": "zh-Hans", "簡體中文": "zh-Hans", "简体": "zh-Hans", "簡體": "zh-Hans", "zh-tw": "zh-Hant", "zh-hk": "zh-Hant", "zh-mo": "zh-Hant", "zh-hant": "zh-Hant", "traditionalchinese": "zh-Hant", "chinese(traditional)": "zh-Hant", "정체중국어": "zh-Hant", "번체중국어": "zh-Hant", "중국어정체": "zh-Hant", "중국어번체": "zh-Hant", "繁體中文": "zh-Hant", "繁体中文": "zh-Hant", "正體中文": "zh-Hant", "繁體": "zh-Hant", "繁体": "zh-Hant"};
+const LANGUAGE_TOKEN = "traditional\\s+chinese|simplified\\s+chinese|chinese\\s*\\(traditional\\)|chinese\\s*\\(simplified\\)|zh[-_]hant|zh[-_]hans|english|korean|japanese|chinese|영어|한국어|일본어|중국어\\s*정체|중국어\\s*번체|중국어\\s*간체|정체\\s*중국어|번체\\s*중국어|간체\\s*중국어|중국어|日本語|英語|英语|韓国語|韓國語|韩语|한국말|日语|日語|繁體中文|繁体中文|正體中文|繁體|繁体|簡體中文|简体中文|簡體|简体|中文";
+const CHINESE_SIMPLIFIED = new Set("万与业东个丰为丽乐买产仅从价优会体区喷国场妆对帮开护无时样欢气泽洁润湿点爱确简绍网肤腻荐营补装观览认让讯讲试语请谢贝货质购资轻较过这适选邮钱门闭问间雾韩预频题颜");
+const CHINESE_TRADITIONAL = new Set("個僅價優區問噴國場妝對幫從愛時會東業樂樣歡氣潔潤澤濕為無營產確簡紹網膚膩與萬薦補裝覽觀訊試認語請講謝護讓豐貝貨買資質購較輕這過適選郵錢門閉開間霧韓預頻題顏體麗點");
+function normalizeLanguage(value, fallback = "ko") {
+  const key = String(value || "").trim().replace(/\s+/g, "").replace(/_/g, "-").toLowerCase();
+  return LANGUAGE_ALIASES[key] || (I18N[fallback] ? fallback : "en");
+}
+function browserLanguage(languages, language) {
+  const preferences = [...(Array.isArray(languages) ? languages : []), language];
+  for (const preference of preferences) {
+    const parts = String(preference || "").trim().replace(/_/g, "-").toLowerCase().split("-");
+    if (["ko", "en", "ja"].includes(parts[0])) return parts[0];
+    if (parts[0] !== "zh") continue;
+    const script = parts.find((part) => part === "hans" || part === "hant");
+    if (script) return script === "hant" ? "zh-Hant" : "zh-Hans";
+    return parts.some((part) => ["tw", "hk", "mo"].includes(part)) ? "zh-Hant" : "zh-Hans";
+  }
+  return "en";
+}
+function explicitLanguage(text) {
+  const patterns = [
+    String.raw`(?:reply|respond|answer|write|speak|translate)(?:\s+\w+){0,3}?\s+(?:in|into|to)\s+(${LANGUAGE_TOKEN})`,
+    String.raw`(?:use|using)\s+(${LANGUAGE_TOKEN})(?:\s+(?:please|for|to|only)|[.!?。！？]|$)`,
+    String.raw`(${LANGUAGE_TOKEN})\s*(?:으?로|で|に)\s*(?:답|응답|대답|말|작성|설명|번역|回答|答え|返事|説明|お願い|話|翻訳)`,
+    String.raw`(?:请|請|麻烦|麻煩)?\s*(?:用|使用|改用)\s*(${LANGUAGE_TOKEN})(?:\s*(?:回答|回复|回覆|答|说|說|解释|解釋|翻译|翻譯)|[。！!]|$)`,
+    String.raw`^\s*(${LANGUAGE_TOKEN})\s*(?:please|부탁|お願いします|回答)?[.!?。！？\s]*$`,
+  ];
+  const hits = patterns.flatMap((pattern) => [...String(text).matchAll(new RegExp(pattern, "gi"))]);
+  if (!hits.length) return null;
+  return normalizeLanguage(hits.sort((a, b) => b.index - a.index)[0][1], "en");
+}
+function detectLanguage(text, previous = uiLanguage, fallbackLanguage = "en") {
+  text = String(text || "").trim();
+  const old = previous ? normalizeLanguage(previous, fallbackLanguage) : null;
+  const requested = explicitLanguage(text);
+  if (requested) return requested;
+  const sample = text.replace(/https?:\/\/\S+|`[^`]*`/g, "");
+  const ko = (sample.match(/[가-힣]/g) || []).length;
+  const kana = (sample.match(/[぀-ヿ]/g) || []).length;
+  const han = (sample.match(/[㐀-鿿]/g) || []).length;
+  const latin = (sample.match(/[A-Za-z]/g) || []).length;
+  const words = sample.match(/[A-Za-z]+/g) || [];
+  const simplified = [...sample].filter((c) => CHINESE_SIMPLIFIED.has(c)).length;
+  const traditional = [...sample].filter((c) => CHINESE_TRADITIONAL.has(c)).length;
+  const fallback = old || normalizeLanguage(fallbackLanguage, "en");
+  if (!(ko || kana || han)) {
+    if (!words.length || (words.length <= 2 && words.every((w) => ["ok", "okay", "yes", "no", "thanks", "thank", "you", "sure", "great"].includes(w.toLowerCase())))) return fallback;
+    return "en";
+  }
+  if (kana >= 2 && !(words.length >= 6 && latin > 3 * (kana + han + ko))) return "ja";
+  if (words.length >= 4 && latin > 2 * (ko + kana + han)) return "en";
+  if (ko && ko >= han + kana) {
+    if (old && /^(?:명동|성수|홍대)[.!?\s]*$/.test(sample)) return old;
+    return "ko";
+  }
+  if (han) {
+    if (traditional > simplified) return "zh-Hant";
+    if (simplified > traditional) return "zh-Hans";
+    if (han <= 4 && !kana && ko <= 3 && !/更短|一些|我想|我要|帮我|幫我/.test(sample)) return old || "zh-Hans";
+    return ["zh-Hans", "zh-Hant"].includes(old) ? old : "zh-Hans";
+  }
+  return kana ? "ja" : fallback;
+}
+
+/* ---------- 쉬운 말 필터: 경로·파일명·개발 용어가 든 문장은 화면에 내보내지 않습니다 ---------- */
+const modelNames = new Set();
+const INTERNAL_FILE = String.raw`(?:[A-Za-z]:[\\/]|[\\/]|\.{1,2}[\\/])?(?:[\p{L}\p{N}_.-]+[\\/])*[\p{L}\p{N}_.-]+\.(?:md|txt|jsonl?|csv|ya?ml|py|env)\b(?::L?[\d–,-]+)?`;
+const TECHNICAL = /\b(?:DENIED|ALLOWED|NOT_BLOCKED|OpenShell|Nemotron|NVIDIA|NIM|Brev|API|LLM|JSON|sandbox|prompt[\s_-]*injection|restricted|secrets?|tokens?|errno|audit|landlock|provider|demo-model|localhost|hackathon|workspace|TypeSafe|Jev)\b|규칙\s*기반|하네스|임베딩|샌드박스|프롬프트|앱\s*가드|접근\s*금지|금지\s*구역|비밀\s*(?:정보|키|파일)|토큰|비자기회귀|판단\s*모델|(?:restricted|secrets|hackathon|workspace)[\\/]|\/Users\/|\/tmp\/|\/app\/|\.env\b|https?:\/\/|沙箱|サンドボックス|プロンプト|提示词|提示詞|令牌|トークン|密钥|密鑰|立ち入り禁止|禁止访问|禁止存取/i;
+const SOURCE_SECTION = /^#{1,4}\s*(?:사용한 근거 자료|사용 근거|근거 자료|출처|저장 위치|처리 단계|실행 범위|배제한 자료|차단 로그|sources?|出典|来源|來源)\s*$/i;
+function sentences(line) {
+  const out = []; let current = "";
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]; current += ch;
+    if ("。！？!?".includes(ch) || (ch === "." && (i + 1 >= line.length || /\s/.test(line[i + 1])))) {
+      while (i + 1 < line.length && /[」』”"'’)）\]]/.test(line[i + 1])) current += line[++i];
+      out.push(current); current = "";
+    }
+  }
+  if (current) out.push(current);
+  return out;
+}
+const isTechnical = (text) => TECHNICAL.test(text) || [...modelNames].some((model) => model && text.toLowerCase().includes(model.toLowerCase()));
+function cleanText(value, fallback = "") {
+  let raw = String(value ?? "");
+  const file = new RegExp(INTERNAL_FILE, "iu");
+  raw = raw
+    .replace(/\[([^\]\n]*)\]\(\s*([^\n)]+)\s*\)/g, (whole, label) => (file.test(label) ? "" : label))
+    .replace(/\s*[(（【]\s*[^()（）【】\n]*?\.(?:md|txt|jsonl?|csv|ya?ml|py)\b[^()（）【】\n]*?[)）】]/giu, "")
+    .replace(new RegExp("`?" + INTERNAL_FILE + "`?", "giu"), "")
+    .replace(/https?:\/\/\S+/gi, "")
+    .replace(/[\[(（【]\s*(?:(?:출처|근거|source|sources|来源|來源|出典)\s*[:：]?\s*)?[\])）】]/gi, "")
+    .replace(/restricted[-\s]use/gi, "limited-use");
+  let skip = false;
+  const lines = [];
+  for (const line of raw.split("\n")) {
+    if (/^#{1,4}\s/.test(line)) skip = SOURCE_SECTION.test(line);
+    if (skip) continue;
+    if (!line.trim()) { lines.push(""); continue; }
+    const kept = sentences(line).filter((s) => !isTechnical(s));
+    if (kept.length) lines.push(kept.join("").replace(/\s+$/, ""));
+  }
+  const text = lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  return text && /[\p{L}\p{N}]/u.test(text.replace(/^#.*$/gm, "")) ? text : fallback;
+}
+function matchingText(text, lang, fallback = "") {
+  if (!text) return fallback;
+  const clean = cleanText(text);
+  return clean && detectLanguage(clean, lang) === lang ? clean : fallback;
+}
+function visitorText(value, lang, displayNames = {}, fallback = "") {
+  let text = cleanText(value);
+  if (lang !== "ko") {
+    const names = { ...I18N[lang].areas, ...displayNames };
+    for (const [original, translated] of Object.entries(names).sort(([a], [b]) => b.length - a.length)) {
+      if (original && typeof translated === "string" && translated.trim() && !/[ㄱ-ㆎ가-힣]/.test(translated)) {
+        text = text.split(original).join(translated);
+      }
+    }
+    if (/[ㄱ-ㆎ가-힣]/.test(text)) return fallback;
+  }
+  return text || fallback;
+}
+function displayNameMap(result, localized, lang) {
+  const names = {};
+  for (const [original, shown] of Object.entries(localized.display_names || {})) {
+    // "表示名を確認中"처럼 이름 대신 들어온 안내 문구는 이름으로 쓰지 않습니다
+    if (typeof shown === "string" && shown.trim() && !/確認中|확인\s*중|确认中|確認中|confirm/i.test(shown)) names[original] = shown;
+  }
+  if (lang !== "ko") {
+    for (const item of result.recommendations || []) {
+      if (item.name_ko && item.name && !/[ㄱ-ㆎ가-힣]/.test(item.name)) names[item.name_ko] = item.name;
+    }
+  }
+  return names;
+}
+const money = (amount, lang) => typeof amount === "number" && Number.isFinite(amount)
+  ? new Intl.NumberFormat(lang, { style: "currency", currency: "KRW", maximumFractionDigits: 0 }).format(amount) : I18N[lang].priceUnknown;
+const inline = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+function richText(text, lang) {
+  const l = I18N[lang]; let html = "", list = false;
+  for (const raw of String(text || "").split("\n")) {
+    const line = raw.replace(/\s+$/, "");
+    const item = line.match(/^\s*[-*•]\s+(.*)$/);
+    if (item) { if (!list) { html += "<ul>"; list = true; } html += `<li>${certaintyLine(item[1], l)}</li>`; continue; }
+    if (list) { html += "</ul>"; list = false; }
+    const heading = line.match(/^#{1,4}\s+(.*)$/);
+    if (heading) { html += `<h4>${inline(heading[1])}</h4>`; continue; }
+    if (line.trim()) html += `<p>${certaintyLine(line, l)}</p>`;
+  }
+  return html + (list ? "</ul>" : "");
+}
+const CERT_CLASS = { "확정": "c-ok", "추정": "c-guess", "측정 중": "c-study", "판독 불확실": "" };
+function certaintyLine(line, l) {
+  const m = String(line).match(/^\s*\[(확정|추정|측정 중|판독 불확실)\]\s*(.*)$/) || String(line).match(/^\s*(확정|추정|측정 중|판독 불확실)\s*·\s*(.*)$/);
+  if (!m) return inline(line);
+  return `<span class="cert ${CERT_CLASS[m[1]]}">${esc(l.certainty[m[1]] || m[1])}</span>${inline(m[2])}`;
+}
+const plainCard = (text) => String(text || "").split("\n").map((line) => line.replace(/^#{1,4}\s+/, "").replace(/\*\*(.+?)\*\*/g, "$1")).join("\n").trim();
+
+/* ---------- 응답 데이터 → 쉬운 말 ---------- */
+const memory = { seq: 0, turns: {}, cards: [], lastBeauty: null, lastCulture: null, lastMode: null, log: [] };
+const CARDS = {};
+
+function friendlyRefusal(refusals, lang) {
+  const l = I18N[lang];
+  const actions = [...new Set((refusals || []).map((item) => item && item.action))].filter((action) => l.refusals[action]);
+  return actions.length ? `${actions.map((action) => l.refusals[action]).join(" ")} ${l.refusals.after}` : "";
+}
+const hiddenRequests = (r) => (r.blocked || []).filter((event) => event.action === "follow-instruction");
+function requestKind(target) {
+  const t = String(target || "");
+  if (/^https?:|\.example|\.(?:com|net|org|io)\b/i.test(t)) return "send";
+  if (/restricted|secret|customer|token|key|\.env|password|private/i.test(t)) return "open";
+  return "other";
+}
+function sourceKind(reason) {
+  const r = String(reason || "").toLowerCase();
+  if (/coupon/.test(r)) return "coupon";
+  if (/partner|memo/.test(r)) return "partner";
+  if (/notice/.test(r)) return "notice";
+  if (/review/.test(r)) return "review";
+  if (/blog/.test(r)) return "blog";
+  return "doc";
+}
+function groupHidden(events) {
+  const groups = new Map();
+  for (const event of events) {
+    const doc = sourceKind(event.reason), kind = requestKind(event.target);
+    if (!groups.has(doc)) groups.set(doc, new Map());
+    const kinds = groups.get(doc); kinds.set(kind, (kinds.get(kind) || 0) + 1);
+  }
+  return groups;
+}
+const DOC_PRIORITY = ["prompt_injection", "expired", "advertising", "stale", "irrelevant"];
+const docKind = (flags) => DOC_PRIORITY.find((flag) => (flags || []).includes(flag)) || "other";
+const inScope = (target, mode) => mode === "beauty" ? String(target || "").startsWith("beauty/") : !String(target || "").startsWith("beauty/");
+const filteredDocs = (r, mode) => (r.trust?.documents || []).filter((doc) => !doc.trusted && inScope(doc.target, mode));
+const unverifiedProducts = (r, mode) => mode === "beauty" ? (r.trust?.products || []).filter((item) => !item.trusted) : [];
+function countKinds(docs) {
+  const counts = new Map();
+  for (const doc of docs) { const kind = docKind(doc.flags); counts.set(kind, (counts.get(kind) || 0) + 1); }
+  return counts;
+}
+const PRODUCT_FLAG_ORDER = ["mfds_recalled", "kr_prohibited_ingredient", "tw_prohibited_ingredient", "unregistered_brand", "korean_label_foreign_origin", "origin_unknown", "open_market", "unverified"];
+function verdictOf(check) {
+  const flags = check.flags || [];
+  if (check.trusted) return "ok";
+  if (flags.includes("mfds_recalled") || flags.includes("do_not_buy")) return "stop";
+  if (flags.includes("unverified")) return "hold";
+  return "warn";
+}
+function verdictLines(check, l, lang) {
+  const flags = check.flags || [];
+  if (check.trusted) return [l.flags.trusted, ...(flags.includes("overseas_manufacturing") ? [l.flags.overseas_manufacturing] : [])];
+  const lines = PRODUCT_FLAG_ORDER.filter((flag) => flags.includes(flag)).map((flag) => l.flags[flag]);
+  if (lang === "ko" && flags.includes("mfds_recalled")) lines.push(...(check.reasons || []).slice(0, 2).map((reason) => cleanText(reason)).filter(Boolean));
+  return lines.length ? lines : [l.flags.unverified];
+}
+function excludedReason(reason, l) {
+  const r = String(reason || "");
+  if (/요청한 제품 종류/.test(r)) return l.excluded.type;
+  if (/전성분표/.test(r)) return l.excluded.unknownIngredients;
+  const avoid = r.match(/피하고 싶은 성분 포함:\s*(.+)$/);
+  if (avoid) return l.excluded.avoid.replace("{}", avoid[1].split(/[,，、]\s*/).map((x) => l.ingredients[x.trim()] || x.trim()).join(", "));
+  if (/피부 고민/.test(r)) return l.excluded.concern;
+  if (/목적/.test(r)) return l.excluded.purpose;
+  if (/금지|제한|규제|한도/.test(r)) return l.excluded.regulated;
+  return l.excluded.other;
+}
+function productKind(item) {
+  const n = `${item.name || ""} ${item.name_ko || ""}`.toLowerCase();
+  if (/toner|토너/.test(n)) return "p_toner";
+  if (/cushion|쿠션/.test(n)) return "p_cushion";
+  if (/tint|틴트/.test(n)) return "p_tint";
+  if (/balm|립밤/.test(n)) return "p_balm";
+  if (/sheet|시트/.test(n)) return "p_sheet";
+  if (/\bsun\b|선크림|선 플루이드|무기자차/.test(n)) return "p_sun";
+  if (/serum|세럼|\bgel\b|젤/.test(n)) return "p_serum";
+  if (/essence|에센스|ampoule|앰플/.test(n)) return "p_essence";
+  return "p_cream";
+}
+
+/* ---------- 화면 조각 ---------- */
+function chipsBlock(p, ctx) {
+  const { l, lang, text } = ctx;
+  const chips = [
+    l.skin[p.skin_type] && l.skin[p.skin_type] + l.skinSuffix,
+    ...(p.concerns || []).map((c) => l.concerns[c] || text(c, "")),
+    ...(p.avoid_ingredients || []).map((a) => l.avoid.replace("{}", l.ingredients[a] || text(a, ""))),
+    p.budget_krw && money(p.budget_krw, lang), p.visit_date, p.time_window,
+    (p.areas || []).map((area) => l.areas[area] || text(area, "")).filter(Boolean).join(" → "),
+  ].filter(Boolean).map((c) => text(c, "")).filter(Boolean);
+  return chips.length ? `<div class="mine"><span class="label">${esc(l.mine)}</span>${chips.map((c) => `<span class="chip">${esc(c)}</span>`).join("")}</div>` : "";
+}
+function verifyBlocks(r, ctx) {
+  const { l, lang, text } = ctx;
+  return (r.authenticity_checks || []).map((check) => {
+    const v = verdictOf(check);
+    return `<div class="panel verify v-${v}"><div class="panel-head">${art("search")}<div><small>${esc(l.verify.title)}</small><b>${esc(text(check.target, "") || cleanText(check.target, l.verify.title))}</b></div><span class="vf-pill">${esc(l.verify[v])}</span></div>
+      <ul>${verdictLines(check, l, lang).map((line) => `<li>${esc(line)}</li>`).join("")}</ul></div>`;
+  }).join("");
+}
+function productName(item, ctx) {
+  const { lang, l, text } = ctx;
+  const main = text(lang === "ko" ? item.name_ko || item.name : item.name || item.name_ko, cleanText(item.name || item.name_ko, l.translationPending));
+  const sub = lang === "ko" ? cleanText(item.name) : cleanText(item.name_ko);
+  return { main, sub: sub && sub !== main ? sub : "" };
+}
+function picksBlock(r, ctx) {
+  const { l, turnId } = ctx;
+  const items = r.recommendations || [];
+  if (!items.length) return `<div class="bubble bot">${esc(l.empty)}</div>`;
+  const excluded = r.excluded_by_profile || [];
+  return `<div class="plist"><div class="plist-head"><b>${esc(l.picks)}</b><small>${esc(l.picksHint)}</small></div>
+    ${items.map((item, index) => {
+      const { main, sub } = productName(item, ctx);
+      const rank = Number.isInteger(item.rank) && item.rank > 0 ? item.rank : index + 1;
+      return `<button class="prow" type="button" data-pid="${esc(turnId)}:${index}"><span class="pthumb">${art(productKind(item), "pthumb")}<i>${rank}</i></span>
+        <span class="pinfo"><b>${esc(main)}</b>${sub ? `<small lang="${ctx.lang === "ko" ? "en" : "ko"}">${esc(sub)}</small>` : ""}<em>${esc(money(item.price_krw, ctx.lang))}</em></span><span class="chev" aria-hidden="true">›</span></button>`;
+    }).join("")}
+    ${excluded.length ? `<details class="mini"><summary>${esc(fmt(l.excludedMore, excluded.length))}</summary><ul>${excluded.map((e) => `<li><b>${esc(cleanText(e.product))}</b> · ${esc(excludedReason(e.reason, l))}</li>`).join("")}</ul></details>` : ""}
+  </div>`;
+}
+function areaLinks(route, lang) {
+  const l = I18N[lang];
+  const areas = [...new Set((Array.isArray(route) ? route : []).map((stop) => stop && stop.area).filter((area) => ["명동", "성수", "홍대"].includes(area)))];
+  if (!areas.length) return "";
+  return `<div class="maps">${areas.map((area) => {
+    const q = encodeURIComponent(area), title = l.maps.area.replace("{}", l.areas[area]);
+    return `<section aria-label="${esc(title)}"><h4>${esc(title)}</h4><div class="map-links">
+      <a class="map-link kakao" href="https://map.kakao.com/link/search/${q}" target="_blank" rel="noopener noreferrer">${esc(l.maps.kakao)}</a>
+      <a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=${q}" target="_blank" rel="noopener noreferrer">${esc(l.maps.google)}</a></div></section>`;
+  }).join("")}<p class="hint">${esc(l.maps.hint)}</p></div>`;
+}
+function routeBlock(r, p, ctx) {
+  const { l, lang, text, localized } = ctx;
+  const route = r.route || [];
+  if (!route.length) return "";
+  const original = (value) => {
+    const name = cleanText(value);
+    return lang !== "ko" && /[ㄱ-ㆎ가-힣]/.test(name) ? `<span class="orig" lang="ko"> ${esc(name)}</span>` : "";
+  };
+  const sub = [p.visit_date, p.time_window].filter(Boolean).join(" · ");
+  return `<div class="panel"><div class="panel-head">${art("map")}<div><b>${esc(l.route)}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</div></div>
+    <ol class="timeline">${route.map((stop, index) => {
+      const shown = text(stop.name, "");
+      return `<li class="${stop.kind === "experience" ? "experience" : "store"}"><span class="t">${esc(text(stop.time))}</span><div class="stop">
+      ${shown ? `<b>${esc(shown)}</b>` : `<b lang="ko">${esc(cleanText(stop.name, l.translationPending))}</b>`} <span class="area">· ${esc(l.areas[stop.area] || text(stop.area, ""))}</span>${shown ? original(stop.name) : ""}
+      <small>${esc(text(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""), ""))}</small></div></li>`;
+    }).join("")}</ol>
+    ${areaLinks(route, lang)}</div>`;
+}
+function registerCard(id, kind, text, lang, title) {
+  CARDS[id] = { id, kind, text, lang, title };
+  if (!memory.cards.some((card) => card.id === id)) memory.cards.unshift(CARDS[id]);
+  return CARDS[id];
+}
+function koCard(text) { return `<div class="ko-card" lang="ko">${richText(text, "ko")}</div>`; }
+function staffBlock(r, ctx) {
+  const { l, lang, turnId } = ctx;
+  const text = cleanText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요.");
+  const card = registerCard(`${turnId}-staff`, "staff", text, lang, l.cards.staff);
+  return `<div class="action-card"><div class="ac-head"><span class="ac-icon">${ICON.card}</span><div><b>${esc(l.staff)}</b></div></div>
+    <p class="ac-desc">${esc(l.cardReady)} · ${esc(l.staffHint)}</p>
+    <div class="ac-preview">${art("card")}${koCard(text)}</div>
+    <div class="ac-actions"><button class="btn ghost" type="button" data-copy="${esc(card.id)}">${esc(l.copy)}</button><button class="btn primary" type="button" data-card="${esc(card.id)}">${esc(l.enlarge)}</button></div></div>`;
+}
+function foodBlock(r, ctx) {
+  const { l, lang, turnId } = ctx;
+  const all = cleanText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요.");
+  const parts = all.split(/\n(?=##\s)/).map((part) => part.trim()).filter(Boolean);
+  return `<div class="action-card"><div class="ac-head"><span class="ac-icon">${ICON.bowl}</span><div><b>${esc(l.food)}</b></div></div>
+    <p class="ac-desc">${esc(l.staffHint)}</p><div class="food-list">${parts.map((part, index) => {
+      const card = registerCard(`${turnId}-food-${index}`, "food", part, lang, l.cards.food);
+      return `<div class="food-item">${koCard(part)}<div class="ac-actions"><button class="btn ghost" type="button" data-copy="${esc(card.id)}">${esc(l.copy)}</button><button class="btn primary" type="button" data-card="${esc(card.id)}">${esc(l.enlarge)}</button></div></div>`;
+    }).join("")}</div></div>`;
+}
+function listCard(title, items, cls = "") {
+  return items.length ? `<div class="panel notes ${cls}"><div class="panel-head"><div><b>${esc(title)}</b></div></div><ul>${items.map((item) => `<li>${item}</li>`).join("")}</ul></div>` : "";
+}
+function safetyFacts(r, mode) {
+  return { refused: [...new Set((r.refusals || []).map((item) => item.action))], hidden: hiddenRequests(r), docs: filteredDocs(r, mode), products: unverifiedProducts(r, mode), conflicts: mode === "culture" ? (r.conflicts || []) : [] };
+}
+function safetySections(facts, l, lang) {
+  const parts = [];
+  if (facts.refused.length) parts.push(`<div class="group"><h5>${esc(l.safety.refusedTitle)}</h5><ul>${facts.refused.map((action) => `<li>${esc(l.refusalShort[action] || l.safety.kinds.other)}</li>`).join("")}</ul></div>`);
+  if (facts.hidden.length) {
+    const rows = [];
+    for (const [doc, kinds] of groupHidden(facts.hidden)) {
+      const what = [...kinds].map(([kind, n]) => `${l.safety.kinds[kind]}<span class="count">${n}</span>`).join(" · ");
+      rows.push(`<li>${esc(l.safety.from.replace("{doc}", l.safety.docs[doc]))} — ${what}</li>`);
+    }
+    parts.push(`<div class="group"><h5>${esc(l.safety.ignoredTitle)}</h5><ul>${rows.join("")}</ul></div>`);
+  }
+  if (facts.docs.length) {
+    const rows = [...countKinds(facts.docs)].map(([kind, n]) => `<li class="f">${esc(l.docKinds[kind])}<span class="count">${n}</span></li>`);
+    if (facts.conflicts.length && !facts.docs.some((doc) => (doc.reasons || []).some((reason) => /충돌/.test(reason)))) rows.push(`<li class="f">${esc(l.docKinds.conflict)}<span class="count">${facts.conflicts.length}</span></li>`);
+    parts.push(`<div class="group"><h5>${esc(l.safety.filteredTitle)}</h5><ul>${rows.join("")}</ul></div>`);
+  }
+  if (facts.products.length) {
+    parts.push(`<div class="group"><h5>${esc(l.safety.productsTitle)}</h5><ul>${facts.products.map((item) => {
+      const first = PRODUCT_FLAG_ORDER.find((flag) => (item.flags || []).includes(flag));
+      return `<li class="f"><b>${esc(cleanText(item.target))}</b> · ${esc(first ? l.flags[first] : l.flags.unverified)}</li>`;
+    }).join("")}</ul></div>`);
+  }
+  return parts.join("");
+}
+function safetyRow(r, mode, ctx) {
+  const { l, lang } = ctx;
+  const facts = safetyFacts(r, mode);
+  const filteredCount = facts.docs.length + facts.products.length;
+  const lines = [
+    facts.hidden.length && fmt(l.safety.ignored, facts.hidden.length),
+    facts.refused.length && fmt(l.safety.refused, facts.refused.length),
+    filteredCount && fmt(l.safety.filtered, filteredCount),
+  ].filter(Boolean);
+  const alert = facts.hidden.length || facts.refused.length;
+  const body = safetySections(facts, l, lang);
+  return `<details class="status-row"><summary><span class="sr-icon ${alert ? "alert" : ""}">${alert ? ICON.hand : ICON.shield}</span>
+    <span class="sr-text"><b>${esc(l.safety.title)}</b><small>${esc(lines[0] || l.safety.fine)}</small>${lines.slice(1).map((line) => `<small>${esc(line)}</small>`).join("")}</span><span class="sr-chev">${ICON.chev}</span></summary>
+    <div class="sr-body">${body}<button class="go-safety" type="button" data-view="safety">${esc(l.safety.more)} ›</button></div></details>`;
+}
+function followupChips(suggestions, lang) {
+  if (!Array.isArray(suggestions)) return "";
+  const choices = suggestions.map((item) => item && typeof item.text === "string" ? item.text.trim() : "").filter((text) => text && !isTechnical(text));
+  if (!choices.length) return "";
+  const label = I18N[normalizeLanguage(lang)].followups;
+  return `<div class="chips" role="group" aria-label="${esc(label)}"><span class="label">${esc(label)}</span>${choices.map((text) => `<button type="button" class="chip-q" data-q="${esc(text)}">${esc(text)}</button>`).join("")}</div>`;
+}
+function backstageBox(data) {
+  if (!BACKSTAGE) return "";
+  const r = data.result || {};
+  const lines = [
+    `mode: ${data.turn?.mode} · language: ${data.turn?.language}`,
+    ...(r.refusals || []).map((item) => `REFUSED ${item.action}: ${item.reason}`),
+    ...(r.blocked || []).map((event) => `${event.decision} ${event.action} → ${event.target}\n  ${event.reason}`),
+    ...(r.trust?.documents || []).filter((doc) => !doc.trusted).map((doc) => `FILTERED ${doc.target} [${(doc.flags || []).join(", ")}] ${(doc.reasons || []).join(" / ")}`),
+    ...(r.saved || []).map((path) => `SAVED ${path}`),
+    r.nvidia ? `model: ${r.nvidia.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model} (설정값)` : "offline"}` : "",
+  ].filter(Boolean);
+  return `<details class="backstage"><summary>발표용 상세 · 기술 기록</summary><pre>${esc(lines.join("\n"))}</pre></details>`;
+}
+function contextFor(data, turnId) {
+  const { turn = {}, result: r } = data;
+  const p = turn.profile || {};
+  const lang = normalizeLanguage(turn.language || r.language || p.language || uiLanguage), l = I18N[lang];
+  const localized = r.localized && normalizeLanguage(r.localized.language || lang) === lang ? r.localized : {};
+  [r.nvidia?.chat_model, r.nvidia?.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
+  const names = displayNameMap(r, localized, lang);
+  return { lang, l, localized, names, turnId, text: (value, fallback = "") => visitorText(value, lang, names, fallback) };
+}
+function renderBeauty(data, turnId = `t${++memory.seq}`) {
+  const { turn = {}, result: r } = data;
+  const ctx = contextFor(data, turnId), { l, lang, text, localized } = ctx;
+  memory.turns[turnId] = { data, ctx };
+  const p = turn.profile || {};
+  const reply = friendlyRefusal(r.refusals, lang) || text(localized.summary || matchingText(text(r.summary), lang), l.reply);
+  const notices = (localized.notices || (lang === "ko" ? r.notices_applied : []) || []).map((n) => text(n, "")).filter(Boolean);
+  const caveats = [...new Set((localized.caveats || (lang === "ko" ? r.route_skipped : []) || []).map((n) => text(n, "")).filter(Boolean))];
+  return [
+    `<div class="bubble bot">${esc(reply)}</div>`,
+    chipsBlock(p, ctx), verifyBlocks(r, ctx), picksBlock(r, ctx), routeBlock(r, p, ctx), staffBlock(r, ctx),
+    listCard(l.notices, notices.map(esc), "notice"), listCard(l.caveats, caveats.map(esc)),
+    safetyRow(r, "beauty", ctx),
+  ].join("");
+}
+function cultureStory(r, ctx) {
+  const { l, lang, text, localized } = ctx;
+  const draft = text(localized.draft || matchingText(text(r.draft), lang), l.cultureFallback);
+  return `<div class="panel"><div class="panel-head">${art("hanbok")}<div><b>${esc(l.culture)}</b>${r.visit_date ? `<small>${esc(cleanText(r.visit_date))}</small>` : ""}</div></div><div class="rich">${richText(draft, lang)}</div></div>`;
+}
+function cultureLists(r, ctx) {
+  const { l, lang, text, localized } = ctx;
+  const notices = (localized.notices || (lang === "ko" ? r.notices : []) || []).map((n) => text(n, "")).filter(Boolean);
+  const raw = Object.values(r.uncertain || {}).flatMap((items) => (Array.isArray(items) ? items : []).filter((item) => item.certainty && item.certainty !== "확정").map((item) => `[${item.certainty}] ${item.sentence}`));
+  const caveats = [...new Set((localized.caveats || (lang === "ko" ? raw : [])).map((item) => text(item, "")).filter(Boolean))];
+  return listCard(l.notices, notices.map(esc), "notice") + listCard(l.caveats, caveats.map((c) => certaintyLine(c, l)));
+}
+function renderCulture(data, turnId = `t${++memory.seq}`) {
+  const { result: r } = data;
+  const ctx = contextFor(data, turnId), { lang } = ctx;
+  memory.turns[turnId] = { data, ctx };
+  const refusal = friendlyRefusal(r.refusals, lang);
+  return [
+    refusal ? `<div class="bubble bot">${esc(refusal)}</div>` : cultureStory(r, ctx),
+    cultureLists(r, ctx), foodBlock(r, ctx), safetyRow(r, "culture", ctx),
+  ].join("");
+}
+function renderResult(data, turnId) {
+  return (data.turn?.mode === "beauty" ? renderBeauty(data, turnId) : renderCulture(data, turnId)) + followupChips(data.result?.suggestions, data.turn?.language) + backstageBox(data);
+}
+function remember(data, turnId) {
+  memory.lastMode = data.turn?.mode;
+  if (memory.lastMode === "beauty") memory.lastBeauty = turnId; else memory.lastCulture = turnId;
+  memory.log.push({ mode: memory.lastMode, facts: safetyFacts(data.result || {}, memory.lastMode) });
+}
+
+/* ---------- 탭 화면 ---------- */
+function planView(lang) {
+  const l = I18N[lang];
+  const id = memory.lastMode === "beauty" ? memory.lastBeauty : memory.lastCulture;
+  const saved = id && memory.turns[id];
+  if (!saved) return `<div class="empty">${art("map")}<p>${esc(l.plan.empty)}</p><button class="btn primary" type="button" data-view="chat">${esc(l.plan.start)}</button></div>`;
+  const { data } = saved, r = data.result, ctx = { ...saved.ctx };
+  if (data.turn?.mode === "beauty") {
+    const p = data.turn.profile || {};
+    return `<div class="view-head">${art("map")}<div><h2>${esc(l.plan.title)}</h2><p>${esc([p.visit_date, p.time_window].filter(Boolean).join(" · "))}</p></div></div>
+      <div class="stack">${chipsBlock(p, ctx)}${picksBlock(r, ctx)}${routeBlock(r, p, ctx)}</div>`;
+  }
+  return `<div class="view-head">${art("hanbok")}<div><h2>${esc(l.plan.cultureTitle)}</h2><p>${esc(cleanText(r.visit_date))}</p></div></div><div class="stack">${cultureStory(r, ctx)}${cultureLists(r, ctx)}</div>`;
+}
+function cardsView(lang) {
+  const l = I18N[lang];
+  const unique = [], seen = new Set();
+  for (const card of memory.cards) { if (!seen.has(card.text)) { seen.add(card.text); unique.push(card); } }
+  if (!unique.length) return `<div class="empty">${art("card")}<p>${esc(l.cards.empty)}</p><button class="btn primary" type="button" data-view="chat">${esc(l.plan.start)}</button></div>`;
+  return `<div class="view-head">${art("card")}<div><h2>${esc(l.cards.title)}</h2><p>${esc(l.staffHint)}</p></div></div>
+    <div class="stack">${unique.map((card) => `<div class="card-tile"><span class="kind">${esc(card.kind === "food" ? l.cards.food : l.cards.staff)}</span>${koCard(card.text)}
+      <div class="ac-actions"><button class="btn ghost" type="button" data-copy="${esc(card.id)}">${esc(l.copy)}</button><button class="btn primary" type="button" data-card="${esc(card.id)}">${esc(l.enlarge)}</button></div></div>`).join("")}</div>`;
+}
+function mergeFacts() {
+  const merged = { refused: new Set(), hidden: new Map(), docs: new Map(), products: new Map(), conflicts: new Set() };
+  for (const { facts } of memory.log) {
+    facts.refused.forEach((action) => merged.refused.add(action));
+    facts.hidden.forEach((event) => merged.hidden.set(`${event.target}|${event.reason}`, event));
+    facts.docs.forEach((doc) => merged.docs.set(doc.target, doc));
+    facts.products.forEach((item) => merged.products.set(item.target, item));
+    facts.conflicts.forEach((c) => merged.conflicts.add(c));
+  }
+  return { refused: [...merged.refused], hidden: [...merged.hidden.values()], docs: [...merged.docs.values()], products: [...merged.products.values()], conflicts: [...merged.conflicts] };
+}
+function safetyView(lang) {
+  const l = I18N[lang], facts = mergeFacts();
+  const body = safetySections(facts, l, lang);
+  const stats = [[facts.hidden.length, l.safety.ignoredTitle], [facts.docs.length + facts.products.length, l.safety.filteredTitle], [facts.refused.length, l.safety.refusedTitle]];
+  return `<div class="view-head">${art("guard")}<div><h2>${esc(l.safetyView.title)}</h2><p>${esc(l.safetyView.intro)}</p></div></div>
+    <div class="stack"><div class="stats">${stats.map(([n, label]) => `<div class="stat"><b>${n}</b><span>${esc(label)}</span></div>`).join("")}</div>
+    ${body ? `<div class="panel stack">${body}</div>` : `<div class="panel"><p class="hint">${esc(l.safetyView.empty)}</p></div>`}
+    <div class="panel promise"><div class="panel-head"><div><b>${esc(l.safetyView.promisesTitle)}</b></div></div><ul>${l.safetyView.promises.map((item) => `<li>${esc(item)}</li>`).join("")}</ul></div></div>`;
+}
+function welcomeView(lang) {
+  const w = I18N[lang].welcome;
+  return `<div class="hello" id="hello">
+    <div class="hero" aria-hidden="true"><div class="hero-arch">${ART.hero ? `<img src="${ART.hero}" alt="">` : ""}</div><span class="spark s1">✦</span><span class="spark s2">✧</span><span class="spark s3">✦</span><span class="spark s4">♡</span></div>
+    <div class="eyebrow">${esc(w.eyebrow)}</div><h1>${esc(w.title[0])}<br><em>${esc(w.title[1])}</em></h1>
+    <p class="intro">${w.description.map(esc).join("<br>")}</p>
+    <div class="suggest-label">${esc(w.suggestLabel)}</div>
+    <div class="suggest">${w.suggestions.map((s, i) => `<button type="button" data-q="${esc(s.question)}">${art(SUGGEST_ART[i], "sg-art")}<b>${esc(s.label)}</b><span>${s.lines.map(esc).join("<br>")}</span></button>`).join("")}</div>
+    <div class="presets"><div class="suggest-label">${esc(w.presetsTitle)}</div>${w.presets.map((item) => `<button type="button" class="preset" data-q="${esc(item.question)}"><span class="pi">✦</span><span>${esc(item.label)}</span><span class="pa">›</span></button>`).join("")}</div>
+    <p class="languages">${LANG_ORDER.map((code) => esc(I18N[code].langName)).join(" · ")}</p></div>`;
+}
+function productSheet(turnId, index) {
+  const saved = memory.turns[turnId];
+  if (!saved) return "";
+  const { data, ctx } = saved, r = data.result, item = (r.recommendations || [])[index];
+  if (!item) return "";
+  const { l, lang, text, localized } = ctx;
+  const { main, sub } = productName(item, ctx);
+  const stopIndex = (r.route || []).findIndex((stop) => String(stop.note || "").includes(item.name_ko || "\u0000"));
+  const stop = stopIndex >= 0 ? r.route[stopIndex] : null;
+  const store = stop ? `${text(stop.name, cleanText(stop.name))} · ${l.areas[stop.area] || ""}` : l.sheet.soldUnknown;
+  const reasons = (localized.recommendation_reasons?.[index] || (lang === "ko" ? item.why : []) || []).map((reason) => text(reason, "")).filter(Boolean);
+  const area = stop?.area || (data.turn?.profile?.areas || [])[0];
+  const mapUrl = area ? `https://map.kakao.com/link/search/${encodeURIComponent(area)}` : "";
+  return `<div class="ps-hero">${ART[productKind(item)] ? `<img src="${ART[productKind(item)]}" alt="">` : ""}</div>
+    <p class="ps-sold">${esc(l.sheet.soldAt)}: ${esc(store)}</p>
+    <h2 class="ps-name">${esc(main)}</h2>${sub ? `<p class="ps-sub">${esc(sub)}</p>` : ""}
+    <p class="ps-price">${esc(money(item.price_krw, lang))}</p>
+    ${reasons.length ? `<div class="ps-why"><h4>${esc(l.sheet.why)}</h4><ul>${reasons.map((reason) => `<li>${esc(reason)}</li>`).join("")}</ul></div>` : ""}
+    <button class="btn primary wide" type="button" data-card="${esc(turnId)}-staff">${esc(l.sheet.showCard)}</button>
+    ${mapUrl ? `<a class="btn link wide" href="${mapUrl}" target="_blank" rel="noopener noreferrer">${esc(l.sheet.map)}</a>` : ""}`;
+}
+
+/* ---------- 브라우저 동작 ---------- */
+let state = null, busy = false;
+let preferredLanguage = null; // 사용자가 직접 고른 언어 (기존 화면과 같은 저장 키를 씁니다. 자동 감지보다 우선)
+let els = {};
+const languageState = () => (preferredLanguage ? { preferred_language: preferredLanguage } : {});
+function boot() {
+  const $ = (id) => document.getElementById(id);
+  els = { app: $("app"), thread: $("thread"), chat: $("view-chat"), input: $("input"), composer: $("composer"), send: $("sendBtn"), mic: $("micBtn"),
+    sheet: $("sheet"), sheetBody: $("sheetBody"), scrim: $("scrim"), drawer: $("drawer"), toast: $("toast"), cardview: $("cardview") };
+  if (ART.face) {
+    $("personaFace").src = ART.face;
+    for (const rel of ["icon", "apple-touch-icon"]) { const icon = document.createElement("link"); icon.rel = rel; icon.href = ART.face; document.head.appendChild(icon); }
+  }
+  if (ART.card) $("cvArt").innerHTML = `<img src="${ART.card}" alt="">`;
+  try { preferredLanguage = localStorage.getItem("kbg.language") || null; } catch (e) { preferredLanguage = null; }
+  setLanguage(preferredLanguage || browserLanguage(navigator.languages, navigator.language));
+  els.thread.innerHTML = welcomeView(uiLanguage);
+
+  els.input.addEventListener("input", syncComposer);
+  els.input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); els.composer.requestSubmit(); } });
+  els.composer.addEventListener("submit", (e) => { e.preventDefault(); ask(els.input.value); });
+  $("menuBtn").onclick = openDrawer; $("persona").onclick = openDrawer;
+  $("langBtn").onclick = openLanguages; $("plusBtn").onclick = openExamples;
+  $("sheetClose").onclick = closeOverlays; els.scrim.onclick = closeOverlays;
+  $("cvClose").onclick = closeCard; $("cvCopy").onclick = () => copyCard(els.cardview.dataset.card);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!els.cardview.hidden) closeCard(); else closeOverlays();
+  });
+  els.app.addEventListener("click", onAction);
+  els.cardview.addEventListener("click", (e) => { if (e.target === els.cardview) closeCard(); });
+  setupVoice();
+  syncComposer();
+  if (BACKSTAGE) fetch("/api/status").then((r) => r.json()).then((s) => { [...(s.chat_models || []), s.embed_model].filter(Boolean).forEach((name) => modelNames.add(name)); memory.status = s; }).catch(() => {});
+}
+function onAction(e) {
+  const target = e.target.closest("[data-q],[data-pid],[data-card],[data-copy],[data-view],[data-lang],[data-new],[data-retry]");
+  if (!target || target.disabled) return;
+  const d = target.dataset;
+  if (d.q) { closeOverlays(); ask(d.q); }
+  else if (d.retry) ask(d.retry);
+  else if (d.pid) { const [turnId, index] = d.pid.split(":"); openSheet(productSheet(turnId, Number(index))); }
+  else if (d.card) { closeOverlays(); openCard(d.card, target); }
+  else if (d.copy) copyCard(d.copy);
+  else if (d.view) { closeOverlays(); switchView(d.view); }
+  else if (d.lang) { chooseLanguage(d.lang); closeOverlays(); refreshViews(); }
+  else if (d.new !== undefined) { closeOverlays(); newChat(); }
+}
+function setLanguage(value) {
+  uiLanguage = normalizeLanguage(value);
+  const l = I18N[uiLanguage];
+  document.documentElement.lang = uiLanguage;
+  els.input.placeholder = l.placeholder; els.input.setAttribute("aria-label", l.message);
+  els.send.setAttribute("aria-label", l.send); els.mic.setAttribute("aria-label", l.mic);
+  document.getElementById("plusBtn").setAttribute("aria-label", l.plus);
+  document.getElementById("menuBtn").setAttribute("aria-label", l.menu);
+  document.getElementById("langLabel").textContent = l.langName;
+  document.getElementById("personaName").textContent = l.persona;
+  document.querySelectorAll(".tab").forEach((tab) => { tab.querySelector(".tl").textContent = l.tabs[tab.dataset.view]; });
+  document.querySelectorAll(".sheet-close, #cvClose").forEach((button) => button.setAttribute("aria-label", l.close));
+  document.getElementById("cvCopy").textContent = l.copy;
+  const hello = document.getElementById("hello");
+  if (hello) hello.outerHTML = welcomeView(uiLanguage);
+}
+function chooseLanguage(code) {
+  preferredLanguage = normalizeLanguage(code);
+  try { localStorage.setItem("kbg.language", preferredLanguage); } catch (e) { /* 저장이 막혀도 이번 화면에서는 적용 */ }
+  setLanguage(preferredLanguage);
+  state = { ...(state || {}), language: preferredLanguage, preferred_language: preferredLanguage };
+}
+function refreshViews() {
+  const view = els.app.dataset.screen;
+  if (view !== "chat") switchView(view);
+}
+function switchView(view) {
+  els.app.dataset.screen = view;
+  document.querySelectorAll(".view").forEach((section) => section.classList.toggle("active", section.id === `view-${view}`));
+  document.querySelectorAll(".tab").forEach((tab) => {
+    const on = tab.dataset.view === view;
+    tab.toggleAttribute("aria-current", on); if (on) { tab.setAttribute("aria-current", "page"); tab.querySelector(".dot")?.remove(); }
+  });
+  if (view === "plan") document.getElementById("planBody").innerHTML = planView(uiLanguage);
+  if (view === "cards") document.getElementById("cardsBody").innerHTML = cardsView(uiLanguage);
+  if (view === "safety") document.getElementById("safetyBody").innerHTML = safetyView(uiLanguage);
+  document.getElementById(`view-${view}`).scrollTop = 0;
+}
+function markTabs() {
+  document.querySelectorAll(".tab").forEach((tab) => {
+    if (tab.dataset.view !== "chat" && !tab.hasAttribute("aria-current") && !tab.querySelector(".dot")) tab.insertAdjacentHTML("beforeend", '<span class="dot" aria-hidden="true"></span>');
+  });
+}
+function syncComposer() {
+  const input = els.input;
+  input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 140) + "px";
+  const has = Boolean(input.value.trim());
+  els.composer.classList.toggle("has-text", has);
+  els.send.disabled = busy || !has;
+}
+const scrollDown = () => requestAnimationFrame(() => els.chat.scrollTo({ top: els.chat.scrollHeight, behavior: "smooth" }));
+function addUser(text) {
+  document.getElementById("hello")?.remove();
+  els.thread.insertAdjacentHTML("beforeend", `<div class="msg user" lang="${uiLanguage}"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
+}
+function addLoading() {
+  const l = I18N[uiLanguage];
+  const el = document.createElement("div");
+  el.className = "msg bot"; el.lang = uiLanguage;
+  el.innerHTML = `<div class="loading" role="status">${art("search")}<div><b>${esc(l.loadingTitle)}</b><ol class="steps">${l.steps.map((step, i) => `<li class="${i ? "" : "on"}">${esc(step)}</li>`).join("")}</ol></div></div>`;
+  els.thread.appendChild(el);
+  const items = [...el.querySelectorAll(".steps li")];
+  let at = 0;
+  const timer = setInterval(() => {
+    if (at >= items.length - 1) return;
+    items[at].className = "done"; at += 1; items[at].className = "on";
+  }, 1700);
+  return { el, done(html, lang) { clearInterval(timer); el.lang = lang || uiLanguage; el.innerHTML = html; } };
+}
+async function ask(text) {
+  text = String(text || "").trim();
+  if (!text || busy) return;
+  busy = true; els.input.value = ""; syncComposer();
+  document.querySelectorAll(".chip-q").forEach((chip) => { chip.disabled = true; });
+  if (els.app.dataset.screen !== "chat") switchView("chat");
+  const requested = explicitLanguage(text);
+  const requestLanguage = requested ? normalizeLanguage(requested) : (preferredLanguage || detectLanguage(text, uiLanguage));
+  setLanguage(requestLanguage);
+  state = { ...(state || {}), language: uiLanguage, ...languageState() };
+  addUser(text);
+  const bot = addLoading(); scrollDown();
+  try {
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state: state || { language: uiLanguage } }) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    if (!data.turn || !data.result) throw new Error("unexpected response");
+    setLanguage(requestLanguage);
+    state = { ...(state || {}), ...(data.turn.profile || {}), language: requestLanguage, ...languageState() };
+    const presentation = { ...data, turn: { ...data.turn, language: requestLanguage } };
+    const turnId = `t${++memory.seq}`;
+    bot.done(renderResult(presentation, turnId), requestLanguage);
+    remember(presentation, turnId); markTabs();
+  } catch (err) {
+    const l = I18N[uiLanguage];
+    bot.done(`<div class="panel oops" role="alert">${art("oops")}<div><p>${esc(l.error)}</p><button class="btn ghost" type="button" data-retry="${esc(text)}">${esc(l.retry)}</button></div></div>${BACKSTAGE ? `<div class="backstage"><pre>${esc(err.message)}</pre></div>` : ""}`);
+  } finally {
+    busy = false; syncComposer();
+    if (window.matchMedia("(min-width: 720px)").matches) els.input.focus();
+    scrollDown();
+  }
+}
+function newChat() {
+  state = preferredLanguage ? { language: preferredLanguage, ...languageState() } : null; memory.turns = {}; memory.cards = []; memory.log = []; memory.lastBeauty = memory.lastCulture = memory.lastMode = null;
+  Object.keys(CARDS).forEach((key) => delete CARDS[key]);
+  els.thread.innerHTML = welcomeView(uiLanguage);
+  document.querySelectorAll(".tab .dot").forEach((dot) => dot.remove());
+  switchView("chat");
+}
+let lastFocus = null;
+function showOverlay(panel) {
+  lastFocus = document.activeElement;
+  els.scrim.classList.add("on"); panel.classList.add("open"); panel.setAttribute("aria-hidden", "false");
+  setTimeout(() => panel.querySelector("button, a")?.focus(), 60);
+}
+function openSheet(html) {
+  if (!html) return;
+  els.sheetBody.innerHTML = html; els.sheet.scrollTop = 0; showOverlay(els.sheet);
+}
+function closeOverlays() {
+  [els.sheet, els.drawer].forEach((panel) => { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); });
+  els.scrim.classList.remove("on");
+  document.getElementById("menuBtn").setAttribute("aria-expanded", "false");
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus = null;
+}
+function openLanguages() {
+  const l = I18N[uiLanguage];
+  openSheet(`<h2 class="sheet-title">${esc(l.languageTitle)}</h2>${LANG_ORDER.map((code) => `<button class="option" type="button" role="menuitemradio" data-lang="${code}" aria-checked="${code === uiLanguage}">${esc(I18N[code].langName)}${code === uiLanguage ? "<span>✓</span>" : ""}</button>`).join("")}`);
+}
+function openExamples() {
+  const l = I18N[uiLanguage], w = l.welcome;
+  openSheet(`<h2 class="sheet-title">${esc(w.suggestLabel)}</h2>${w.suggestions.map((s) => `<button class="option" type="button" data-q="${esc(s.question)}"><span>${esc(s.label)}<small>${s.lines.map(esc).join(" ")}</small></span><span>›</span></button>`).join("")}
+    <h2 class="sheet-title">${esc(w.presetsTitle)}</h2>${w.presets.map((item) => `<button class="option" type="button" data-q="${esc(item.question)}"><span>${esc(item.label)}</span><span>›</span></button>`).join("")}
+    <button class="btn ghost wide" type="button" data-new>${esc(l.newChat)}</button>`);
+}
+function openDrawer() {
+  const l = I18N[uiLanguage], a = l.about;
+  const status = BACKSTAGE && memory.status ? `<p class="status">BACKSTAGE · ${esc(memory.status.online ? "NVIDIA 추론 설정 있음" : "추론 설정 없음")} · ${esc(memory.status.openshell ? "OpenShell 실행 환경 표시" : "웹 실행 (OpenShell 증거는 Brev 기록에서 확인)")}</p>` : "";
+  els.drawer.innerHTML = `<div class="who">${art("wave")}<div><b>${esc(l.persona)}</b><small>${esc(a.tagline)}</small></div></div>
+    <button class="btn primary wide" type="button" data-new>${esc(l.newChat)}</button>
+    <h3>${esc(l.languageTitle)}</h3>${LANG_ORDER.map((code) => `<button class="option" type="button" data-lang="${code}" aria-checked="${code === uiLanguage}">${esc(I18N[code].langName)}${code === uiLanguage ? "<span>✓</span>" : ""}</button>`).join("")}
+    <h3>${esc(a.title)}</h3><ul>${a.items.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>
+    <p class="demo">${esc(a.demo)}</p>${status}`;
+  document.getElementById("menuBtn").setAttribute("aria-expanded", "true");
+  showOverlay(els.drawer);
+}
+let cardOpener = null;
+function openCard(id, opener) {
+  const card = CARDS[id];
+  if (!card) return;
+  cardOpener = opener || document.activeElement;
+  els.cardview.dataset.card = id;
+  document.getElementById("cvBody").innerHTML = richText(card.text, "ko");
+  els.cardview.hidden = false; document.getElementById("cvClose").focus();
+}
+function closeCard() {
+  els.cardview.hidden = true;
+  if (cardOpener && document.contains(cardOpener)) cardOpener.focus();
+  cardOpener = null;
+}
+function toast(message) {
+  els.toast.textContent = message; els.toast.classList.add("on");
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => els.toast.classList.remove("on"), 2200);
+}
+async function copyCard(id) {
+  const card = CARDS[id], l = I18N[uiLanguage];
+  if (!card) return;
+  const text = plainCard(card.text);
+  try {
+    if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+    else {
+      const area = document.createElement("textarea"); area.value = text; area.style.position = "fixed"; area.style.opacity = "0";
+      document.body.appendChild(area); area.select(); const ok = document.execCommand("copy"); area.remove(); if (!ok) throw new Error("copy");
+    }
+    toast(l.copied);
+  } catch { toast(l.copyFail); }
+}
+function setupVoice() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) { els.app.classList.add("no-voice"); return; }
+  let rec = null;
+  els.mic.onclick = () => {
+    if (rec) { rec.stop(); return; }
+    rec = new Recognition(); rec.lang = SPEECH_LANG[uiLanguage]; rec.interimResults = true; rec.continuous = false;
+    const base = els.input.value;
+    rec.onresult = (e) => { els.input.value = base + [...e.results].map((result) => result[0].transcript).join(""); syncComposer(); };
+    rec.onend = () => { rec = null; els.mic.classList.remove("on"); els.input.placeholder = I18N[uiLanguage].placeholder; };
+    rec.onerror = () => { els.app.classList.toggle("no-voice", true); };
+    els.mic.classList.add("on"); els.input.placeholder = I18N[uiLanguage].listening;
+    try { rec.start(); } catch { rec = null; els.mic.classList.remove("on"); }
+  };
+}
+if (typeof document !== "undefined" && document.getElementById("app")) boot();
+</script>
+</body>
+</html>
