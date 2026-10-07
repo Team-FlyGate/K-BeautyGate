@@ -32,7 +32,7 @@ K-BeautyGate는 외국인 방문객을 위한 K뷰티 쇼핑 에이전트입니�
 
 > 데모 범위: 인물·브랜드·제품·매장·후기는 가상 데이터입니다. 등록부와 판매 출처의 대조는 실제 유통망 조회나 정품 인증이 아닙니다. 식약처·대만 TFDA 자료는 별도로 출처를 표시한 공식 데이터 사본입니다.
 
-[웹 체험](https://k-beauty-gate-zeta.vercel.app/)에서는 앱 판단과 결과물을 확인할 수 있습니다. [Brev 실행 기록](evidence/run_beauty_0551/)에서는 같은 코드의 정상 모델 호출과 OpenShell 차단을 확인할 수 있습니다. 공개 웹 서버에는 OpenShell이 설치되어 있지 않습니다.
+[웹 체험](https://k-beauty-gate-zeta.vercel.app/)은 토끼 캐릭터와 대화하는 화면(`/bunny`)으로 열립니다. 대화·계획·카드·안심 탭에서 추천, 동선, 직원용 한국어 카드, 걸러 낸 정보를 나눠 봅니다. 이전 화면은 [`/index.html`](https://k-beauty-gate-zeta.vercel.app/index.html)에 남아 있습니다. 앱 판단과 결과물을 확인할 수 있습니다. [Brev 실행 기록](evidence/run_beauty_0551/)에서는 같은 코드의 정상 모델 호출과 OpenShell 차단을 확인할 수 있습니다. 공개 웹 서버에는 OpenShell이 설치되어 있지 않습니다.
 
 ## 02 / From a question to a Korean card.
 
@@ -81,7 +81,7 @@ Seoul Glow Snail 99%も確認してください。
 | 자료 판단과 계획 | 규칙 코드가 자료의 기간·광고·숨은 지시, 등록부·판매 출처, 성분·예산·시간을 대조합니다. 모델 연결 시 임베딩 관련도도 더합니다. | [trust.py](kbeauty_gate/trust.py) · [planner.py](kbeauty_gate/planner.py) · [regulatory.py](kbeauty_gate/regulatory.py) |
 | 선택적 판단 보강 | 비자기회귀(Non-autoregressive) 판단 모델이 요청의 금지 행동과 자료 속 지시·광고 문구를 확률로 평가해 규칙 판단을 보강합니다. 키가 없거나 호출이 실패하면 규칙만 사용합니다. | [jev.py](kbeauty_gate/jev.py) |
 | 설명과 저장 | Nemotron이 사용자 언어의 설명을 만들고, 고정 코드가 직원용 카드와 결과 파일을 생성합니다. 과장된 안전 표현은 별도 검사합니다. | [agent.py](kbeauty_gate/agent.py) · [language.py](kbeauty_gate/language.py) · [fact_guard.py](kbeauty_gate/fact_guard.py) |
-| 웹 실행 | 브라우저 → Vercel Python API → 같은 워크플로. 앱의 요청·자료 검사가 동작합니다. | [public/index.html](public/index.html) · [api/index.py](api/index.py) |
+| 웹 실행 | 브라우저 → Vercel Python API → 같은 워크플로. 앱의 요청·자료 검사가 동작합니다. | [토끼 화면](ui/bunny/README.md) · [public/index.html](public/index.html) · [api/index.py](api/index.py) |
 | Brev 실행 | 같은 워크플로를 NVIDIA OpenShell 샌드박스 안에서 실행하고 파일·네트워크 정책을 적용합니다. | [Dockerfile](openshell/Dockerfile) · [정책](policy/openshell-policy.yaml) · [provider](openshell/nvidia-profile.yaml) |
 
 앱 판단은 프로그램이 요청과 자료를 보고 거절하는 것입니다. OpenShell 차단은 그 판단을 거치지 않은 접근도 실행 단계에서 제한하는 것입니다. 접수 담당자가 요청을 검토하는 일과, 작업실 출입문이 출입증을 검사하는 일을 구분하면 이해하기 쉽습니다.
@@ -152,9 +152,20 @@ Seoul Glow Snail 99%も確認してください。
 
 공식 자료의 원문 위치와 수집 시점은 [MFDS 출처](hackathon/input/beauty/regulatory/kr_mfds/SOURCE.md)·[TFDA 출처](hackathon/input/beauty/regulatory/tw_tfda/SOURCE.md)에 있습니다. 규제 목록 대조만으로 실제 제품 함량, 현재 회수 상태, 개인의 사용 적합성을 확정하지 않습니다. 진단·치료나 의료기관 추천은 이 서비스의 기능이 아닙니다.
 
+### 질문에 맞게 답하고, 위험한 부탁은 멈춥니다
+
+| 상황 | 화면에서 보이는 것 |
+| --- | --- |
+| 업로드·발송·보호 자료 열기·예약 같은 위험한 요청 | 수문장 토끼가 “위험한 요청을 찾았어요”와 이유를 보여 주고, 추천·동선은 이어서 만들지 않습니다. 예시 질문 「🚫 함정 질문」으로 확인할 수 있습니다. |
+| 행사 질문(예: “뷰티페스타 일정”) | 행사 자료의 기간으로 먼저 답하고, 방문일에 이미 끝났는지 알려 줍니다. |
+| 따라 묻는 질문 | 이번 질문에 먼저 답한 뒤 계획을 요약합니다. 드라마·영화 제목은 정품 확인 대상으로 보지 않습니다. |
+| 자료에 없는 장소 | 운영 정보를 지어내지 않고 확인할 수 없다고 답합니다. |
+
 ### 같은 워크플로로 공통 과제까지
 
 뷰티 모드와 문화 모드는 수집·자료 검사·요청 검사·실행 기록을 공유합니다. 문화 모드는 방문일·음식 제한·접근성·역사 자료의 충돌을 반영해 문화 코스 초안과 음식 제한 한국어 카드를 만듭니다.
+
+문화 코스 답변이 사실 검사를 통과하지 못하면 확인된 운영 시간·출입구·이동 시간만으로 시간표가 있는 코스 초안을 만듭니다. 제공 자료에 없는 장소(예: 실제 시장·궁)를 물으면 가상 자료로 코스를 지어내지 않고, 확인할 수 없다고 답합니다.
 
 예를 들어 2023년 홍보물의 “원형이 완벽하게 보존”이라는 주장과 2026년 현장 메모가 충돌하면, 원형 보존 주장을 제외하고 확정·추정·판독 불확실을 나누어 적습니다. [보관된 결과](evidence/run_0347/culture_course.md)에서 확인할 수 있습니다.
 
@@ -223,6 +234,7 @@ python3 -m kbeauty_gate.web \
 # 모델 호출은 모의 응답으로 검사
 python3 -m unittest discover -s tests
 node tests/frontend_language.test.cjs
+node --test tests/bunny_ui.test.cjs
 
 # 공통 과제와 요청 변형
 KBG_OPENSHELL_PROBE=0 python3 -m unittest discover -s tests -p test_scenarios.py -v
@@ -268,7 +280,7 @@ KBG_OPENSHELL_PROBE=1 python3 -m kbeauty_gate \
 <details>
 <summary>Vercel 웹 배포와 데이터 전달 범위</summary>
 
-- 화면은 [public/index.html](public/index.html), 서버 진입점은 [api/index.py](api/index.py)입니다. 배포 설정은 [vercel.json](vercel.json)·[pyproject.toml](pyproject.toml)에 있습니다.
+- 첫 화면은 토끼 화면 [public/bunny.html](public/bunny.html)입니다 ([vercel.json](vercel.json)이 `/`를 `/bunny`로 보냄). 원본과 빌드 방법은 [ui/bunny](ui/bunny/README.md)에 있고, 이전 화면은 [public/index.html](public/index.html)입니다. 서버 진입점은 [api/index.py](api/index.py)입니다. 배포 설정은 [vercel.json](vercel.json)·[pyproject.toml](pyproject.toml)에 있습니다.
 - Vercel 환경변수에 `NVIDIA_API_KEY`를 설정하면 모델을 호출하며 결과물은 `/tmp`에 저장합니다. Vercel에서는 앱 검사만 동작합니다.
 - NVIDIA 모델 사용 시 요청 문장, 사용자가 입력한 취향·피부 정보·일정, 필요한 자료가 NVIDIA API로 전달됩니다. 판단 모델을 활성화하면 요청과 판단 대상 문서 발췌가 TypeSafe AI API로도 전달됩니다. OpenShell provider의 키 주입 설명은 Brev 실행에 해당합니다.
 - 데모에는 가상 프로필과 연습 자료를 사용합니다. 공개 데모에는 실제 고객 개인정보를 입력하지 않습니다.
