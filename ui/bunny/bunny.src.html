@@ -281,6 +281,11 @@
   .steps li.done::before { background: var(--ok); border-color: var(--ok); }
   @keyframes pulse { 50% { transform: scale(1.5); opacity: .5; } }
 
+  .gate { display: flex; gap: 14px; align-items: center; border: 2px solid #e8a3b5; background: #fff6f9; }
+  .gate .art { width: 104px; height: 104px; border-radius: 22px; flex: none; }
+  .gate b { display: block; margin-bottom: 6px; color: #b4466a; font-size: 15px; }
+  .gate p { margin: 0; font-size: 14px; line-height: 1.6; }
+  @media (max-width: 420px) { .gate { flex-direction: column; text-align: center; } }
   .oops { display: flex; gap: 12px; align-items: center; }
   .oops .art { width: 76px; height: 76px; border-radius: 20px; }
   .oops p { margin: 0 0 8px; font-size: 14px; }
@@ -984,6 +989,11 @@ const plainCard = (text) => String(text || "").split("\n").map((line) => line.re
 const memory = { seq: 0, turns: {}, cards: [], lastBeauty: null, lastCulture: null, lastMode: null, log: [] };
 const CARDS = {};
 
+// Refused requests: the gatekeeper rabbit stands in front of the reply (art/gatekeeper.webp).
+const GATE_TITLE = { ko: "여기는 수문장 토끼가 지킬게요", en: "The gatekeeper bunny is guarding this one", ja: "ここは門番うさぎが守りますね", "zh-Hans": "这里由守门兔子来守护", "zh-Hant": "這裡由守門兔子來守護" };
+function gateCard(message, lang) {
+  return `<div class="panel gate" role="status">${art("gatekeeper")}<div><b>${esc(GATE_TITLE[lang] || GATE_TITLE.en)}</b><p>${esc(message)}</p></div></div>`;
+}
 function friendlyRefusal(refusals, lang) {
   const l = I18N[lang];
   const actions = [...new Set((refusals || []).map((item) => item && item.action))].filter((action) => l.refusals[action]);
@@ -1242,7 +1252,7 @@ function renderBeauty(data, turnId = `t${++memory.seq}`) {
   const notices = (localized.notices || (lang === "ko" ? r.notices_applied : []) || []).map((n) => text(n, "")).filter(Boolean);
   const caveats = [...new Set((localized.caveats || (lang === "ko" ? r.route_skipped : []) || []).map((n) => text(n, "")).filter(Boolean))];
   return [
-    `<div class="bubble bot">${esc(reply)}</div>`,
+    (r.refusals || []).length ? gateCard(reply, lang) : `<div class="bubble bot">${esc(reply)}</div>`,
     chipsBlock(p, ctx), verifyBlocks(r, ctx), picksBlock(r, ctx), routeBlock(r, p, ctx), staffBlock(r, ctx),
     listCard(l.notices, notices.map(esc), "notice"), listCard(l.caveats, caveats.map(esc)),
     safetyRow(r, "beauty", ctx),
@@ -1266,7 +1276,7 @@ function renderCulture(data, turnId = `t${++memory.seq}`) {
   memory.turns[turnId] = { data, ctx };
   const refusal = friendlyRefusal(r.refusals, lang);
   return [
-    refusal ? `<div class="bubble bot">${esc(refusal)}</div>` : cultureStory(r, ctx),
+    refusal ? gateCard(refusal, lang) : cultureStory(r, ctx),
     cultureLists(r, ctx), foodBlock(r, ctx), safetyRow(r, "culture", ctx),
   ].join("");
 }
