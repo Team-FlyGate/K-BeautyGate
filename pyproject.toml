@@ -1,0 +1,9 @@
+[project]
+name = "k-beauty-gate"
+version = "0.1.0"
+description = "K-BeautyGate: OpenShell-guarded K-beauty travel agent"
+requires-python = ">=3.9"
+dependencies = []
+
+[tool.vercel]
+entrypoint = "api.index:handler"

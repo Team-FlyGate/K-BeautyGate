@@ -1,8 +1,12 @@
 {
   "functions": {
-    "api/*.py": {
+    "api/index.py": {
       "maxDuration": 60,
-      "includeFiles": "{kbeauty_gate/**,hackathon/input/**,profiles/**,TASK.md}"
+      "includeFiles": "{kbeauty_gate/**,public/**,hackathon/input/**,profiles/**,TASK.md}"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/", "destination": "/api/index" }
+  ]
 }

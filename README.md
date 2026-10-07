@@ -40,7 +40,7 @@ python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --
 
 ### Vercel 배포 (공개 데모 URL)
 
-`public/index.html`이 화면, `api/chat.py`·`api/status.py`가 서버리스 함수입니다(`vercel.json`). Vercel 프로젝트 설정의 Environment Variables에 `NVIDIA_API_KEY`를 넣으면 됩니다. 결과물은 `/tmp`에 저장됩니다. Vercel에는 OpenShell이 없어 앱 가드만 동작하고, 정책 차단 데모는 아래 샌드박스에서 보여 줍니다.
+`public/index.html`이 화면, `api/index.py`가 `/`·`/api/status`·`/api/chat`을 처리하는 단일 서버리스 함수입니다(`vercel.json`, `pyproject.toml`의 `[tool.vercel]`). Vercel 프로젝트 설정의 Environment Variables에 `NVIDIA_API_KEY`를 넣으면 됩니다. 결과물은 `/tmp`에 저장됩니다. Vercel에는 OpenShell이 없어 앱 가드만 동작하고, 정책 차단 데모는 아래 샌드박스에서 보여 줍니다.
 
 OpenShell 샌드박스 안에서 실행:
 
