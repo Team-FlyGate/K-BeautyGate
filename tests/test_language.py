@@ -166,9 +166,13 @@ class ProjectionTests(unittest.TestCase):
 
     @patch("kbeauty_gate.language.nvidia.chat")
     def test_invalid_shape_missing_translation_and_technical_content(self, chat):
-        for replacement in (None, "not json", json.dumps({"summary": "Only a summary."})):
+        for replacement in (None, "not json", json.dumps({"route_notes": ["No summary."]})):
             chat.return_value = replacement
             self.assertEqual(self.projection()["status"], "fallback")
+        chat.return_value = json.dumps({"summary": "Only a summary."})
+        only_summary = self.projection()
+        self.assertEqual(only_summary["status"], "partial")
+        self.assertEqual(only_summary["summary"], "Only a summary.")
         payload = english_projection()
         payload["route_notes"] = ["Nemotron saved /hackathon/output/result.json."]
         chat.return_value = json.dumps(payload)
@@ -177,6 +181,51 @@ class ProjectionTests(unittest.TestCase):
         payload["route_notes"] = ["방문 전에 확인하세요."]
         chat.return_value = json.dumps(payload)
         self.assertEqual(self.projection()["status_reason"], "language_mismatch")
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_valid_summary_survives_bad_item_fields(self, chat):
+        # One malformed field must not discard the whole explanation (deployed demo showed invalid_shape on every query)
+        payload = english_projection()
+        payload["recommendation_reasons"] = []
+        chat.return_value = json.dumps(payload)
+        result = self.projection()
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["status_reason"], "invalid_shape")
+        self.assertEqual(result["summary"], payload["summary"])
+        self.assertEqual(result["recommendation_reasons"], [[COPY["en"]["reason"]]])
+        self.assertEqual(result["route_notes"], payload["route_notes"])
+        self.assertEqual(result["notices"], payload["notices"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_flat_reason_strings_are_accepted(self, chat):
+        payload = english_projection()
+        payload["recommendation_reasons"] = ["A sample option for your moisture routine."]
+        chat.return_value = json.dumps(payload)
+        result = self.projection()
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["recommendation_reasons"], [["A sample option for your moisture routine."]])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_only_the_unsafe_item_is_replaced(self, chat):
+        payload = english_projection()
+        payload["route_notes"] = ["Nemotron saved /hackathon/output/result.json."]
+        chat.return_value = json.dumps(payload)
+        result = self.projection()
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["summary"], payload["summary"])
+        self.assertEqual(result["route_notes"], [COPY["en"]["route"]])
+        self.assertEqual(result["caveats"], payload["caveats"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_korean_partial_keeps_source_facts_for_bad_items(self, chat):
+        payload = {"summary": "명동에서 보습 제품을 비교해 보세요.", "recommendation_reasons": [],
+                   "route_notes": ["매장에서 비교해 보세요."], "notices": ["18시에 문을 닫아요."], "caveats": ["확인이 필요해요."]}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = localized_projection(settings(), "ko", "beauty", {}, reasons=[["건조한 피부에 보습"]],
+                                      route_notes=["매장 방문"], notices=["18시 종료"], caveats=["확인 필요"])
+        self.assertEqual(result["status"], "partial")
+        self.assertEqual(result["summary"], payload["summary"])
+        self.assertEqual(result["recommendation_reasons"], [["건조한 피부에 보습"]])
 
     @patch("kbeauty_gate.language.nvidia.chat", side_effect=TimeoutError("mock timeout"))
     def test_translation_timeout_has_localized_fallback(self, chat):

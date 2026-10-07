@@ -172,40 +172,61 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
                           max_tokens=2800, timeout=50, prefer_fast=True)
     except (OSError, ValueError, RuntimeError):
         raw = None
+    copy = COPY[language]
+    defaults = {"recommendation_reasons": "reason", "route_notes": "route", "notices": "notice", "caveats": "caveat"}
+
+    def fallback_item(field, original):
+        if field == "recommendation_reasons":
+            if language == "ko":
+                return [_korean_fallback_text(item, copy["reason"]) for item in original] or [copy["reason"]]
+            return [copy["reason"]]
+        return _korean_fallback_text(original, copy[defaults[field]]) if language == "ko" else copy[defaults[field]]
+
+    def check(text):
+        if not isinstance(text, str) or not text.strip():
+            return "invalid_shape"
+        if not in_language(text, language, proper_names):
+            return "language_mismatch"
+        if re.search(r"(?:/hackathon/|\bNemotron\b|\bOpenShell\b|\bDENIED\b|\.(?:md|json|csv|txt)\b)", text, re.IGNORECASE):
+            return "technical_content"
+        return None
+
+    payload = None
     failure = "unavailable"
     if raw:
         try:
             match = re.search(r"\{.*\}", raw, re.DOTALL)
             payload = json.loads(match.group(0) if match else raw)
-            if not isinstance(payload, dict) or not isinstance(payload.get(key), str) or not payload[key].strip():
-                raise ValueError("invalid_shape")
-            for field, original in source.items():
-                if not isinstance(payload.get(field), list) or len(payload[field]) != len(original):
-                    raise ValueError("invalid_shape")
-            if any(not isinstance(row, list) or not row or any(not isinstance(item, str) or not item.strip() for item in row)
-                   for row in payload["recommendation_reasons"]):
-                raise ValueError("invalid_shape")
-            texts = [payload[key]] + [item for row in payload["recommendation_reasons"] for item in row]
-            for field in ("route_notes", "notices", "caveats"):
-                if any(not isinstance(item, str) or not item.strip() for item in payload[field]):
-                    raise ValueError("invalid_shape")
-                texts.extend(payload[field])
-            if any(not in_language(item, language, proper_names) for item in texts):
-                raise ValueError("language_mismatch")
-            if any(re.search(r"(?:/hackathon/|\bNemotron\b|\bOpenShell\b|\bDENIED\b|\.(?:md|json|csv|txt)\b)", item, re.IGNORECASE) for item in texts):
-                raise ValueError("technical_content")
-            return {"language": language, "status": "ready", **{field: payload[field] for field in schema}}
-        except (ValueError, TypeError, AttributeError) as exc:
-            failure = str(exc) if str(exc) in {"invalid_shape", "language_mismatch", "technical_content"} else "invalid_json"
-    copy = COPY[language]
-    if language == "ko":
-        return {"language": language, "status": "fallback", "status_reason": failure,
-                key: copy[key],
-                "recommendation_reasons": [[_korean_fallback_text(item, copy["reason"]) for item in row] or [copy["reason"]] for row in reasons],
-                "route_notes": [_korean_fallback_text(item, copy["route"]) for item in route_notes],
-                "notices": [_korean_fallback_text(item, copy["notice"]) for item in notices],
-                "caveats": [_korean_fallback_text(item, copy["caveat"]) for item in caveats]}
-    return {"language": language, "status": "fallback", "status_reason": failure,
-            key: copy[key], "recommendation_reasons": [[copy["reason"]] for _ in reasons],
-            "route_notes": [copy["route"] for _ in route_notes], "notices": [copy["notice"] for _ in notices],
-            "caveats": [copy["caveat"] for _ in caveats]}
+            if not isinstance(payload, dict):
+                raise ValueError
+        except (ValueError, TypeError):
+            payload, failure = None, "invalid_json"
+    # The headline text decides ready vs fallback; item fields are salvaged one by one.
+    lead_problem = check(payload.get(key)) if payload else failure
+    if lead_problem:
+        out = {"language": language, "status": "fallback", "status_reason": lead_problem, key: copy[key]}
+        for field, original in source.items():
+            out[field] = [fallback_item(field, item) for item in original]
+        return out
+    out = {"language": language, "status": "ready", key: payload[key]}
+    problems = []
+    for field, original in source.items():
+        got = payload.get(field)
+        if not isinstance(got, list) or len(got) != len(original):
+            problems.append("invalid_shape")
+            got = [None] * len(original)
+        items = []
+        for index, item in enumerate(got):
+            if field == "recommendation_reasons":
+                row = [item] if isinstance(item, str) else item
+                issue = "invalid_shape" if not isinstance(row, list) or not row else next(filter(None, map(check, row)), None)
+            else:
+                row, issue = item, check(item)
+            if issue:
+                problems.append(issue)
+                row = fallback_item(field, original[index])
+            items.append(row)
+        out[field] = items
+    if problems:
+        out["status"], out["status_reason"] = "partial", problems[0]
+    return out
