@@ -304,23 +304,43 @@ def validate_culture_text(text: str, constraints: Dict) -> List[str]:
     return sorted(issues)
 
 
-def _verified_korean_summary(constraints: Dict) -> str:
-    lines = ["생성된 코스의 일부 내용을 확인할 수 없어, 자료에서 확인된 조건만 정리합니다."]
-    window = constraints["market_window"]
+def _verified_korean_summary(constraints: Dict, request: str = "") -> str:
+    """모델 초안이 검증을 통과하지 못하면, 확인된 조건만으로 읽을 수 있는 코스 초안을 만든다."""
+    clock = lambda minutes: f"{minutes // 60:02d}:{minutes % 60:02d}"
+    lines = [f"반나절 문화 코스 초안 ({constraints['visit_date']})", ""]
+    window, gate = constraints["market_window"], constraints["required_gate"]
+    origin, destination = constraints["route_origin"], constraints["route_destination"]
+    walk, wheel = constraints["walking_minutes"], constraints["wheelchair_minutes"]
+    travel = max(walk or 0, wheel or 0)  # 휠체어 우회까지 들어가도록 긴 쪽으로 잡는다
+    lines.append("코스")
     if window:
-        hours = [f"{value // 60:02d}:{value % 60:02d}" for value in window]
-        lines.append(f"{constraints['visit_date']} 시장 운영은 {hours[0]}–{hours[1]}입니다.")
-        if constraints["required_gate"]:
-            lines.append(f"입장은 {constraints['required_gate']}을 이용합니다.")
-        if constraints["walking_minutes"]:
-            lines.append(f"{constraints['route_origin']}→{constraints['route_destination']} 도보 이동은 {constraints['walking_minutes']}분입니다.")
-        if constraints["wheelchair_minutes"]:
-            lines.append(f"휠체어 이용 시 우회 경로는 약 {constraints['wheelchair_minutes']}분입니다. 복귀 경로와 소요시간은 별도로 확인하고 충분한 시간을 확보해야 합니다.")
+        open_, close = window
+        market_end = min(open_ + 90, close - travel - 60)
+        if travel and destination and market_end - open_ >= 30:
+            arrive = market_end + travel
+            lines.append(f"1. {clock(open_)} 해담 옛시장 입장" + (f" ({gate} 이용)" if gate else ""))
+            lines.append(f"2. {clock(open_)}–{clock(market_end)} 옛시장 둘러보기 · 음식은 아래 확인 후 구매")
+            lines.append(f"3. {clock(market_end)}–{clock(arrive)} {origin}→{destination} 이동 (도보 {walk}분"
+                         + (f", 휠체어 우회 약 {wheel}분까지 여유" if wheel else "") + ")")
+            lines.append(f"4. {clock(arrive)}–{clock(arrive + 40)} {destination} 관람·해설")
+            lines.append(f"5. 이후 복귀 · 복귀 경로와 시간은 현장에서 확인하고, 시장은 {clock(close)}에 닫아요")
+        else:
+            lines.append(f"시장 운영 시간은 {clock(open_)}–{clock(close)}이에요. 이 안에서 옛시장과 {destination or '성진정'}을 둘러보세요.")
+        if constraints["blocked_gates"]:
+            lines.append(f"· {', '.join(constraints['blocked_gates'])}은 공사로 이용하지 않아요. 예전 경로 카드의 안내는 쓰지 않았어요.")
     else:
-        lines.append(f"{constraints['visit_date']}의 운영 시간과 출입·이동 조건은 확인되지 않았습니다. 확정 시간표를 제시하지 않으며 방문 전에 확인이 필요합니다.")
-    lines.extend(_korean_fallback_text(f"[{item['certainty']}] {item['sentence']}", "연혁 확인이 필요합니다.") for item in constraints["history_statements"])
-    lines.append("먹을 수 있는 음식으로 확정된 메뉴는 없습니다. 재료·육수·젓갈·알레르기 성분과 교차접촉을 상인에게 확인하고, 확인되지 않으면 섭취하지 않는 편이 안전합니다. 미기재된 알레르기는 없다고 단정하지 않습니다.")
-    lines.append("초안만 작성했으며 예약·발송·결제는 하지 않았습니다.")
+        lines.append(f"{constraints['visit_date']}의 운영 시간과 출입·이동 조건은 확인되지 않았어요. 확정 시간표 없이 방문 전에 확인이 필요해요.")
+    history = constraints["history_statements"]
+    if history:
+        lines += ["", "성진정 해설 (확실한 것과 아닌 것을 나눴어요)"]
+        for label in ("확정", "추정", "측정 중", "판독 불확실"):
+            sentences = [item["sentence"].rstrip(".") for item in history if item["certainty"] == label]
+            if sentences:
+                lines.append(f"· {label}: " + " / ".join(sentences))
+        if constraints["history_changed"]:
+            lines.append("· 철거·재건 기록이 있어 '원형 그대로 보존'이라는 표현은 쓰지 않았어요.")
+    lines += ["", "음식"] + [f"· {line}" for line in _food_guidance("ko", constraints, request).split("\n")]
+    lines += ["", "초안만 작성했어요. 예약·발송·결제는 하지 않았어요."]
     return "\n".join(lines)
 
 
@@ -401,7 +421,7 @@ def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[s
         if food_request:
             out["draft"] = _food_guidance(language, constraints, request)
         else:
-            out["draft"] = _verified_korean_summary(constraints) if language == "ko" else COPY[language]["draft"]
+            out["draft"] = _verified_korean_summary(constraints, request) if language == "ko" else COPY[language]["draft"]
         replaced.append({"field": "draft", "reasons": draft_issues})
     for field, source, default in (("notices", notices, "notice"), ("caveats", caveats, "caveat"), ("route_notes", [], "route")):
         values = list(out.get(field) or [])
