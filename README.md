@@ -27,3 +27,6 @@ Team FlyGate · Korea Agentic AI Hackathon 2026 (NVIDIA OpenShell)
 | :--- | :--- | :--- |
 | **김가경** · [@kakyungkim](https://github.com/kakyungkim) | 바이오 데이터 분석 · 혈중 암세포 및 신약개발 바이오마커 분석 경험 | FlyVigilance 개발 · 팀 조율과 제출 기획 · 약물감시 근거 설계 · 보고서 양식 매핑과 근거 등급 규칙 |
 | **강성준** <sup><a href="https://kangseongjun.com" title="강성준 개인 웹사이트">↗</a></sup> · [@AwesomeZun](https://github.com/AwesomeZun) | 단일세포·공간오믹스 · 신약 후보 평가 · 『AI 신약개발 실전가이드』 출간 | FlyVigilance, FlyDiscovery 개발 · 데이터·평가 파이프라인 · 두 모듈 통합과 시각화 · FDDD(초파리 커넥텀 시각화 템플릿) 개발 ([https://github.com/AwesomeZun/FDDD](https://github.com/AwesomeZun/FDDD)) |
+| **이건규** <sup><a href="https://geongyu.github.io/" title="이건규 개인 웹사이트">↗</a></sup> · [@Geongyu](https://github.com/Geongyu) | AI researcher · 병리·영상의학 및 오믹스를 결합한 예후·약물 반응 예측 | FlyDiscovery 개발 · 탐색 워크벤치와 사용자 인터페이스 개선 |
+| **배예지** · [@ybaeus](https://github.com/ybaeus) | 병원 데이터 사이언티스트 · 멀티오믹스·공간·이미지 데이터 | FlyVigilance 개발 · Jev 기반 약물감시 확장 · 문헌 검토 흐름 설계 · 약사 피드백 반영 |
+| **전은진** · [@YMYDGenie](https://github.com/YMYDGenie) | 약사 · 약사를 위한 AI 제품 개발 | FlyVigilance 개발 · 약학 관점의 요구사항 검토 · 이상사례·국내 보고 사례 조사 · 워크플로 자문 |
