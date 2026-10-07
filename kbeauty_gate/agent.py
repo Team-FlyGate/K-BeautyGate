@@ -132,7 +132,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
     route, skipped = plan_route(picked, stores, experiences, profile)
     # 행사 질문("뷰티페스타 일정")에 답할 수 있도록, 믿을 수 있는 행사 자료의 원문 일정을 답변 단계에 넘긴다
     events_info = [{"title": _experience_from(n, t, visit)["name"], "details": t[:500],
-                    "status": "usable" if doc_verdicts[n].trusted else "not usable on visit date or unreliable: " + ", ".join(doc_verdicts[n].flags)}
+                    "on_visit_date": "방문일에 이용 가능" if doc_verdicts[n].trusted else "방문일에는 이용할 수 없음 (종료되었거나 확인되지 않음)"}
                    for n, t in docs.items() if n.startswith("beauty/events/") and "prompt_injection" not in doc_verdicts[n].flags]
 
     result = {

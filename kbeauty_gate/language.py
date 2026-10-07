@@ -362,7 +362,7 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
            "Do not invent admission fees, opening hours or interior accessibility when the evidence is missing. "
            "Translate historical certainty accurately, keeping tentative reconstruction dates, ongoing measurements and ambiguous OCR years unresolved. "
            if mode == "culture" else "Start the summary by answering the visitor's latest request in one or two sentences using only the facts; "
-           "for an event question, give the event's dates from events and say plainly whether it has already ended or not started on visit_date. "
+           "for an event question, match nicknames or abbreviations (e.g. 뷰티페스타, 뷰티 페스티벌, beauty fest) to the closest event title in events, give that event's dates and say plainly whether it has already ended or not started on visit_date. "
            "If the facts cannot answer it, say that the information is not available, without using the word facts. Then add a short friendly summary of the plan, including any unverified-product warning. "
            "Do not repeat the same generic summary regardless of the question. Keep it to 3–6 sentences. ")
         + "Return only JSON matching the schema."
