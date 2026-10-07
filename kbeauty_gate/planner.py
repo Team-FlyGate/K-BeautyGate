@@ -7,6 +7,8 @@ from typing import Dict, List, Optional, Tuple
 from . import nvidia
 from .config import Settings
 
+SKIN_KO = {"combination": "복합성", "dry": "건성", "oily": "지성", "sensitive": "민감성", "normal": "중성"}
+CONCERN_KO = {"redness": "붉어짐", "dryness": "건조함", "dullness": "칙칙함", "pores": "모공", "color": "색조"}
 STORE_MIN = 40      # 매장 한 곳에 머무는 시간(분)
 SAME_AREA_MOVE = 10
 OTHER_AREA_MOVE = 35
@@ -44,18 +46,22 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
             excluded.append({"product": p["name"], "reason": f"피하고 싶은 성분 포함: {hit}"})
             continue
         score, why = 0.0, []
-        if profile.get("skin_type") in p["skin_types"]:
+        skin = profile.get("skin_type")
+        if skin in p["skin_types"]:
             score += 2
-            why.append(f"{profile['skin_type']} 피부 적합")
+            why.append(f"{SKIN_KO.get(skin, skin)} 피부에 맞는 제품")
         elif "all" in p["skin_types"]:
             score += 1
+            why.append("피부 타입에 관계없이 쓰는 제품")
         overlap = set(profile.get("concerns", [])) & set(p["concerns"])
         if overlap:
             score += 1.5 * len(overlap)
-            why.append("고민 해결: " + ", ".join(sorted(overlap)))
+            why.append("고민(" + ", ".join(CONCERN_KO.get(c, c) for c in sorted(overlap)) + ")에 도움")
         if wants_drama and p.get("drama_ref"):
             score += 2
             why.append(p["drama_ref"])
+        if profile.get("avoid_ingredients"):
+            why.append("피하고 싶은 성분이 전성분표에 없음")
         ranked.append({"product": p, "score": score, "why": why})
 
     query = f"{profile.get('skin_type')} skin, concerns {profile.get('concerns')}; {request}"

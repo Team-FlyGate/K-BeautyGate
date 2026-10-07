@@ -50,7 +50,7 @@
   .hello p { color: var(--muted); margin: 0 auto 24px; font-size: 14px; max-width: 460px; word-break: keep-all; }
   .suggest-label { text-align: left; font-size: 12px; color: var(--muted); margin: 0 0 10px; }
   .suggest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; text-align: left; }
-  .suggest button { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 17px 34px 18px 18px;
+  .suggest button { position: relative; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 17px 34px 18px 18px;
     color: var(--ink); font-size: 14px; line-height: 1.55; cursor: pointer; text-align: left; box-shadow: var(--shadow); min-width: 0;
     transition: border-color .2s, background .2s; overflow-wrap: anywhere; }
   .suggest button::after { content: "↗"; position: absolute; right: 15px; top: 17px; color: var(--accent); }
@@ -102,6 +102,17 @@
   .route .t { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 11px; padding-top: 3px; }
   .route .exp { color: var(--accent); }
   .route small { color: var(--muted); display: block; font-size: 12px; margin-top: 3px; }
+  .route .route-original { font-size: 11px; margin-top: 4px; }
+  .followups { margin: 4px 0 2px; }
+  .followup-label { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+  .followup-options { display: flex; flex-wrap: wrap; gap: 8px; }
+  .followup-choice { display: flex; align-items: center; gap: 6px; max-width: 100%; min-width: 0; }
+  .followup-chip { font: inherit; font-size: 12px; line-height: 1.5; text-align: left; color: var(--accent); background: var(--accent-soft);
+    border: 1px solid var(--line); border-radius: 22px; padding: 9px 14px; cursor: pointer; overflow-wrap: anywhere; min-width: 0; }
+  .followup-chip:hover:not(:disabled) { border-color: var(--accent); background: var(--surface); }
+  .followup-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .followup-chip:disabled { opacity: .4; cursor: default; }
+  .followup-source { font-size: 10px; color: var(--muted); }
   .note { font-size: 12px; color: var(--muted); margin-top: 12px; overflow-wrap: anywhere; }
   .staff { font-size: 17px; line-height: 1.8; padding: 21px; border: 1px dashed var(--accent); border-radius: 18px;
     background: var(--accent-soft); white-space: pre-wrap; overflow-wrap: anywhere; cursor: zoom-in; }
@@ -183,7 +194,7 @@
     </div>
     <div class="eyebrow">YOUR BEAUTY, YOUR SEOUL</div>
     <h1>나에게 맞는 뷰티,<br><em>나만의 서울.</em></h1>
-    <p>좋아하는 것부터 피부 고민까지, 편하게 말해 주세요.<br>진짜 K-뷰티와 함께할 하루를 찾아드릴게요.</p>
+    <p class="intro">좋아하는 것부터 피부 고민까지, 편하게 말해 주세요.<br>진짜 K-뷰티와 함께할 하루를 찾아드릴게요.</p>
     <div class="suggest-label">이렇게 시작해 볼까요?</div>
     <div class="suggest">
       <button data-q="敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ『ソウルの春の日』のヒロインのメイクがしたい！あと「Seoul Glow Snail 99% Miracle Essence」って本物の韓国コスメ？"><b>日本語 · 코스 추천</b>敏感肌の私にぴったりな<br>コスメ旅がしたい</button>
@@ -285,7 +296,55 @@ const I18N = {
       "홍대": "홍대"
     },
     "tagline": "진짜 K-뷰티로 가는 관문",
-    "conversation": "뷰티 여행 대화"
+    "conversation": "뷰티 여행 대화",
+    "welcome": {
+      "eyebrow": "나만의 뷰티, 나만의 서울",
+      "title": [
+        "나에게 맞는 뷰티,",
+        "나만의 서울."
+      ],
+      "description": [
+        "좋아하는 것부터 피부 고민까지, 편하게 말해 주세요.",
+        "진짜 K-뷰티와 함께할 하루를 찾아드릴게요."
+      ],
+      "suggestLabel": "이렇게 시작해 볼까요?",
+      "suggestions": [
+        {
+          "label": "코스 추천",
+          "lines": [
+            "민감한 내 피부에 맞는",
+            "뷰티 여행을 떠나요"
+          ],
+          "question": "민감성 피부이고 붉어짐과 건조함이 고민이에요. 향료와 알코올은 피하고 싶어요. 10월 7일 오후 1시부터 7시까지 성수와 명동에서 예산은 8만 원이에요. 드라마 「서울의 봄날」 주인공 같은 메이크업을 하고 싶어요. \"Seoul Glow Snail 99% Miracle Essence\"는 진짜 한국 화장품인가요?"
+        },
+        {
+          "label": "제품 확인",
+          "lines": [
+            "진짜 K-뷰티일까?",
+            "내게 맞는 제품을 찾아요"
+          ],
+          "question": "복합성 피부에 칙칙함과 모공이 고민이에요. 예산은 약 50달러이고 10월 7일 오후 1시부터 7시까지 명동과 성수에 있어요. \"K-Skin Gangnam Collagen Mask (10ea)\"는 진짜 한국 브랜드인가요?"
+        },
+        {
+          "label": "맞춤 쇼핑",
+          "lines": [
+            "건조한 내 피부를 위한",
+            "명동 뷰티 산책"
+          ],
+          "question": "건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만 원 안에서 살 만한 거 추천해 주세요."
+        },
+        {
+          "label": "문화 산책",
+          "lines": [
+            "옛시장과 성진정에서",
+            "여유로운 반나절"
+          ],
+          "question": "해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."
+        }
+      ]
+    },
+    "translationPending": "번역 확인 필요",
+    "followups": "이어서 물어보세요"
   },
   "en": {
     "loading": "Opening the gate to your kind of beauty…",
@@ -342,7 +401,55 @@ const I18N = {
       "홍대": "Hongdae"
     },
     "tagline": "Your gate to authentic K-beauty",
-    "conversation": "Beauty trip conversation"
+    "conversation": "Beauty trip conversation",
+    "welcome": {
+      "eyebrow": "YOUR BEAUTY, YOUR SEOUL",
+      "title": [
+        "Beauty that fits you,",
+        "Seoul your way."
+      ],
+      "description": [
+        "Tell us what you love and what your skin needs.",
+        "We’ll find your kind of day with authentic K-beauty."
+      ],
+      "suggestLabel": "Where shall we begin?",
+      "suggestions": [
+        {
+          "label": "Plan a beauty day",
+          "lines": [
+            "A gentle beauty trip",
+            "for my sensitive skin"
+          ],
+          "question": "I have sensitive skin with redness and dryness. I want to avoid fragrance and alcohol. My budget is KRW 80,000 in Seongsu and Myeongdong on October 7 from 1pm to 7pm. I want a makeup look like the heroine in the drama \"Spring Days in Seoul\". Is \"Seoul Glow Snail 99% Miracle Essence\" authentic Korean cosmetics?"
+        },
+        {
+          "label": "Check a product",
+          "lines": [
+            "Is this really K-beauty?",
+            "Help me find my match."
+          ],
+          "question": "I have combination skin with dullness and pores. Budget about $50, I am in Myeongdong and Seongsu on October 7 from 1pm to 7pm. Is \"K-Skin Gangnam Collagen Mask (10ea)\" a real Korean brand?"
+        },
+        {
+          "label": "Shop for my skin",
+          "lines": [
+            "A moisturizing beauty stroll",
+            "around Myeongdong"
+          ],
+          "question": "I have dry skin and dryness is my main concern. Please recommend products within KRW 50,000 in Myeongdong on October 7 from 2pm to 6pm."
+        },
+        {
+          "label": "Take a cultural stroll",
+          "lines": [
+            "An easy half-day at the",
+            "old market and pavilion"
+          ],
+          "question": "Draft a half-day cultural route for overseas visitors including Haedam Old Market and Seongjin Pavilion. Include dietary restrictions and operating information for the day. Do not book or send anything."
+        }
+      ]
+    },
+    "translationPending": "Translation needed",
+    "followups": "Keep exploring"
   },
   "ja": {
     "loading": "あなたらしい美しさへの扉を開いています…",
@@ -399,7 +506,55 @@ const I18N = {
       "홍대": "弘大（ホンデ）"
     },
     "tagline": "本物のKビューティーへの扉",
-    "conversation": "ビューティー旅の会話"
+    "conversation": "ビューティー旅の会話",
+    "welcome": {
+      "eyebrow": "私らしいビューティー、私らしいソウル",
+      "title": [
+        "私に合うコスメ、",
+        "私らしいソウル。"
+      ],
+      "description": [
+        "好きなものや肌の悩みを、気軽に教えてください。",
+        "本物のKビューティーと過ごす一日を見つけましょう。"
+      ],
+      "suggestLabel": "こんな相談から始めませんか？",
+      "suggestions": [
+        {
+          "label": "コスメ旅を計画",
+          "lines": [
+            "敏感肌の私にぴったりな",
+            "コスメ旅がしたい"
+          ],
+          "question": "敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ「ソウルの春の日」のヒロインのメイクがしたいです。「Seoul Glow Snail 99% Miracle Essence」は本物の韓国コスメですか？"
+        },
+        {
+          "label": "商品をチェック",
+          "lines": [
+            "これって本物の韓国コスメ？",
+            "私に合うものを探したい"
+          ],
+          "question": "混合肌でくすみと毛穴が気になります。予算は約50ドルで、10月7日の午後1時から7時まで明洞とソンスにいます。「K-Skin Gangnam Collagen Mask (10ea)」は本物の韓国ブランドですか？"
+        },
+        {
+          "label": "肌に合うお買い物",
+          "lines": [
+            "乾燥肌の私のための",
+            "明洞ビューティー散歩"
+          ],
+          "question": "乾燥肌で乾燥が一番の悩みです。10月7日の午後2時から6時まで明洞で、5万ウォン以内のおすすめ商品を教えてください。"
+        },
+        {
+          "label": "文化散歩",
+          "lines": [
+            "昔ながらの市場と亭で",
+            "ゆったり半日を過ごす"
+          ],
+          "question": "海外からの訪問者向けに、Haedam Old MarketとSeongjin Pavilionを含む半日の文化コースの下書きを作ってください。食事制限と当日の営業情報も反映し、予約や送信はしないでください。"
+        }
+      ]
+    },
+    "translationPending": "翻訳の確認が必要です",
+    "followups": "続けて聞いてみる"
   },
   "zh-Hans": {
     "loading": "正在为你打开专属的美丽之门…",
@@ -456,7 +611,55 @@ const I18N = {
       "홍대": "弘大"
     },
     "tagline": "通往真正韩妆的大门",
-    "conversation": "美妆之旅对话"
+    "conversation": "美妆之旅对话",
+    "welcome": {
+      "eyebrow": "你的美妆，你的首尔",
+      "title": [
+        "适合我的美妆，",
+        "属于我的首尔。"
+      ],
+      "description": [
+        "告诉我们你的喜好和肌肤烦恼吧。",
+        "一起寻找与真正韩妆相伴的一天。"
+      ],
+      "suggestLabel": "想从哪里开始？",
+      "suggestions": [
+        {
+          "label": "规划美妆路线",
+          "lines": [
+            "为敏感肌的我",
+            "安排温柔的美妆之旅"
+          ],
+          "question": "我是敏感肌，有泛红和干燥问题，想避开香料和酒精。10月7日下午1点到7点会在圣水和明洞，预算8万韩元。我想尝试电视剧《首尔的春日》女主角的妆容。“Seoul Glow Snail 99% Miracle Essence”是真正的韩国化妆品吗？"
+        },
+        {
+          "label": "确认商品",
+          "lines": [
+            "这是真正的韩妆吗？",
+            "帮我找到适合的商品"
+          ],
+          "question": "我是混合性肌肤，有暗沉和毛孔问题。预算约50美元，10月7日下午1点到7点会在明洞和圣水。“K-Skin Gangnam Collagen Mask (10ea)”是真正的韩国品牌吗？"
+        },
+        {
+          "label": "按肤质购物",
+          "lines": [
+            "为干燥肌肤安排",
+            "明洞美妆漫步"
+          ],
+          "question": "我是干性肌肤，主要困扰是干燥。请推荐10月7日下午2点到6点在明洞可以买到、预算5万韩元以内的商品。"
+        },
+        {
+          "label": "文化漫步",
+          "lines": [
+            "在老市场和亭阁",
+            "悠闲度过半天"
+          ],
+          "question": "请为海外游客起草包含Haedam Old Market和Seongjin Pavilion的半日文化路线。请考虑饮食限制和当天营业信息，不要进行任何预约或发送。"
+        }
+      ]
+    },
+    "translationPending": "需要确认译文",
+    "followups": "继续问问"
   },
   "zh-Hant": {
     "loading": "正在為你打開專屬的美麗之門…",
@@ -513,7 +716,55 @@ const I18N = {
       "홍대": "弘大"
     },
     "tagline": "通往真正韓妝的大門",
-    "conversation": "美妝之旅對話"
+    "conversation": "美妝之旅對話",
+    "welcome": {
+      "eyebrow": "你的美妝，你的首爾",
+      "title": [
+        "適合我的美妝，",
+        "屬於我的首爾。"
+      ],
+      "description": [
+        "告訴我們你的喜好和肌膚煩惱吧。",
+        "一起尋找與真正韓妝相伴的一天。"
+      ],
+      "suggestLabel": "想從哪裡開始？",
+      "suggestions": [
+        {
+          "label": "規劃美妝路線",
+          "lines": [
+            "為敏感肌的我",
+            "安排溫柔的美妝之旅"
+          ],
+          "question": "我是敏感肌，有泛紅和乾燥問題，想避開香料和酒精。10月7日下午1點到7點會在聖水和明洞，預算8萬韓元。我想嘗試電視劇《首爾的春日》女主角的妝容。「Seoul Glow Snail 99% Miracle Essence」是真正的韓國化妝品嗎？"
+        },
+        {
+          "label": "確認商品",
+          "lines": [
+            "這是真正的韓妝嗎？",
+            "幫我找到適合的商品"
+          ],
+          "question": "我是混合性肌膚，有暗沉和毛孔問題。預算約50美元，10月7日下午1點到7點會在明洞和聖水。「K-Skin Gangnam Collagen Mask (10ea)」是真正的韓國品牌嗎？"
+        },
+        {
+          "label": "按膚質購物",
+          "lines": [
+            "為乾燥肌膚安排",
+            "明洞美妝漫步"
+          ],
+          "question": "我是乾性肌膚，主要困擾是乾燥。請推薦10月7日下午2點到6點在明洞可以買到、預算5萬韓元以內的商品。"
+        },
+        {
+          "label": "文化漫步",
+          "lines": [
+            "在老市場和亭閣",
+            "悠閒度過半天"
+          ],
+          "question": "請為海外遊客起草包含Haedam Old Market和Seongjin Pavilion的半日文化路線。請考慮飲食限制和當天營業資訊，不要進行任何預約或傳送。"
+        }
+      ]
+    },
+    "translationPending": "需要確認譯文",
+    "followups": "繼續問問"
   }
 };
 
@@ -525,6 +776,18 @@ const CHINESE_TRADITIONAL = new Set("個僅價優區問噴國場妝對幫從愛�
 function normalizeLanguage(value, fallback = "ko") {
   const key = String(value || "").trim().replace(/\s+/g, "").replace(/_/g, "-").toLowerCase();
   return LANGUAGE_ALIASES[key] || (I18N[fallback] ? fallback : "en");
+}
+function browserLanguage(languages, language) {
+  const preferences = [...(Array.isArray(languages) ? languages : []), language];
+  for (const preference of preferences) {
+    const parts = String(preference || "").trim().replace(/_/g, "-").toLowerCase().split("-");
+    if (["ko", "en", "ja"].includes(parts[0])) return parts[0];
+    if (parts[0] !== "zh") continue;
+    const script = parts.find((part) => part === "hans" || part === "hant");
+    if (script) return script === "hant" ? "zh-Hant" : "zh-Hans";
+    return parts.some((part) => ["tw", "hk", "mo"].includes(part)) ? "zh-Hant" : "zh-Hans";
+  }
+  return "en";
 }
 function explicitLanguage(text) {
   const patterns = [
@@ -578,6 +841,19 @@ function setLanguage(value) {
   $("#staffClose").textContent = l.close;
   $(".brand small").textContent = l.tagline; thread.setAttribute("aria-label", l.conversation);
   $(".header-note").textContent = l.header; $(".composer-caption").textContent = l.caption;
+  const hello = $("#hello");
+  if (hello) {
+    const welcome = l.welcome;
+    $(".eyebrow", hello).textContent = welcome.eyebrow;
+    $("h1", hello).innerHTML = `${esc(welcome.title[0])}<br><em>${esc(welcome.title[1])}</em>`;
+    $(".intro", hello).innerHTML = welcome.description.map(esc).join("<br>");
+    $(".suggest-label", hello).textContent = welcome.suggestLabel;
+    hello.querySelectorAll(".suggest button").forEach((button, index) => {
+      const example = welcome.suggestions[index];
+      button.innerHTML = `<b>${esc(example.label)}</b><span>${example.lines.map(esc).join("<br>")}</span>`;
+      button.dataset.q = example.question;
+    });
+  }
 }
 const money = (amount, lang) => typeof amount === "number" && Number.isFinite(amount)
   ? new Intl.NumberFormat(lang, {style:"currency", currency:"KRW", maximumFractionDigits:0}).format(amount) : I18N[lang].priceUnknown;
@@ -586,12 +862,35 @@ function matchingText(text, lang, fallback = "") {
   const clean = publicText(text);
   return clean && detectLanguage(clean, lang) === lang ? clean : fallback;
 }
+function visitorText(value, lang, displayNames = {}, fallback = "") {
+  let text = publicText(value);
+  if (lang !== "ko") {
+    const names = { ...I18N[lang].areas, ...displayNames };
+    for (const [original, translated] of Object.entries(names).sort(([a], [b]) => b.length - a.length)) {
+      if (original && typeof translated === "string" && translated.trim() && !/[\u3131-\u318e\uac00-\ud7a3]/.test(translated)) {
+        text = text.split(original).join(translated);
+      }
+    }
+    if (/[\u3131-\u318e\uac00-\ud7a3]/.test(text)) return fallback;
+  }
+  return text || fallback;
+}
+function displayNameMap(result, localized, lang) {
+  const names = { ...(localized.display_names || {}) };
+  if (lang !== "ko") {
+    for (const item of result.recommendations || []) {
+      if (item.name_ko && item.name && !/[\u3131-\u318e\uac00-\ud7a3]/.test(item.name)) names[item.name_ko] = item.name;
+    }
+  }
+  return names;
+}
 
 const mascot = $("#mascot");
 const showMascot = () => { mascot.hidden = false; $(".gate-mark")?.setAttribute("hidden", ""); };
 mascot.addEventListener("load", showMascot);
 mascot.addEventListener("error", () => { mascot.hidden = true; });
 if (mascot.complete && mascot.naturalWidth) showMascot();
+setLanguage(browserLanguage(navigator.languages, navigator.language));
 
 fetch("/api/status").then((r) => { if (!r.ok) throw new Error("status"); return r.json(); }).then((s) => {
   [...(s.chat_models || []), s.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
@@ -656,7 +955,9 @@ async function ask(text) {
   text = (text || "").trim();
   if (!text || busy) return;
   busy = true; send.disabled = true; input.value = ""; input.style.height = "auto";
-  setLanguage(detectLanguage(text, uiLanguage));
+  disableFollowups();
+  const requestLanguage = detectLanguage(text, uiLanguage);
+  setLanguage(requestLanguage);
   state = { ...(state || {}), language: uiLanguage };
   addUser(text); const bot = addBot(); scrollDown();
   try {
@@ -664,13 +965,16 @@ async function ask(text) {
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     if (!data.turn || !data.result) throw new Error("응답 형식을 확인해 주세요.");
-    setLanguage(data.turn.language || data.result.language || data.turn.profile?.language || uiLanguage);
-    state = { ...(state || {}), ...(data.turn.profile || {}), language: uiLanguage };
+    setLanguage(requestLanguage);
+    state = { ...(state || {}), ...(data.turn.profile || {}), language: requestLanguage };
     bot.el.lang = uiLanguage;
     bot.el.querySelector(".avatar").innerHTML = `<div class="logo">K</div>${esc(I18N[uiLanguage].avatar)}`;
     bot.finish((data.result.blocked || []).filter((e) => e.action === "follow-instruction").length);
-    bot.el.querySelector(".body").innerHTML = data.turn.mode === "beauty" ? beauty(data) : culture(data);
+    const presentation = { ...data, turn: { ...data.turn, language: requestLanguage } };
+    bot.el.querySelector(".body").innerHTML = (data.turn.mode === "beauty" ? beauty(presentation) : culture(presentation))
+      + followupChips(data.result.suggestions, requestLanguage);
     bindStaff(bot.el);
+    bindFollowups(bot.el);
   } catch (err) {
     bot.finish(0);
     bot.el.querySelector(".body").innerHTML = `<div class="bubble" role="alert">${esc(I18N[uiLanguage].error)}</div><div class="log bs">${esc(err.message)}</div>`;
@@ -691,21 +995,50 @@ function blockedBox(events) {
   if (!events?.length) return "";
   return `<details class="bs"><summary>따르지 않은 행동 <span class="count">${events.length}건 · 앱 판단 기록</span></summary><div class="log">${events.map((e) => esc(`DENIED ${e.action} → ${e.target}\n  ${e.reason}`)).join("\n")}</div><div class="note">OpenShell의 실제 강제 차단 여부는 별도 실행 기록에서 확인합니다.</div></details>`;
 }
+function followupChips(suggestions, lang) {
+  if (!Array.isArray(suggestions)) return "";
+  const choices = suggestions.filter((item) => {
+    const text = item?.text;
+    return typeof text === "string" && text.trim() && !TECHNICAL.test(text)
+      && ![...modelNames].some((model) => model && text.toLowerCase().includes(model.toLowerCase()));
+  });
+  if (!choices.length) return "";
+  const label = I18N[normalizeLanguage(lang)].followups;
+  return `<div class="followups" role="group" aria-label="${esc(label)}"><p class="followup-label">${esc(label)}</p><div class="followup-options">${choices.map((item) =>
+    `<div class="followup-choice"><button type="button" class="followup-chip" data-question="${esc(item.text)}">${esc(item.text)}</button>${["rule", "nemotron"].includes(item.source) ? `<span class="bs followup-source">${item.source}</span>` : ""}</div>`
+  ).join("")}</div></div>`;
+}
+function disableFollowups() {
+  wrap.querySelectorAll(".followup-chip").forEach((button) => { button.disabled = true; });
+}
+function bindFollowups(el) {
+  el.querySelectorAll(".followup-chip").forEach((button) => {
+    button.onclick = () => { if (!busy && !button.disabled) ask(button.dataset.question); };
+  });
+}
 function beauty({ turn, result: r }) {
   const p = turn.profile || {};
   const lang = normalizeLanguage(turn.language || r.language || p.language || uiLanguage), l = I18N[lang];
   const localized = r.localized && normalizeLanguage(r.localized.language || lang) === lang ? r.localized : {};
   [r.nvidia?.chat_model, r.nvidia?.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
-  const chips = [l.skin[p.skin_type] && l.skin[p.skin_type] + l.skinSuffix, ...(p.concerns || []).map((c) => l.concerns[c] || c), ...(p.avoid_ingredients || []).map((a) => l.avoid.replace("{}", l.ingredients[a] || a)), p.budget_krw && money(p.budget_krw, lang), p.visit_date, p.time_window, (p.areas || []).map((area) => l.areas[area] || area).join(" → ")].filter(Boolean);
+  const names = displayNameMap(r, localized, lang);
+  const text = (value, fallback = "") => visitorText(value, lang, names, fallback);
+  const show = (value, fallback = "") => esc(text(value, fallback));
+  const originalName = (value) => {
+    const original = publicText(value);
+    return lang !== "ko" && /[\u3131-\u318e\uac00-\ud7a3]/.test(original)
+      ? `<small class="route-original" lang="ko">${esc(original)}</small>` : "";
+  };
+  const chips = [l.skin[p.skin_type] && l.skin[p.skin_type] + l.skinSuffix, ...(p.concerns || []).map((c) => l.concerns[c] || text(c, l.translationPending)), ...(p.avoid_ingredients || []).map((a) => l.avoid.replace("{}", l.ingredients[a] || text(a, l.translationPending))), p.budget_krw && money(p.budget_krw, lang), p.visit_date, p.time_window, (p.areas || []).map((area) => l.areas[area] || text(area, l.translationPending)).join(" → ")].filter(Boolean);
   const bad = (r.trust?.documents || []).filter((x) => !x.trusted && (x.target || "").startsWith("beauty/")).concat((r.trust?.products || []).filter((x) => !x.trusted), r.excluded_by_profile || []);
-  const reply = publicText(localized.summary || matchingText(r.summary, lang), l.reply);
-  const notices = (localized.notices || (lang === "ko" ? r.notices_applied : []) || []).map((n) => publicText(n)).filter(Boolean);
-  const caveats = (localized.caveats || (lang === "ko" ? r.route_skipped : []) || []).map((n) => publicText(n)).filter(Boolean);
+  const reply = text(localized.summary || matchingText(text(r.summary), lang), l.reply);
+  const notices = (localized.notices || (lang === "ko" ? r.notices_applied : []) || []).map((n) => text(n, l.translationPending)).filter(Boolean);
+  const caveats = (localized.caveats || (lang === "ko" ? r.route_skipped : []) || []).map((n) => text(n, l.translationPending)).filter(Boolean);
   return `<div class="bubble">${esc(reply)}</div>
-  <div class="profile-chips">${chips.map((c) => publicText(c)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
-  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${shown(c.target, l.product)}</strong><br>${esc(c.trusted ? l.checked : l.caution)}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
-  <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${Number.isInteger(x.rank) && x.rank > 0 ? x.rank : index + 1}</div><div class="name">${shown(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${shown((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
-  <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${shown(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${shown(stop.name, l.place)}</span> · ${shown(l.areas[stop.area] || stop.area)}<small>${shown(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""))}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
+  <div class="profile-chips">${chips.map((c) => text(c, l.translationPending)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
+  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${show(c.target, l.product + " · " + l.translationPending)}</strong><br>${esc(c.trusted ? l.checked : l.caution)}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
+  <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${Number.isInteger(x.rank) && x.rank > 0 ? x.rank : index + 1}</div><div class="name">${show(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product + " · " + l.translationPending)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${show((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
+  <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${show(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${show(stop.name, l.place + " · " + l.translationPending)}</span> · ${show(l.areas[stop.area] || stop.area, l.translationPending)}${originalName(stop.name)}<small>${show(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""), l.translationPending)}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
   <div class="card"><h3>${esc(l.staff)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
   ${caveats.length ? `<div class="card"><h3>${esc(l.caveats)}</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
   <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 판단</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}
@@ -714,12 +1047,14 @@ function beauty({ turn, result: r }) {
 function culture({ turn = {}, result: r }) {
   const lang = normalizeLanguage(turn.language || r.language || turn.profile?.language || uiLanguage), l = I18N[lang];
   const localized = r.localized && normalizeLanguage(r.localized.language || lang) === lang ? r.localized : {};
+  const names = displayNameMap(r, localized, lang);
+  const text = (value, fallback = "") => visitorText(value, lang, names, fallback);
   const bad = (r.trust?.documents || []).filter((x) => !x.trusted && !(x.target || "").startsWith("beauty/"));
-  const notices = (localized.notices || (lang === "ko" ? r.notices : []) || []).map((notice) => publicText(notice)).filter(Boolean);
+  const notices = (localized.notices || (lang === "ko" ? r.notices : []) || []).map((notice) => text(notice, l.translationPending)).filter(Boolean);
   const uncertainty = Object.entries(r.uncertain || {});
   const rawCaveats = uncertainty.flatMap(([, items]) => (Array.isArray(items) ? items : []).filter((item) => item.certainty && item.certainty !== "확정").map((item) => `${item.certainty} · ${item.sentence}`));
-  const caveats = (localized.caveats || (lang === "ko" ? rawCaveats : [])).map((item) => publicText(item)).filter(Boolean);
-  const draft = publicText(localized.draft || matchingText(r.draft, lang), l.cultureFallback);
+  const caveats = (localized.caveats || (lang === "ko" ? rawCaveats : [])).map((item) => text(item, l.translationPending)).filter(Boolean);
+  const draft = text(localized.draft || matchingText(text(r.draft), lang), l.cultureFallback);
   return `<div class="card"><h3>${esc(l.culture)} <span class="subtitle">${shown(r.visit_date)}</span></h3><div class="bubble">${md(draft)}</div></div>
   ${notices.length ? `<div class="card"><h3>${esc(l.notices)}</h3><ul class="flist">${notices.map((notice) => `<li>${esc(notice)}</li>`).join("")}</ul></div>` : ""}
   <div class="card"><h3>${esc(l.food)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요."))}</div></div>

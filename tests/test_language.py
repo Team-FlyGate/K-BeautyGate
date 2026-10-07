@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 from kbeauty_gate import agent, conversation, culture, web
 from kbeauty_gate.config import Settings
-from kbeauty_gate.language import COPY, LOCALES, detect_language, in_language, localized_projection, normalize_locale
+from kbeauty_gate.language import COPY, LOCALES, HANGUL, detect_language, display_name, in_language, localized_projection, normalize_locale
 from kbeauty_gate.trust import Verdict
 
 
@@ -32,7 +32,8 @@ def english_projection():
             "recommendation_reasons": [["A sample option for your moisture routine."]],
             "route_notes": ["Compare the cream in the store."],
             "notices": ["The store closes at 18:00 today."],
-            "caveats": ["Check the other store's opening hours."]}
+            "caveats": ["Check the other store's opening hours."],
+            "display_names": {"가상 매장": "Sample Store", "명동": "Myeongdong", "가상 크림": "Test Cream"}}
 
 
 class LocaleDetectionTests(unittest.TestCase):
@@ -84,6 +85,7 @@ class LocaleDetectionTests(unittest.TestCase):
         self.assertFalse(in_language("請確認營業時間。", "zh-Hans"))
         self.assertFalse(in_language("購物資訊", "zh-Hans"))
         self.assertFalse(in_language("购物资讯", "zh-Hant"))
+        self.assertFalse(in_language("Visit 가상 매장.", "en", proper_names=["가상 매장"]))
 
 
 class ConversationLanguageTests(unittest.TestCase):
@@ -159,7 +161,8 @@ class ProjectionTests(unittest.TestCase):
     @patch("kbeauty_gate.language.nvidia.chat")
     def test_traditional_output_is_validated(self, chat):
         payload = {"summary": "請到店內確認商品。", "recommendation_reasons": [["適合您的保濕需求。"]],
-                   "route_notes": ["到店內看看。"], "notices": ["請確認營業時間。"], "caveats": ["部分資訊尚待確認。"]}
+                   "route_notes": ["到店內看看。"], "notices": ["請確認營業時間。"], "caveats": ["部分資訊尚待確認。"],
+                   "display_names": {"가상 매장": "測試商店"}}
         chat.return_value = json.dumps(payload, ensure_ascii=False)
         self.assertEqual(self.projection("zh-Hant")["status"], "ready")
         self.assertEqual(self.projection("zh-Hans")["status"], "fallback")
@@ -191,7 +194,9 @@ class ProjectionTests(unittest.TestCase):
         result = self.projection()
         self.assertEqual(result["status"], "partial")
         self.assertEqual(result["status_reason"], "invalid_shape")
-        self.assertEqual(result["summary"], payload["summary"])
+        # 요약은 살아남되, 외국어 답에서는 한국어 지명이 번역된 표시명으로 바뀐다 (display_names)
+        self.assertIn("Test Cream", result["summary"])
+        self.assertNotRegex(result["summary"], "[\uac00-\ud7a3]")
         self.assertEqual(result["recommendation_reasons"], [[COPY["en"]["reason"]]])
         self.assertEqual(result["route_notes"], payload["route_notes"])
         self.assertEqual(result["notices"], payload["notices"])
@@ -212,7 +217,9 @@ class ProjectionTests(unittest.TestCase):
         chat.return_value = json.dumps(payload)
         result = self.projection()
         self.assertEqual(result["status"], "partial")
-        self.assertEqual(result["summary"], payload["summary"])
+        # 요약은 살아남되, 외국어 답에서는 한국어 지명이 번역된 표시명으로 바뀐다 (display_names)
+        self.assertIn("Test Cream", result["summary"])
+        self.assertNotRegex(result["summary"], "[\uac00-\ud7a3]")
         self.assertEqual(result["route_notes"], [COPY["en"]["route"]])
         self.assertEqual(result["caveats"], payload["caveats"])
 
@@ -305,7 +312,8 @@ class SavedResultTests(unittest.TestCase):
         verdicts = {name: Verdict(name, True, 1.0, ["uncertain"] if name.startswith("history") else []) for name in docs}
         payload = {"draft": "Visit the market at 10:00. This is a draft; confirm access before visiting.",
                    "recommendation_reasons": [], "route_notes": [], "notices": ["The visit is scheduled for 2026-10-10.", "The market opens at 10:00 on 2026-10-10."],
-                   "caveats": ["Dating of some structural members is still in progress."]}
+                   "caveats": ["Dating of some structural members is still in progress."],
+                   "display_names": {"해담 옛시장": "Haedam Old Market", "해담": "Haedam", "성진정": "Seongjin Pavilion"}}
         chat.return_value = json.dumps(payload)
         result = culture.run_culture(docs, verdicts, "Plan a cultural itinerary.", settings(), language="en")
         result["trust"] = {"documents": [v.to_dict() for v in verdicts.values()]}
@@ -330,6 +338,111 @@ class SavedResultTests(unittest.TestCase):
         self.assertEqual(response["turn"]["profile"]["language"], "en")
         self.assertEqual(response["result"]["language"], "en")
         self.assertEqual(run.call_args.args[2]["_mode"], "culture")
+
+
+class DisplayNameTests(unittest.TestCase):
+    def generate(self, language="en", facts=None):
+        return localized_projection(settings(), language, "beauty", facts or beauty_result(),
+                                    reasons=[["보습"]], route_notes=["명동의 가상 매장 방문"],
+                                    notices=["18시 종료"], caveats=["확인 필요"])
+
+    def assert_foreign_values_have_no_hangul(self, projection):
+        values = [projection.get("summary", projection.get("draft", ""))]
+        values += [item for row in projection["recommendation_reasons"] for item in row]
+        for field in ("route_notes", "notices", "caveats"):
+            values.extend(projection[field])
+        values.extend(projection["display_names"].values())
+        self.assertFalse(any(HANGUL.search(value) for value in values), values)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_english_summary_and_names_use_provided_product_name(self, chat):
+        payload = english_projection()
+        payload["display_names"]["가상 크림"] = "Invented Cream Label"
+        payload["summary"] = "Compare Invented Cream Label at 가상 매장 in 명동."
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = self.generate()
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["display_names"]["가상 크림"], "Test Cream")
+        self.assertEqual(result["summary"], "Compare Test Cream at Sample Store in Myeongdong.")
+        self.assert_foreign_values_have_no_hangul(result)
+        chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_profile_terms_are_in_same_name_translation_request(self, chat):
+        payload = english_projection()
+        payload["display_names"].update({"속당김": "skin tightness", "강한 향료": "strong fragrance", "을지로": "Euljiro"})
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        profile = {"language": "en", "visit_date": "2026-10-10", "skin_type": "dry",
+                   "concerns": ["속당김"], "avoid_ingredients": ["강한 향료"], "areas": ["을지로"]}
+        result = beauty_result()
+        original_profile = json.loads(json.dumps(profile))
+        original_products = json.loads(json.dumps(result["recommendations"]))
+        markdown = agent.render_plan(result, profile, settings())
+        request = json.loads(chat.call_args.args[2])
+        self.assertEqual(request["provided_product_names"]["가상 크림"], "Test Cream")
+        for source in ("속당김", "강한 향료", "을지로"):
+            self.assertIn(source, request["display_name_sources"])
+            self.assertEqual(result["localized"]["display_names"][source], payload["display_names"][source])
+        self.assertEqual(profile, original_profile)
+        self.assertEqual(result["recommendations"], original_products)
+        self.assertFalse(HANGUL.search(markdown.split("## Evidence record")[0]))
+        staff = agent.render_card(result, profile)
+        self.assertIn("가상 크림", staff)
+        self.assertIn("강한 향료", staff)
+        chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_legacy_missing_or_invalid_names_do_not_expose_korean(self, chat):
+        for bad_map in (None, [], {"가상 매장": "가상 매장", "명동": "명동"}):
+            payload = english_projection()
+            if bad_map is None:
+                payload.pop("display_names")
+            else:
+                payload["display_names"] = bad_map
+            chat.return_value = json.dumps(payload, ensure_ascii=False)
+            result = self.generate()
+            self.assertEqual(result["status"], "fallback")
+            self.assertEqual(result["status_reason"], "display_names_unavailable")
+            self.assertEqual(result["display_names"]["가상 크림"], "Test Cream")
+            self.assertEqual(result["display_names"]["가상 매장"], "Display name unavailable")
+            self.assert_foreign_values_have_no_hangul(result)
+
+    @patch("kbeauty_gate.language.nvidia.chat", return_value=None)
+    def test_unavailable_model_keeps_known_names_and_localizes_name_failure(self, chat):
+        for language in ("en", "ja", "zh-Hans", "zh-Hant"):
+            result = self.generate(language)
+            self.assertEqual(result["status"], "fallback")
+            self.assertEqual(result["display_names"]["가상 크림"], "Test Cream")
+            self.assert_foreign_values_have_no_hangul(result)
+            self.assertFalse(HANGUL.search(display_name("번역되지 않은 매장", result, language)))
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_japanese_and_both_chinese_name_values(self, chat):
+        translations = {
+            "ja": ("テスト店舗", "明洞", "가상 매장で Test Cream を比べてください。", "保湿のための商品です。", "명동のお店を訪ねてください。", "営業時間を確認してください。", "情報の確認が必要です。"),
+            "zh-Hans": ("测试商店", "明洞", "请到가상 매장比较 Test Cream。", "适合保湿需求。", "请到명동的商店参观。", "请确认营业时间。", "部分资讯尚待确认。"),
+            "zh-Hant": ("測試商店", "明洞", "請到가상 매장比較 Test Cream。", "適合保濕需求。", "請到명동的商店參觀。", "請確認營業時間。", "部分資訊尚待確認。"),
+        }
+        for language, (store, area, summary, why, route, notice, caveat) in translations.items():
+            payload = {"summary": summary, "recommendation_reasons": [[why]], "route_notes": [route],
+                       "notices": [notice], "caveats": [caveat], "display_names": {"가상 매장": store, "명동": area}}
+            chat.return_value = json.dumps(payload, ensure_ascii=False)
+            result = self.generate(language)
+            self.assertEqual(result["status"], "ready", (language, result))
+            self.assertEqual(result["display_names"]["가상 크림"], "Test Cream")
+            self.assertIn(store, result["summary"])
+            self.assert_foreign_values_have_no_hangul(result)
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_culture_proper_names_are_replaced_before_language_validation(self, chat):
+        payload = {"draft": "Walk from 해담 옛시장 to 성진정.", "recommendation_reasons": [], "route_notes": [],
+                   "notices": [], "caveats": [], "display_names": {"해담 옛시장": "Haedam Old Market", "해담": "Haedam", "성진정": "Seongjin Pavilion"}}
+        chat.return_value = json.dumps(payload, ensure_ascii=False)
+        result = localized_projection(settings(), "en", "culture", {}, proper_names=["해담", "해담 옛시장", "성진정"])
+        self.assertEqual(result["draft"], "Walk from Haedam Old Market to Seongjin Pavilion.")
+        self.assertEqual(result["status"], "ready")
+        self.assert_foreign_values_have_no_hangul(result)
+        chat.assert_called_once()
 
 
 if __name__ == "__main__":

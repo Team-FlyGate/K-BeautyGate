@@ -14,7 +14,7 @@ from .culture import food_card, run_culture
 from .followups import suggest
 from .guard import AuditLog, SafeFS
 from .request_guard import refusal_text, screen_request
-from .language import COPY, LANG_NAME, detect_language, in_language, localized_projection, normalize_locale
+from .language import COPY, LANG_NAME, detect_language, display_name, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
 from .trust import assess_product
 
@@ -177,8 +177,9 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
     language = normalize_locale(profile.get("language"))
     copy = COPY[language]
     localized = result.get("localized")
-    if not localized or localized.get("language") != language:
+    if not localized or localized.get("language") != language or "display_names" not in localized:
         facts = {k: result[k] for k in ("recommendations", "route", "authenticity_checks")}
+        facts["profile"] = {key: profile.get(key) for key in ("skin_type", "concerns", "avoid_ingredients", "areas")}
         names = [name for r in result["recommendations"] for name in (r["name"], r["name_ko"])]
         names += [name for stop in result["route"] for name in (stop["name"], stop["area"])]
         names += [check["target"] for check in result["authenticity_checks"]]
@@ -199,10 +200,10 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
     out = [f"# K-BeautyGate {copy['title']} · {profile['visit_date']}", "", localized["summary"], ""]
     out += [f"## {copy['products']}", "", f"| {copy['rank']} | {copy['product']} | {copy['price']} | {copy['why']} |", "| --- | --- | --- | --- |"]
     for index, r in enumerate(result["recommendations"]):
-        out.append(f"| {r['rank']} | {r['name_ko']} | KRW {r['price_krw']:,} | {'; '.join(localized['recommendation_reasons'][index]) or '-'} |")
+        out.append(f"| {r['rank']} | {display_name(r['name_ko'], localized, language)} | KRW {r['price_krw']:,} | {'; '.join(localized['recommendation_reasons'][index]) or '-'} |")
     out += ["", f"## {copy['route_title']}", "", f"| {copy['time']} | {copy['place']} | {copy['area']} | {copy['activity']} |", "| --- | --- | --- | --- |"]
     for index, stop in enumerate(result["route"]):
-        out.append(f"| {stop['time']} | {stop['name']} | {stop['area']} | {localized['route_notes'][index]} |")
+        out.append(f"| {stop['time']} | {display_name(stop['name'], localized, language)} | {display_name(stop['area'], localized, language)} | {localized['route_notes'][index]} |")
     if localized["notices"]:
         out += ["", f"## {copy['notices']}", ""] + [f"- {item}" for item in localized["notices"]]
     if localized["caveats"]:
