@@ -4,5 +4,12 @@
       "maxDuration": 60,
       "includeFiles": "{kbeauty_gate/**,public/**,hackathon/input/**,profiles/**,TASK.md}"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/bunny",
+      "permanent": false
+    }
+  ]
 }
