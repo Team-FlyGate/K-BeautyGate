@@ -34,6 +34,8 @@
   .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: .025em; margin-top: -4px; }
   .header-note { font-size: 11px; color: var(--muted); white-space: nowrap; }
   .check-why { display: block; margin-top: 4px; font-size: 12px; opacity: .85; }
+  .back-btn { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .back-btn:hover { border-color: var(--accent); color: var(--accent); }
   .lang-switch { display: flex; gap: 4px; flex-wrap: wrap; }
   .lang-switch button { border: 1px solid var(--line); background: transparent; color: var(--muted); border-radius: 999px;
     padding: 4px 10px; font-size: 12px; cursor: pointer; line-height: 1.4; }
@@ -196,6 +198,7 @@
 </head>
 <body>
 <header>
+  <button class="back-btn" id="backBtn" type="button" hidden>← 처음으로</button>
   <div class="brand"><div class="logo">K</div><div>K-BeautyGate<small>진짜 K-뷰티로 가는 관문</small></div></div>
   <span class="header-note">나만의 뷰티 여행</span>
   <div class="lang-switch" role="group" aria-label="Language / 언어">
@@ -958,6 +961,28 @@ function openStaff(card) {
   $("header").inert = true; $(".composer").inert = true; $("#staffClose").focus();
 }
 $("#staffClose").onclick = closeStaff;
+// 뒤로가기: 화면의 "처음으로" 버튼과 브라우저·휴대폰 뒤로가기 모두 지원한다.
+const helloTemplate = $("#hello").outerHTML;
+const BACK_LABEL = { ko: "← 처음으로", en: "← Home", ja: "← 最初へ", "zh-Hans": "← 返回首页", "zh-Hant": "← 返回首頁" };
+const backBtn = $("#backBtn");
+const labelBack = () => { backBtn.textContent = BACK_LABEL[uiLanguage] || BACK_LABEL.en; };
+function goHome() {
+  if (busy) return;
+  closeStaff();
+  wrap.innerHTML = helloTemplate;
+  wrap.querySelectorAll(".suggest button").forEach((b) => b.onclick = () => ask(b.dataset.q));
+  const img = $("#mascot");
+  if (!mascot.hidden) { img.hidden = false; $(".gate-mark")?.setAttribute("hidden", ""); }
+  state = preferredLanguage ? { language: preferredLanguage, preferred_language: preferredLanguage } : null;
+  setLanguage(preferredLanguage || uiLanguage);
+  backBtn.hidden = true; thread.scrollTo({ top: 0 });
+}
+backBtn.onclick = () => { if (history.state?.kbg) history.back(); else goHome(); };
+window.addEventListener("popstate", () => {
+  if (activeStaff) { closeStaff(); return; }
+  if (!backBtn.hidden) goHome();
+});
+document.querySelectorAll(".lang-switch button").forEach((b) => b.addEventListener("click", labelBack));
 document.addEventListener("keydown", (e) => {
   if (!activeStaff) return;
   if (e.key === "Escape") { e.preventDefault(); closeStaff(); }
@@ -971,7 +996,8 @@ function bindStaff(el) {
   });
 }
 function addUser(text) {
-  $("#hello")?.remove();
+  if ($("#hello")) { $("#hello").remove(); history.pushState({ kbg: "chat" }, ""); }
+  labelBack(); backBtn.hidden = false;
   wrap.insertAdjacentHTML("beforeend", `<div class="msg user" lang="${uiLanguage}"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
 }
 const STEPS = ["요청 이해 · 프로필 추출", "자료 수집 · 허용된 입력 범위", "신뢰성 판단 · 광고 · 지난 정보 · 숨은 지시", "맞춤 추천", "동선 · 한글 카드 · 답변 작성"];
