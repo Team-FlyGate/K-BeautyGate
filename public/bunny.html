@@ -1150,6 +1150,7 @@ function staffBlock(r, ctx) {
 }
 function foodBlock(r, ctx) {
   const { l, lang, turnId } = ctx;
+  if (!String(r.food_cards || "").trim()) return "";  // 자료 밖 장소 질문처럼 음식 카드가 없으면 칸을 숨긴다
   const all = cleanText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요.");
   const parts = all.split(/\n(?=##\s)/).map((part) => part.trim()).filter(Boolean);
   return `<div class="action-card"><div class="ac-head"><span class="ac-icon">${ICON.bowl}</span><div><b>${esc(l.food)}</b></div></div>

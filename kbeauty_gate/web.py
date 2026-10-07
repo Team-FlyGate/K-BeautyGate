@@ -33,8 +33,8 @@ def default_dirs() -> Tuple[Path, Path]:
 def page_for(path: str) -> Optional[Path]:
     """화면 경로: / 는 기존 화면, /bunny 는 토끼 캐릭터 채팅 화면 (public/bunny.html)."""
     path = path.split("?", 1)[0].rstrip("/") or "/"
-    if path == "/" and os.environ.get("KBG_HOME") == "bunny":
-        return PUBLIC / "bunny.html"  # 토끼 화면을 첫 화면으로 쓰는 배포 (환경변수 KBG_HOME=bunny)
+    if path == "/" and os.environ.get("KBG_HOME", "bunny") == "bunny":
+        return PUBLIC / "bunny.html"  # 토끼 화면이 첫 화면 (기존 화면은 /index.html, KBG_HOME=classic 이면 / 도 기존 화면)
     if path in ("/", "/index.html"):
         return PUBLIC / "index.html"
     if path in ("/bunny", "/bunny.html"):
