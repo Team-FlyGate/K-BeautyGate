@@ -1,0 +1,28 @@
+# NVIDIA 추론 provider 프로필. 키는 여기에 적지 않는다. provider 가 프록시 단계에서 넣고
+# 샌드박스 안의 에이전트는 openshell:resolve:env:... 자리표시자만 본다.
+#   openshell provider profile import -f openshell/nvidia-profile.yaml
+#   read -rs NVIDIA_API_KEY; export NVIDIA_API_KEY
+#   openshell provider create --name nvidia --type nvidia-hackathon --credential NVIDIA_API_KEY; unset NVIDIA_API_KEY
+id: nvidia-hackathon
+display_name: NVIDIA NIM (hackathon)
+description: build.nvidia.com NIM API, python agent only
+category: inference
+inference_capable: true
+credentials:
+  - name: api_key
+    description: NVIDIA API key
+    env_vars: [NVIDIA_API_KEY]
+    required: true
+    auth_style: bearer
+    header_name: authorization
+discovery:
+  credentials: [api_key]
+endpoints:
+  - host: integrate.api.nvidia.com
+    port: 443
+    protocol: rest
+    access: read-write
+    enforcement: enforce
+binaries:
+  - /usr/bin/python3
+  - /usr/bin/python3.12
