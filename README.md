@@ -1,4 +1,4 @@
-# Project-K-BeautyGate
+# K-BeautyGate
 
 Team FlyGate · Korea Agentic AI Hackathon 2026 (NVIDIA OpenShell)
 
