@@ -2,6 +2,7 @@
 
 로컬·Brev:  python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --port 8080
 Vercel:     public/index.html + api/chat.py, api/status.py 가 아래 chat_response()/status_response()를 쓴다.
+토끼 화면:  /bunny 에서 public/bunny.html (ui/bunny/build.py로 만든 단일 파일)을 연다.
 """
 import argparse
 import json
@@ -27,6 +28,18 @@ def default_dirs() -> Tuple[Path, Path]:
     else:
         output_dir = Path(os.environ.get("KBG_OUTPUT", ROOT / "hackathon" / "output"))
     return input_dir.resolve(), output_dir.resolve()
+
+
+def page_for(path: str) -> Optional[Path]:
+    """화면 경로: / 는 기존 화면, /bunny 는 토끼 캐릭터 채팅 화면 (public/bunny.html)."""
+    path = path.split("?", 1)[0].rstrip("/") or "/"
+    if path == "/" and os.environ.get("KBG_HOME") == "bunny":
+        return PUBLIC / "bunny.html"  # 토끼 화면을 첫 화면으로 쓰는 배포 (환경변수 KBG_HOME=bunny)
+    if path in ("/", "/index.html"):
+        return PUBLIC / "index.html"
+    if path in ("/bunny", "/bunny.html"):
+        return PUBLIC / "bunny.html"
+    return None
 
 
 def status_response() -> Dict:
@@ -75,8 +88,9 @@ class Handler(BaseHTTPRequestHandler):
     output_dir: Path
 
     def do_GET(self) -> None:
-        if self.path in ("/", "/index.html"):
-            body = (PUBLIC / "index.html").read_bytes()
+        page = page_for(self.path)
+        if page:
+            body = page.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.send_header("Content-Length", str(len(body)))
