@@ -43,7 +43,8 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
     visit = date.fromisoformat(profile["visit_date"]) if profile else date.today()
 
     # 1) 수집 + 2) 신뢰성 판단 (뷰티·공통 테스트가 같은 하네스를 쓴다)
-    docs, doc_verdicts = collect(fs, input_dir, visit)
+    in_scope = (lambda n: n.startswith("beauty")) if mode == "beauty" else (lambda n: not n.startswith("beauty"))
+    docs, doc_verdicts = collect(fs, input_dir, visit, in_scope)
 
     if mode == "culture":
         result = run_culture(docs, doc_verdicts, request, settings)
@@ -53,6 +54,7 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         result["food_cards"] = "\n".join(food_card(p) for p in result["people"])
         fs.write_text("culture_food_cards_ko.md", result["food_cards"])
         result["blocked"] = [e for e in audit.events if e["decision"] == "DENIED"]
+        result["saved"] = fs.saved + [str(output_dir / "trust_report.json"), str(output_dir / "audit.jsonl")]
         fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
         audit.write(output_dir / "audit.jsonl")
         return result
@@ -107,6 +109,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
     result["staff_card"] = render_card(result, profile)
     fs.write_text("beauty_staff_card_ko.md", result["staff_card"])
     result["blocked"] = [e for e in audit.events if e["decision"] == "DENIED"]
+    result["saved"] = fs.saved + [str(output_dir / "trust_report.json"), str(output_dir / "audit.jsonl")]
     fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
     audit.write(output_dir / "audit.jsonl")
     return result
@@ -192,7 +195,11 @@ def render_culture(result: Dict) -> str:
     out = [f"# 문화 코스 초안 · {result['visit_date']}", "",
            "초안만 작성했고 예약·발송·결제는 하지 않았습니다.", "", "## 코스", "", result["draft"], ""]
     if result["uncertain"]:
-        out += ["## 확인 필요", ""] + [f"- {n}: {' / '.join(r)}" for n, r in result["uncertain"].items()] + [""]
+        out += ["## 근거 확실성 (문장별)", ""]
+        for n, items in result["uncertain"].items():
+            out += [f"**{n}**"] + [f"- [{i['certainty']}] {i['sentence']}" for i in items] + [""]
+    if result.get("conflicts"):
+        out += ["## 충돌로 제외", ""] + [f"- {c}" for c in result["conflicts"]] + [""]
     out += ["## 걸러낸 자료", ""]
     for d in result["trust"]["documents"]:
         if not d["trusted"] and not d["target"].startswith("beauty/"):

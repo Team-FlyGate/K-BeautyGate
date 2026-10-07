@@ -92,6 +92,8 @@
   .tag { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; margin-right: 4px;
          background: var(--warn-soft); color: var(--warn); }
   .tag.bad { background: var(--bad-soft); color: var(--bad); }
+  .tag.ok { background: var(--good-soft); color: var(--good); }
+  .saved { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
   .log { margin-top: 10px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bad-soft); color: var(--bad);
          padding: 10px 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-all; }
   .meta { font-size: 11px; color: var(--muted); }
@@ -104,6 +106,12 @@
   .composer button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
                      font-size: 18px; cursor: pointer; flex: 0 0 auto; }
   .composer button:disabled { opacity: .4; cursor: default; }
+  .bs { display: none !important; }
+  body.backstage .bs { display: block !important; }
+  body.backstage .steps.bs { display: block !important; }
+  .friendly { font-size: 13px; color: var(--muted); }
+  body.backstage .friendly { display: none; }
+  .backstage-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--bad-soft); color: var(--bad); margin-left: 8px; }
   .profile-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .profile-chips span { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
 </style>
@@ -111,7 +119,7 @@
 <body>
 <header>
   <div class="brand"><div class="logo">K</div><div>K-BeautyGate<small>진짜 K-뷰티로 가는 관문</small></div></div>
-  <div class="status"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span></div>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span><span class="backstage-badge bs" style="display:none">BACKSTAGE · 발표용</span></div>
 </header>
 
 <div id="thread"><div class="wrap" id="wrap">
@@ -138,6 +146,8 @@ const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^#{1,3} (.*)$/gm, "<strong>$1</strong>");
 const wrap = $("#wrap"), thread = $("#thread"), input = $("#input"), send = $("#send");
 let state = null, busy = false;
+// 사용자 화면은 결과만, ?backstage=1 (발표용)은 판단 근거·차단 로그·저장 경로까지 보여 준다.
+if (new URLSearchParams(location.search).has("backstage")) document.body.classList.add("backstage");
 
 const SKIN = { combination: "복합성", dry: "건성", oily: "지성", sensitive: "민감성", normal: "중성" };
 const CONCERN = { redness: "붉어짐", dryness: "건조", dullness: "칙칙함", pores: "모공" };
@@ -166,7 +176,8 @@ function addBot() {
   const el = document.createElement("div");
   el.className = "msg bot";
   el.innerHTML = `<div class="avatar"><div class="logo">K</div>K-BeautyGate</div>
-    <ul class="steps">${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
+    <div class="friendly">진짜 K-뷰티만 골라 하루 코스를 짜는 중이에요…</div>
+    <ul class="steps bs">${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
   wrap.appendChild(el);
   const items = [...el.querySelectorAll(".steps li")];
   let i = 0;
@@ -176,6 +187,7 @@ function addBot() {
   }, 1400);
   return { el, finish(blocked) {
     clearInterval(timer);
+    el.querySelector(".friendly")?.remove();
     items.forEach((li) => li.className = "done");
     if (blocked) el.querySelector(".steps").insertAdjacentHTML("beforeend",
       `<li class="block">OpenShell · 앱 가드가 숨은 지시 ${blocked}건 차단</li>`);
@@ -212,9 +224,14 @@ function filtered(items) {
     <span class="meta">${esc((d.reasons || [d.reason]).join(" / "))}</span></li>`).join("")}</ul>`;
 }
 
+function savedBox(paths) {
+  if (!paths?.length) return "";
+  return `<div class="card bs"><h3>저장 위치 · 초안만 저장, 외부 발송 없음</h3><div class="saved">${paths.map(esc).join("<br>")}</div></div>`;
+}
+
 function blockedBox(events) {
   if (!events?.length) return "";
-  return `<details><summary>차단한 행동 <span class="count">${events.length}건 · OpenShell 정책 + 앱 가드</span></summary>
+  return `<details class="bs"><summary>차단한 행동 <span class="count">${events.length}건 · OpenShell 정책 + 앱 가드</span></summary>
     <div class="log">${events.map((e) => esc(`DENIED ${e.action} → ${e.target}\n  ${e.reason}`)).join("\n")}</div></details>`;
 }
 
@@ -230,7 +247,7 @@ function beauty({ turn, result: r }) {
   <div class="profile-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join("")}</div>
   <div class="bubble">${esc(reply)}</div>
   ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span>
-    <div><strong>${esc(c.target)}</strong> · ${c.trusted ? "공식 유통이 확인된 정품" : "위장 K-뷰티 의심 · 구매 비추천"}<small>${esc(c.reasons.join(" / "))}</small></div></div>`).join("")}
+    <div><strong>${esc(c.target)}</strong> · ${c.trusted ? "공식 유통이 확인된 정품" : "위장 K-뷰티 의심 · 구매 비추천"}<small class="bs">${esc(c.reasons.join(" / "))}</small></div></div>`).join("")}
   <div class="card"><h3>추천 제품</h3><div class="products">${r.recommendations.map((x) => `
     <div class="product"><div class="rank">#${x.rank}</div><div class="name">${esc(x.name_ko)}</div><div class="en">${esc(x.name)}</div>
     <div class="price">${x.price_krw.toLocaleString()}원</div><div class="why">${esc(x.why.join(" · "))}</div></div>`).join("")}</div></div>
@@ -238,9 +255,10 @@ function beauty({ turn, result: r }) {
     <li><span class="t">${s.time}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${esc(s.name)}</span> · ${esc(s.area)}<small>${esc(s.note)}</small></span></li>`).join("")}</ul>
     ${r.notices_applied.length ? `<div class="note">반영한 공지 · ${esc(r.notices_applied.join("; "))}</div>` : ""}</div>
   <div class="card"><h3>매장 직원에게 보여 주세요 · 눌러서 크게</h3><div class="staff">${md(r.staff_card)}</div></div>
-  <details><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 하네스</span></summary>${filtered(bad)}</details>
+  <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 하네스</span></summary>${filtered(bad)}</details>
   ${blockedBox(r.blocked)}
-  <div class="meta">${esc(r.nvidia.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model}` : "offline")}</div>`;
+  ${savedBox(r.saved)}
+  <div class="meta bs">${esc(r.nvidia.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model}` : "offline")}</div>`;
 }
 
 function culture({ result: r }) {
@@ -248,10 +266,13 @@ function culture({ result: r }) {
   return `
   <div class="card"><h3>문화 코스 초안 · ${esc(r.visit_date)} · 예약·발송 없음</h3><div class="bubble">${md(r.draft)}</div></div>
   <div class="card"><h3>음식 제한 한글 카드 · 눌러서 크게</h3><div class="staff">${md(r.food_cards)}</div></div>
-  ${Object.keys(r.uncertain).length ? `<details><summary>확인 필요 <span class="count">${Object.keys(r.uncertain).length}건</span></summary>
-    <ul class="flist">${Object.entries(r.uncertain).map(([k, v]) => `<li><strong>${esc(k)}</strong><br><span class="meta">${esc(v.join(" / "))}</span></li>`).join("")}</ul></details>` : ""}
-  <details><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>
-  ${blockedBox(r.blocked)}`;
+  ${Object.keys(r.uncertain).length ? `<details open><summary>근거 확실성 <span class="count">문장별 확정 · 추정 · 측정 중 · 판독 불확실</span></summary>
+    <ul class="flist">${Object.entries(r.uncertain).map(([k, v]) => `<li><strong>${esc(k)}</strong><br>${v.map((i) =>
+      `<span class="tag ${i.certainty === "확정" ? "ok" : ""}">${esc(i.certainty)}</span>${esc(i.sentence)}`).join("<br>")}</li>`).join("")}</ul>
+    ${(r.conflicts || []).length ? `<div class="note">${esc(r.conflicts.join(" / "))}</div>` : ""}</details>` : ""}
+  <details class="bs"><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>
+  ${blockedBox(r.blocked)}
+  ${savedBox(r.saved)}`;
 }
 </script>
 </body>

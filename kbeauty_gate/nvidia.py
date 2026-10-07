@@ -8,7 +8,7 @@ from typing import List, Optional
 from .config import Settings
 
 
-def _post(url: str, payload: dict, settings: Settings) -> Optional[dict]:
+def _post(url: str, payload: dict, settings: Settings, timeout: Optional[int] = None) -> Optional[dict]:
     req = urllib.request.Request(
         url,
         data=json.dumps(payload).encode("utf-8"),
@@ -20,25 +20,27 @@ def _post(url: str, payload: dict, settings: Settings) -> Optional[dict]:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, timeout=settings.timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout or settings.timeout) as resp:
             return json.loads(resp.read().decode("utf-8"))
-    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+    except (OSError, json.JSONDecodeError) as exc:  # URLError, socket.timeout 포함
         print(f"[nvidia] {payload.get('model')} 호출 실패: {exc}")
         return None
 
 
-def chat(settings: Settings, system: str, user: str, max_tokens: int = 1200) -> Optional[str]:
-    """설정한 모델부터 차례로 시도한다 (Ultra가 503이면 Super로)."""
+def chat(settings: Settings, system: str, user: str, max_tokens: int = 1200,
+         timeout: Optional[int] = None, prefer_fast: bool = False) -> Optional[str]:
+    """설정한 모델부터 차례로 시도한다 (Ultra가 503·시간 초과면 Super로). prefer_fast면 Super부터."""
     if not settings.online:
         return None
-    for model in settings.chat_models:
+    models = list(reversed(settings.chat_models)) if prefer_fast else settings.chat_models
+    for model in models:
         data = _post(settings.chat_url, {
             "model": model,
             "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
             "temperature": 0.2,
             "max_tokens": max_tokens,
             "chat_template_kwargs": {"enable_thinking": False},
-        }, settings)
+        }, settings, timeout)
         try:
             content = (data or {})["choices"][0]["message"].get("content") or ""
         except (KeyError, IndexError):

@@ -48,6 +48,7 @@ class SafeFS:
         self.input_dir = input_dir.resolve()
         self.output_dir = output_dir.resolve()
         self.audit = audit
+        self.saved: List[str] = []
 
     def _forbidden(self, path: Path) -> Optional[str]:
         parts = set(path.resolve().parts)
@@ -74,6 +75,7 @@ class SafeFS:
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8")
         self.audit.record("write", name, "ALLOWED", "결과물 저장")
+        self.saved.append(str(target))
         return target
 
     def try_follow(self, instruction_target: str, source: str) -> None:
