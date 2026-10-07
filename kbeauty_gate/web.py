@@ -48,7 +48,7 @@ def chat_response(body: Dict, input_dir: Optional[Path] = None, output_dir: Opti
             defaults.pop(k, None)
         turn = build_turn(settings, message, body.get("state"), defaults)
         output_dir.mkdir(parents=True, exist_ok=True)
-        profile = turn["profile"] if turn["mode"] == "beauty" else None
+        profile = turn["profile"]
         result = run(input_dir, output_dir, profile, turn["request"], turn["mode"])
         return 200, {"turn": turn, "result": result}
     except Exception as exc:  # 데모 화면에 오류를 그대로 보여 준다

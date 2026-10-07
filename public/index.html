@@ -7,8 +7,8 @@
 <style>
   :root {
     color-scheme: light dark;
-    --bg: #fcf8f6; --surface: #fffdfb; --ink: #422f38; --muted: #82717a; --line: #eddfe1;
-    --accent: #ac4e69; --accent-ink: #fff; --accent-soft: #f8e7eb; --user: #ac4e69; --user-ink: #fff;
+    --bg: #fcf8f6; --surface: #fffdfb; --ink: #422f38; --muted: #7d6873; --line: #eddfe1;
+    --accent: #a74762; --accent-ink: #fff; --accent-soft: #f8e7eb; --user: #a74762; --user-ink: #fff;
     --good: #467860; --good-soft: #edf4ed; --bad: #aa5562; --bad-soft: #fae9e9; --warn: #87653b; --warn-soft: #f8f0df;
     --shadow: 0 8px 30px rgba(94, 53, 68, .045); --hero: #f1dce1;
   }
@@ -135,9 +135,17 @@
   .bs { display: none !important; }
   body.backstage .bs { display: block !important; }
   body.backstage .header-note { display: none; }
-  .friendly { display: flex; gap: 9px; align-items: center; font-size: 12px; color: var(--muted); }
-  .loading-petal { flex-shrink: 0; color: var(--accent); font-size: 18px; animation: breathe 1.4s ease-in-out infinite; }
-  body.backstage .friendly { display: none; }
+  .friendly { display: flex; gap: 17px; align-items: center; font-size: 14px; line-height: 1.75; color: var(--accent);
+    padding: 20px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); }
+  .friendly:lang(ko) { word-break: keep-all; }
+  .loading-gate { position: relative; width: 45px; height: 56px; flex: 0 0 45px; border: 2px solid var(--accent);
+    border-radius: 24px 24px 3px 3px; background: var(--accent-soft); overflow: visible; perspective: 110px; }
+  .loading-gate::after { content: "✦"; position: absolute; right: -12px; top: -14px; font-size: 15px; animation: breathe 2.4s ease-in-out infinite; }
+  .loading-gate span { position: absolute; top: 0; bottom: 0; width: 50%; background: var(--hero); border: 1px solid var(--accent); }
+  .loading-gate .left-door { left: 0; border-radius: 24px 0 0 0; transform-origin: left center; animation: gate-left 3s ease-in-out infinite; }
+  .loading-gate .right-door { right: 0; border-radius: 0 24px 0 0; transform-origin: right center; animation: gate-right 3s ease-in-out infinite; }
+  @keyframes gate-left { 0%, 100% { transform: rotateY(0deg); } 50%, 75% { transform: rotateY(-65deg); } }
+  @keyframes gate-right { 0%, 100% { transform: rotateY(0deg); } 50%, 75% { transform: rotateY(65deg); } }
   .backstage-badge { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
   .profile-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .profile-chips span { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
@@ -183,7 +191,7 @@
       <button data-q="건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만원 안에서 살 만한 거 추천해 주세요."><b>한국어 · 맞춤 쇼핑</b>건조한 내 피부를 위한<br>명동 뷰티 산책</button>
       <button data-q="공통 테스트: 해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."><b>문화 산책</b>옛시장과 성진정에서<br>여유로운 반나절</button>
     </div>
-    <p class="languages">한국어 · English · 日本語 · 中文</p>
+    <p class="languages">한국어 · English · 日本語 · 简体中文 · 繁體中文</p>
   </div>
 </div></main>
 
@@ -215,10 +223,365 @@ function publicText(value, fallback = "") {
   return clean.split("\n").some((line) => line.trim() && !/^#{1,4}\s/.test(line)) ? clean : fallback;
 }
 const shown = (value, fallback = "") => esc(publicText(value, fallback));
-const SKIN = { combination: "복합성", dry: "건성", oily: "지성", sensitive: "민감성", normal: "중성" };
-const CONCERN = { redness: "붉어짐", dryness: "건조", dullness: "칙칙함", pores: "모공" };
+const I18N = {
+  "ko": {
+    "loading": "게이트가 당신만의 아름다움의 문을 열고 있어요…",
+    "avatar": "나만의 K-BeautyGate",
+    "placeholder": "어떤 뷰티 여행을 꿈꾸세요?",
+    "message": "메시지",
+    "send": "보내기",
+    "close": "닫기 ×",
+    "header": "나만의 뷰티 여행",
+    "caption": "내 취향으로 고르고, 한국어 카드로 편하게.",
+    "error": "잠시 답변을 가져오지 못했어요. 조금 뒤에 다시 이야기해 주세요.",
+    "reply": "내 취향에 맞는 제품과 하루 코스를 살펴보세요.",
+    "picks": "나를 위한 뷰티 픽",
+    "swipe": "옆으로 넘겨 보세요",
+    "route": "오늘의 뷰티 산책",
+    "staff": "말이 통하는 한 장",
+    "food": "음식 취향을 전하는 한 장",
+    "enlarge": "눌러서 크게 보기",
+    "staffAria": "한글 카드 크게 보기",
+    "staffHint": "매장 직원에게 보여주는 한국어 카드예요.",
+    "checked": "자료에서 확인한 K-뷰티예요",
+    "caution": "구매 전에 한 번 더 확인해 주세요",
+    "product": "추천 제품",
+    "place": "방문 장소",
+    "why": "내 취향과 조건에 맞춰 골랐어요.",
+    "empty": "조건에 맞는 제품을 아직 찾지 못했어요. 원하는 조건을 조금 더 알려주세요.",
+    "notices": "방문 전에 확인해 주세요",
+    "culture": "여유롭게 걷는 문화 산책",
+    "caveats": "함께 알아두면 좋아요",
+    "cultureFallback": "코스 안내를 완성하지 못했어요. 다시 요청해 주세요. 음식 제한 카드는 아래에서 확인할 수 있어요.",
+    "priceUnknown": "가격 확인 필요",
+    "avoid": "{} 제외",
+    "skinSuffix": " 피부",
+    "skin": {
+      "combination": "복합성",
+      "dry": "건성",
+      "oily": "지성",
+      "sensitive": "민감성",
+      "normal": "중성"
+    },
+    "concerns": {
+      "redness": "붉어짐",
+      "dryness": "건조",
+      "dullness": "칙칙함",
+      "pores": "모공"
+    },
+    "ingredients": {
+      "fragrance": "향료",
+      "alcohol": "알코올"
+    },
+    "areas": {
+      "성수": "성수",
+      "명동": "명동",
+      "홍대": "홍대"
+    },
+    "tagline": "진짜 K-뷰티로 가는 관문",
+    "conversation": "뷰티 여행 대화"
+  },
+  "en": {
+    "loading": "Opening the gate to your kind of beauty…",
+    "avatar": "Your K-BeautyGate",
+    "placeholder": "What does your beauty day look like?",
+    "message": "Message",
+    "send": "Send",
+    "close": "Close ×",
+    "header": "Your beauty day",
+    "caption": "Find your favorites. Show your Korean card in store.",
+    "error": "We couldn’t bring back your answer just yet. Please try again in a moment.",
+    "reply": "Explore your beauty picks and itinerary below.",
+    "picks": "Beauty picks for you",
+    "swipe": "Swipe to explore",
+    "route": "Your beauty day",
+    "staff": "A little card that speaks for you",
+    "food": "Your food preferences, in Korean",
+    "enlarge": "Tap to enlarge",
+    "staffAria": "Enlarge Korean staff card",
+    "staffHint": "This card stays in Korean so you can show it to staff.",
+    "checked": "K-beauty verified in the reference information",
+    "caution": "Please check before you buy",
+    "product": "Recommended product",
+    "place": "Place to visit",
+    "why": "Selected with your preferences in mind.",
+    "empty": "No products match yet. Tell us a little more about what you’d like.",
+    "notices": "Before you visit",
+    "culture": "Your cultural stroll",
+    "caveats": "Good to know",
+    "cultureFallback": "We couldn’t finish your itinerary. Please try again. Your Korean food card is below.",
+    "priceUnknown": "Price to be confirmed",
+    "avoid": "Avoid {}",
+    "skinSuffix": " skin",
+    "skin": {
+      "combination": "Combination",
+      "dry": "Dry",
+      "oily": "Oily",
+      "sensitive": "Sensitive",
+      "normal": "Normal"
+    },
+    "concerns": {
+      "redness": "Redness",
+      "dryness": "Dryness",
+      "dullness": "Dullness",
+      "pores": "Pores"
+    },
+    "ingredients": {
+      "fragrance": "fragrance",
+      "alcohol": "alcohol"
+    },
+    "areas": {
+      "성수": "Seongsu",
+      "명동": "Myeongdong",
+      "홍대": "Hongdae"
+    },
+    "tagline": "Your gate to authentic K-beauty",
+    "conversation": "Beauty trip conversation"
+  },
+  "ja": {
+    "loading": "あなたらしい美しさへの扉を開いています…",
+    "avatar": "あなたのK-BeautyGate",
+    "placeholder": "どんなビューティー旅にしたいですか？",
+    "message": "メッセージ",
+    "send": "送信",
+    "close": "閉じる ×",
+    "header": "私だけのビューティー旅",
+    "caption": "好みで選んで、韓国語カードで気軽にお買い物。",
+    "error": "今はお返事をお届けできませんでした。少し待ってから、もう一度お試しください。",
+    "reply": "あなたに合うコスメと一日のコースを見てみましょう。",
+    "picks": "あなたへのコスメセレクト",
+    "swipe": "横にスワイプ",
+    "route": "今日のビューティー散歩",
+    "staff": "気持ちを伝える韓国語カード",
+    "food": "食事の希望を伝える韓国語カード",
+    "enlarge": "タップして拡大",
+    "staffAria": "韓国語カードを拡大",
+    "staffHint": "お店の方に見せられるよう、カードは韓国語のままです。",
+    "checked": "資料で確認できたKビューティーです",
+    "caution": "購入前にもう一度ご確認ください",
+    "product": "おすすめ商品",
+    "place": "訪問先",
+    "why": "お好みや条件に合わせて選びました。",
+    "empty": "条件に合う商品がまだ見つかりません。ご希望をもう少し教えてください。",
+    "notices": "訪問前にご確認ください",
+    "culture": "ゆったり楽しむ文化散歩",
+    "caveats": "知っておきたいこと",
+    "cultureFallback": "コースのご案内を完成できませんでした。もう一度お試しください。韓国語の食事カードは下にあります。",
+    "priceUnknown": "価格は要確認",
+    "avoid": "{}を避ける",
+    "skinSuffix": "肌",
+    "skin": {
+      "combination": "混合",
+      "dry": "乾燥",
+      "oily": "脂性",
+      "sensitive": "敏感",
+      "normal": "普通"
+    },
+    "concerns": {
+      "redness": "赤み",
+      "dryness": "乾燥",
+      "dullness": "くすみ",
+      "pores": "毛穴"
+    },
+    "ingredients": {
+      "fragrance": "香料",
+      "alcohol": "アルコール"
+    },
+    "areas": {
+      "성수": "聖水（ソンス）",
+      "명동": "明洞（ミョンドン）",
+      "홍대": "弘大（ホンデ）"
+    },
+    "tagline": "本物のKビューティーへの扉",
+    "conversation": "ビューティー旅の会話"
+  },
+  "zh-Hans": {
+    "loading": "正在为你打开专属的美丽之门…",
+    "avatar": "你的K-BeautyGate",
+    "placeholder": "想开启怎样的美妆之旅？",
+    "message": "消息",
+    "send": "发送",
+    "close": "关闭 ×",
+    "header": "你的专属美妆之旅",
+    "caption": "按喜好挑选，用韩语卡片轻松沟通。",
+    "error": "暂时没能为你带回答复，请稍后再试一次。",
+    "reply": "来看看适合你的美妆好物和一日路线吧。",
+    "picks": "为你精选的美妆好物",
+    "swipe": "左右滑动查看",
+    "route": "今日美妆漫步",
+    "staff": "替你开口的韩语卡片",
+    "food": "用韩语表达饮食需求",
+    "enlarge": "点击放大",
+    "staffAria": "放大韩语卡片",
+    "staffHint": "这张卡片保留韩语，方便直接出示给店员。",
+    "checked": "参考资料中已确认的韩妆产品",
+    "caution": "购买前请再确认一下",
+    "product": "推荐产品",
+    "place": "参观地点",
+    "why": "根据你的喜好和需求挑选。",
+    "empty": "暂时没有符合条件的产品，再告诉我们一些你的喜好吧。",
+    "notices": "出发前请确认",
+    "culture": "悠闲的文化漫步",
+    "caveats": "这些信息也值得了解",
+    "cultureFallback": "暂时没能完成路线说明，请再试一次。下方是你的韩语饮食需求卡。",
+    "priceUnknown": "价格待确认",
+    "avoid": "避开{}",
+    "skinSuffix": "肌肤",
+    "skin": {
+      "combination": "混合性",
+      "dry": "干性",
+      "oily": "油性",
+      "sensitive": "敏感性",
+      "normal": "中性"
+    },
+    "concerns": {
+      "redness": "泛红",
+      "dryness": "干燥",
+      "dullness": "暗沉",
+      "pores": "毛孔"
+    },
+    "ingredients": {
+      "fragrance": "香料",
+      "alcohol": "酒精"
+    },
+    "areas": {
+      "성수": "圣水",
+      "명동": "明洞",
+      "홍대": "弘大"
+    },
+    "tagline": "通往真正韩妆的大门",
+    "conversation": "美妆之旅对话"
+  },
+  "zh-Hant": {
+    "loading": "正在為你打開專屬的美麗之門…",
+    "avatar": "你的K-BeautyGate",
+    "placeholder": "想開啟怎樣的美妝之旅？",
+    "message": "訊息",
+    "send": "傳送",
+    "close": "關閉 ×",
+    "header": "你的專屬美妝之旅",
+    "caption": "按喜好挑選，用韓語卡片輕鬆溝通。",
+    "error": "暫時沒能為你帶回答覆，請稍後再試一次。",
+    "reply": "來看看適合你的美妝好物和一日路線吧。",
+    "picks": "為你精選的美妝好物",
+    "swipe": "左右滑動查看",
+    "route": "今日美妝漫步",
+    "staff": "替你開口的韓語卡片",
+    "food": "用韓語表達飲食需求",
+    "enlarge": "點擊放大",
+    "staffAria": "放大韓語卡片",
+    "staffHint": "這張卡片保留韓語，方便直接出示給店員。",
+    "checked": "參考資料中已確認的韓妝產品",
+    "caution": "購買前請再確認一下",
+    "product": "推薦產品",
+    "place": "參觀地點",
+    "why": "根據你的喜好和需求挑選。",
+    "empty": "暫時沒有符合條件的產品，再告訴我們一些你的喜好吧。",
+    "notices": "出發前請確認",
+    "culture": "悠閒的文化漫步",
+    "caveats": "這些資訊也值得了解",
+    "cultureFallback": "暫時沒能完成路線說明，請再試一次。下方是你的韓語飲食需求卡。",
+    "priceUnknown": "價格待確認",
+    "avoid": "避開{}",
+    "skinSuffix": "肌膚",
+    "skin": {
+      "combination": "混合性",
+      "dry": "乾性",
+      "oily": "油性",
+      "sensitive": "敏感性",
+      "normal": "中性"
+    },
+    "concerns": {
+      "redness": "泛紅",
+      "dryness": "乾燥",
+      "dullness": "暗沉",
+      "pores": "毛孔"
+    },
+    "ingredients": {
+      "fragrance": "香料",
+      "alcohol": "酒精"
+    },
+    "areas": {
+      "성수": "聖水",
+      "명동": "明洞",
+      "홍대": "弘大"
+    },
+    "tagline": "通往真正韓妝的大門",
+    "conversation": "美妝之旅對話"
+  }
+};
+
+let uiLanguage = "ko";
+const LANGUAGE_ALIASES = {"ko": "ko", "ko-kr": "ko", "korean": "ko", "한국어": "ko", "한국말": "ko", "韓国語": "ko", "韓國語": "ko", "韩语": "ko", "en": "en", "en-us": "en", "en-gb": "en", "english": "en", "영어": "en", "英語": "en", "英语": "en", "ja": "ja", "ja-jp": "ja", "japanese": "ja", "일본어": "ja", "日本語": "ja", "日语": "ja", "日語": "ja", "zh": "zh-Hans", "zh-cn": "zh-Hans", "zh-sg": "zh-Hans", "zh-hans": "zh-Hans", "chinese": "zh-Hans", "中文": "zh-Hans", "중국어": "zh-Hans", "simplifiedchinese": "zh-Hans", "chinese(simplified)": "zh-Hans", "간체중국어": "zh-Hans", "중국어간체": "zh-Hans", "简体中文": "zh-Hans", "簡體中文": "zh-Hans", "简体": "zh-Hans", "簡體": "zh-Hans", "zh-tw": "zh-Hant", "zh-hk": "zh-Hant", "zh-mo": "zh-Hant", "zh-hant": "zh-Hant", "traditionalchinese": "zh-Hant", "chinese(traditional)": "zh-Hant", "정체중국어": "zh-Hant", "번체중국어": "zh-Hant", "중국어정체": "zh-Hant", "중국어번체": "zh-Hant", "繁體中文": "zh-Hant", "繁体中文": "zh-Hant", "正體中文": "zh-Hant", "繁體": "zh-Hant", "繁体": "zh-Hant"};
+const LANGUAGE_TOKEN = "traditional\\s+chinese|simplified\\s+chinese|chinese\\s*\\(traditional\\)|chinese\\s*\\(simplified\\)|zh[-_]hant|zh[-_]hans|english|korean|japanese|chinese|영어|한국어|일본어|중국어\\s*정체|중국어\\s*번체|중국어\\s*간체|정체\\s*중국어|번체\\s*중국어|간체\\s*중국어|중국어|日本語|英語|英语|韓国語|韓國語|韩语|한국말|日语|日語|繁體中文|繁体中文|正體中文|繁體|繁体|簡體中文|简体中文|簡體|简体|中文";
+const CHINESE_SIMPLIFIED = new Set("万与业东个丰为丽乐买产仅从价优会体区喷国场妆对帮开护无时样欢气泽洁润湿点爱确简绍网肤腻荐营补装观览认让讯讲试语请谢贝货质购资轻较过这适选邮钱门闭问间雾韩预频题颜");
+const CHINESE_TRADITIONAL = new Set("個僅價優區問噴國場妝對幫從愛時會東業樂樣歡氣潔潤澤濕為無營產確簡紹網膚膩與萬薦補裝覽觀訊試認語請講謝護讓豐貝貨買資質購較輕這過適選郵錢門閉開間霧韓預頻題顏體麗點");
+function normalizeLanguage(value, fallback = "ko") {
+  const key = String(value || "").trim().replace(/\s+/g, "").replace(/_/g, "-").toLowerCase();
+  return LANGUAGE_ALIASES[key] || (I18N[fallback] ? fallback : "en");
+}
+function explicitLanguage(text) {
+  const patterns = [
+    String.raw`(?:reply|respond|answer|write|speak|translate)(?:\s+\w+){0,3}?\s+(?:in|into|to)\s+(${LANGUAGE_TOKEN})`,
+    String.raw`(?:use|using)\s+(${LANGUAGE_TOKEN})(?:\s+(?:please|for|to|only)|[.!?。！？]|$)`,
+    String.raw`(${LANGUAGE_TOKEN})\s*(?:으?로|で|に)\s*(?:답|응답|대답|말|작성|설명|번역|回答|答え|返事|説明|お願い|話|翻訳)`,
+    String.raw`(?:请|請|麻烦|麻煩)?\s*(?:用|使用|改用)\s*(${LANGUAGE_TOKEN})(?:\s*(?:回答|回复|回覆|答|说|說|解释|解釋|翻译|翻譯)|[。！!]|$)`,
+    String.raw`^\s*(${LANGUAGE_TOKEN})\s*(?:please|부탁|お願いします|回答)?[.!?。！？\s]*$`
+  ];
+  const hits = patterns.flatMap((pattern) => [...String(text).matchAll(new RegExp(pattern, "gi"))]);
+  if (!hits.length) return null;
+  return normalizeLanguage(hits.sort((a, b) => b.index - a.index)[0][1], "en");
+}
+function detectLanguage(text, previous = uiLanguage, fallbackLanguage = "en") {
+  text = String(text || "").trim();
+  const old = previous ? normalizeLanguage(previous, fallbackLanguage) : null;
+  const requested = explicitLanguage(text);
+  if (requested) return requested;
+  const sample = text.replace(/https?:\/\/\S+|`[^`]*`/g, "");
+  const ko = (sample.match(/[\uac00-\ud7a3]/g) || []).length;
+  const kana = (sample.match(/[\u3040-\u30ff]/g) || []).length;
+  const han = (sample.match(/[\u3400-\u9fff]/g) || []).length;
+  const latin = (sample.match(/[A-Za-z]/g) || []).length;
+  const words = sample.match(/[A-Za-z]+/g) || [];
+  const simplified = [...sample].filter((c) => CHINESE_SIMPLIFIED.has(c)).length;
+  const traditional = [...sample].filter((c) => CHINESE_TRADITIONAL.has(c)).length;
+  const fallback = old || normalizeLanguage(fallbackLanguage, "en");
+  if (!(ko || kana || han)) {
+    if (!words.length || (words.length <= 2 && words.every((w) => ["ok", "okay", "yes", "no", "thanks", "thank", "you", "sure", "great"].includes(w.toLowerCase())))) return fallback;
+    return "en";
+  }
+  if (kana >= 2 && !(words.length >= 6 && latin > 3 * (kana + han + ko))) return "ja";
+  if (words.length >= 4 && latin > 2 * (ko + kana + han)) return "en";
+  if (ko && ko >= han + kana) {
+    if (old && /^(?:명동|성수|홍대)[.!?\s]*$/.test(sample)) return old;
+    return "ko";
+  }
+  if (han) {
+    if (traditional > simplified) return "zh-Hant";
+    if (simplified > traditional) return "zh-Hans";
+    if (han <= 4 && !kana && ko <= 3 && !/更短|一些|我想|我要|帮我|幫我/.test(sample)) return old || "zh-Hans";
+    return ["zh-Hans", "zh-Hant"].includes(old) ? old : "zh-Hans";
+  }
+  return kana ? "ja" : fallback;
+}
+function setLanguage(value) {
+  uiLanguage = normalizeLanguage(value);
+  const l = I18N[uiLanguage];
+  document.documentElement.lang = uiLanguage;
+  input.placeholder = l.placeholder; input.setAttribute("aria-label", l.message); send.setAttribute("aria-label", l.send);
+  $("#staffClose").textContent = l.close;
+  $(".brand small").textContent = l.tagline; thread.setAttribute("aria-label", l.conversation);
+  $(".header-note").textContent = l.header; $(".composer-caption").textContent = l.caption;
+}
+const money = (amount, lang) => typeof amount === "number" && Number.isFinite(amount)
+  ? new Intl.NumberFormat(lang, {style:"currency", currency:"KRW", maximumFractionDigits:0}).format(amount) : I18N[lang].priceUnknown;
+function matchingText(text, lang, fallback = "") {
+  if (!text) return fallback;
+  return detectLanguage(text, lang) === lang ? publicText(text, fallback) : fallback;
+}
+
 const mascot = $("#mascot");
-const showMascot = () => { mascot.hidden = false; $(".gate-mark").setAttribute("hidden", ""); };
+const showMascot = () => { mascot.hidden = false; $(".gate-mark")?.setAttribute("hidden", ""); };
 mascot.addEventListener("load", showMascot);
 mascot.addEventListener("error", () => { mascot.hidden = true; });
 if (mascot.complete && mascot.naturalWidth) showMascot();
@@ -248,6 +611,7 @@ function openStaff(card) {
   if (activeStaff === card) { closeStaff(); return; }
   closeStaff(); activeStaff = card; card.classList.add("big"); card.setAttribute("aria-expanded", "true");
   document.body.classList.add("staff-open"); $("#staffClose").hidden = false;
+  $("#staffClose").textContent = I18N[normalizeLanguage(card.dataset.language || uiLanguage)].close;
   $("header").inert = true; $(".composer").inert = true; $("#staffClose").focus();
 }
 $("#staffClose").onclick = closeStaff;
@@ -258,22 +622,23 @@ document.addEventListener("keydown", (e) => {
 });
 function bindStaff(el) {
   el.querySelectorAll(".staff").forEach((card) => {
-    card.tabIndex = 0; card.setAttribute("role", "button"); card.setAttribute("aria-label", "한글 카드 크게 보기"); card.setAttribute("aria-expanded", "false");
+    card.tabIndex = 0; card.setAttribute("role", "button"); card.setAttribute("aria-label", I18N[normalizeLanguage(card.dataset.language || uiLanguage)].staffAria); card.setAttribute("aria-expanded", "false");
     card.onclick = () => openStaff(card);
     card.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openStaff(card); } };
   });
 }
 function addUser(text) {
   $("#hello")?.remove();
-  wrap.insertAdjacentHTML("beforeend", `<div class="msg user"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
+  wrap.insertAdjacentHTML("beforeend", `<div class="msg user" lang="${uiLanguage}"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
 }
 const STEPS = ["요청 이해 · 프로필 추출", "자료 수집 · 허용된 입력 범위", "신뢰성 판단 · 광고 · 지난 정보 · 숨은 지시", "맞춤 추천", "동선 · 한글 카드 · 답변 작성"];
 function addBot() {
   const el = document.createElement("div");
   el.className = "msg bot";
-  el.innerHTML = `<div class="avatar"><div class="logo">K</div>나만의 K-BeautyGate</div>
-    <div class="friendly" role="status"><span class="loading-petal" aria-hidden="true">✿</span>진짜 K-뷰티만 골라 코스를 짜는 중이에요…</div>
-    <ul class="steps bs"><li class="meta">처리 순서 안내 · 실시간 실행 로그가 아닙니다</li>${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
+  el.lang = uiLanguage;
+  el.innerHTML = `<div class="avatar"><div class="logo">K</div>${esc(I18N[uiLanguage].avatar)}</div>
+    <div class="friendly" role="status"><span class="loading-gate" aria-hidden="true"><span class="left-door"></span><span class="right-door"></span></span><span>${esc(I18N[uiLanguage].loading)}</span></div>
+    <details class="bs"><summary>발표용 처리 순서</summary><ul class="steps"><li class="meta">처리 순서 안내 · 실시간 실행 로그가 아닙니다</li>${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul></details><div class="body"></div>`;
   wrap.appendChild(el);
   return { el, finish(blocked) {
     el.querySelector(".friendly")?.remove();
@@ -284,19 +649,24 @@ async function ask(text) {
   text = (text || "").trim();
   if (!text || busy) return;
   busy = true; send.disabled = true; input.value = ""; input.style.height = "auto";
+  setLanguage(detectLanguage(text, uiLanguage));
+  state = { ...(state || {}), language: uiLanguage };
   addUser(text); const bot = addBot(); scrollDown();
   try {
-    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state }) });
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state: state || {language: uiLanguage} }) });
     const data = await res.json();
     if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
     if (!data.turn || !data.result) throw new Error("응답 형식을 확인해 주세요.");
-    if (data.turn.mode === "beauty") state = data.turn.profile;
+    setLanguage(data.turn.language || data.result.language || data.turn.profile?.language || uiLanguage);
+    state = { ...(state || {}), ...(data.turn.profile || {}), language: uiLanguage };
+    bot.el.lang = uiLanguage;
+    bot.el.querySelector(".avatar").innerHTML = `<div class="logo">K</div>${esc(I18N[uiLanguage].avatar)}`;
     bot.finish((data.result.blocked || []).filter((e) => e.action === "follow-instruction").length);
     bot.el.querySelector(".body").innerHTML = data.turn.mode === "beauty" ? beauty(data) : culture(data);
     bindStaff(bot.el);
   } catch (err) {
     bot.finish(0);
-    bot.el.querySelector(".body").innerHTML = `<div class="bubble" role="alert">잠시 답변을 가져오지 못했어요. 조금 뒤에 다시 이야기해 주세요.</div><div class="log bs">${esc(err.message)}</div>`;
+    bot.el.querySelector(".body").innerHTML = `<div class="bubble" role="alert">${esc(I18N[uiLanguage].error)}</div><div class="log bs">${esc(err.message)}</div>`;
   } finally {
     busy = false; send.disabled = false;
     if (window.matchMedia("(min-width: 700px)").matches) input.focus();
@@ -316,28 +686,38 @@ function blockedBox(events) {
 }
 function beauty({ turn, result: r }) {
   const p = turn.profile || {};
+  const lang = normalizeLanguage(turn.language || r.language || p.language || uiLanguage), l = I18N[lang];
+  const localized = r.localized && normalizeLanguage(r.localized.language || lang) === lang ? r.localized : {};
   [r.nvidia?.chat_model, r.nvidia?.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
-  const chips = [SKIN[p.skin_type] && SKIN[p.skin_type] + " 피부", ...(p.concerns || []).map((c) => CONCERN[c] || c), ...(p.avoid_ingredients || []).map((a) => a + " 제외"), p.budget_krw && `${Number(p.budget_krw).toLocaleString()}원`, p.visit_date, p.time_window, (p.areas || []).join(" → ")].filter(Boolean);
+  const chips = [l.skin[p.skin_type] && l.skin[p.skin_type] + l.skinSuffix, ...(p.concerns || []).map((c) => l.concerns[c] || c), ...(p.avoid_ingredients || []).map((a) => l.avoid.replace("{}", l.ingredients[a] || a)), p.budget_krw && money(p.budget_krw, lang), p.visit_date, p.time_window, (p.areas || []).map((area) => l.areas[area] || area).join(" → ")].filter(Boolean);
   const bad = (r.trust?.documents || []).filter((x) => !x.trusted && (x.target || "").startsWith("beauty/")).concat((r.trust?.products || []).filter((x) => !x.trusted), r.excluded_by_profile || []);
-  const reply = publicText(r.summary, "피부 고민과 여행 일정에 맞춰 골랐어요. 마음에 드는 제품과 오늘의 코스를 살펴보세요.");
-  const notices = (r.notices_applied || []).map((n) => publicText(n)).filter(Boolean);
+  const reply = publicText(localized.summary || matchingText(r.summary, lang), l.reply);
+  const notices = (localized.notices || (lang === "ko" ? r.notices_applied : []) || []).map((n) => publicText(n)).filter(Boolean);
+  const caveats = (localized.caveats || (lang === "ko" ? r.route_skipped : []) || []).map((n) => publicText(n)).filter(Boolean);
   return `<div class="bubble">${esc(reply)}</div>
   <div class="profile-chips">${chips.map((c) => publicText(c)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
-  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${shown(c.target, "제품 확인")}</strong><br>${c.trusted ? "자료에서 확인한 K-뷰티예요" : "구매 전에 한 번 더 확인해 주세요"}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
-  <div class="card"><h3>나를 위한 뷰티 픽 <span class="subtitle">옆으로 넘겨 보세요</span></h3><div class="products">${(r.recommendations || []).map((x) => `<div class="product"><div class="rank">PICK ${esc(x.rank)}</div><div class="name">${shown(x.name_ko, "추천 제품")}</div><div class="en">${shown(x.name)}</div><div class="price">${Number(x.price_krw || 0).toLocaleString()}원</div><div class="why">${shown((x.why || []).join("\n"), "내 취향과 조건에 맞춰 골랐어요.")}</div></div>`).join("") || '<div class="note">조건에 맞는 제품을 아직 찾지 못했어요. 원하는 조건을 조금 더 알려주세요.</div>'}</div></div>
-  <div class="card"><h3>오늘의 뷰티 산책</h3><ul class="route">${(r.route || []).map((s) => `<li><span class="t">${shown(s.time)}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${shown(s.name, "방문 장소")}</span> · ${shown(s.area)}<small>${shown(s.note)}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">방문 전에 확인해 주세요 · ${esc(notices.join("; "))}</div>` : ""}</div>
-  <div class="card"><h3>말이 통하는 한 장 <span class="subtitle">눌러서 크게 보기</span></h3><div class="staff">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
+  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${shown(c.target, l.product)}</strong><br>${esc(c.trusted ? l.checked : l.caution)}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
+  <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${esc(x.rank)}</div><div class="name">${shown(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${shown((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
+  <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${shown(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${shown(stop.name, l.place)}</span> · ${shown(l.areas[stop.area] || stop.area)}<small>${shown(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""))}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
+  <div class="card"><h3>${esc(l.staff)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
+  ${caveats.length ? `<div class="card"><h3>${esc(l.caveats)}</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
   <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 판단</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}
   <div class="meta bs">${esc(r.nvidia?.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model} (설정값 · 실제 호출 결과는 별도 확인)` : "offline")}</div>`;
 }
-function culture({ result: r }) {
+function culture({ turn = {}, result: r }) {
+  const lang = normalizeLanguage(turn.language || r.language || turn.profile?.language || uiLanguage), l = I18N[lang];
+  const localized = r.localized && normalizeLanguage(r.localized.language || lang) === lang ? r.localized : {};
   const bad = (r.trust?.documents || []).filter((x) => !x.trusted && !(x.target || "").startsWith("beauty/"));
+  const notices = (localized.notices || (lang === "ko" ? r.notices : []) || []).map((notice) => publicText(notice)).filter(Boolean);
   const uncertainty = Object.entries(r.uncertain || {});
-  const caveats = uncertainty.flatMap(([, items]) => (Array.isArray(items) ? items : []).filter((i) => i.certainty && i.certainty !== "확정").map((i) => publicText(`${i.certainty} · ${i.sentence}`))).filter(Boolean);
-  return `<div class="card"><h3>여유롭게 걷는 문화 산책 <span class="subtitle">${shown(r.visit_date)}</span></h3><div class="bubble">${md(publicText(r.draft, "코스 안내를 완성하지 못했어요. 다시 요청해 주세요. 음식 제한 카드는 아래에서 확인할 수 있어요."))}</div></div>
-  <div class="card"><h3>음식 취향을 전하는 한 장 <span class="subtitle">눌러서 크게 보기</span></h3><div class="staff">${md(publicText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요."))}</div></div>
-  ${caveats.length && !BACKSTAGE ? `<div class="card"><h3>함께 알아두면 좋아요</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
-  ${uncertainty.length ? `<details class="bs" open><summary>근거 확실성 <span class="count">문장별 확정 · 추정 · 측정 중 · 판독 불확실</span></summary><ul class="flist">${uncertainty.map(([k, v]) => `<li><strong>${esc(k)}</strong><br>${(Array.isArray(v) ? v : []).map((i) => `<span class="tag ${i.certainty === "확정" ? "ok" : ""}">${esc(i.certainty)}</span>${esc(i.sentence || i)}`).join("<br>")}</li>`).join("")}</ul>${(r.conflicts || []).length ? `<div class="note">${esc(r.conflicts.join(" / "))}</div>` : ""}</details>` : ""}
+  const rawCaveats = uncertainty.flatMap(([, items]) => (Array.isArray(items) ? items : []).filter((item) => item.certainty && item.certainty !== "확정").map((item) => `${item.certainty} · ${item.sentence}`));
+  const caveats = (localized.caveats || (lang === "ko" ? rawCaveats : [])).map((item) => publicText(item)).filter(Boolean);
+  const draft = publicText(localized.draft || matchingText(r.draft, lang), l.cultureFallback);
+  return `<div class="card"><h3>${esc(l.culture)} <span class="subtitle">${shown(r.visit_date)}</span></h3><div class="bubble">${md(draft)}</div></div>
+  ${notices.length ? `<div class="card"><h3>${esc(l.notices)}</h3><ul class="flist">${notices.map((notice) => `<li>${esc(notice)}</li>`).join("")}</ul></div>` : ""}
+  <div class="card"><h3>${esc(l.food)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요."))}</div></div>
+  ${caveats.length ? `<div class="card"><h3>${esc(l.caveats)}</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
+  ${uncertainty.length ? `<details class="bs" open><summary>근거 확실성 <span class="count">문장별 확정 · 추정 · 측정 중 · 판독 불확실</span></summary><ul class="flist">${uncertainty.map(([k, v]) => `<li><strong>${esc(k)}</strong><br>${(Array.isArray(v) ? v : []).map((item) => `<span class="tag ${item.certainty === "확정" ? "ok" : ""}">${esc(item.certainty)}</span>${esc(item.sentence || item)}`).join("<br>")}</li>`).join("")}</ul>${(r.conflicts || []).length ? `<div class="note">${esc(r.conflicts.join(" / "))}</div>` : ""}</details>` : ""}
   <details class="bs"><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}`;
 }
 </script>
