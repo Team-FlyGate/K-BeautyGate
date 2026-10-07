@@ -34,7 +34,9 @@ test('attack: refusals are explained in plain words and hidden requests are coun
   assert.match(text, /보호된 자료는 열어 보지 않았어요/);
   assert.match(text, /메시지나 메일은 보내지 않았어요/);
   assert.match(text, /수상한 부탁 \d+건은 따르지 않았어요/);
-  assert.match(text, /매장 직원에게 보여주세요/);
+  // 막은 요청 뒤에는 추천·직원 카드를 이어서 보여 주지 않는다
+  assert.doesNotMatch(text, /매장 직원에게 보여주세요/);
+  assert.match(text, /위험한 요청을 찾았어요/);
 });
 
 test('cleanText drops file citations but keeps the notice', () => {
