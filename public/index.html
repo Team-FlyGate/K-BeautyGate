@@ -211,11 +211,17 @@ document.body.classList.toggle("backstage", BACKSTAGE);
 let state = null, busy = false, activeStaff = null;
 const modelNames = new Set();
 const TECHNICAL = /\b(?:DENIED|OpenShell|Nemotron|NVIDIA|Brev|offline|API|LLM|demo-model)\b|규칙\s*기반|하네스|임베딩|모델(?:명|\s)|앱\s*가드|(?:hackathon|workspace|public|beauty|history|culture|travel|local|operations|people|restricted|secrets)[/\\]|(?:\/Users\/|\/tmp\/|\.env\b)|[\w.-]+\.(?:md|jsonl?|csv|ya?ml|py|txt)\b/i;
+const INTERNAL_FILE = String.raw`(?:[A-Za-z]:[\\/]|[\\/]|\.{1,2}[\\/])?(?:[\p{L}\p{N}_.-]+[\\/])*[\p{L}\p{N}_.-]+\.(?:md|txt|jsonl?|csv|ya?ml|py)\b(?::L?[\d–,-]+)?`;
 function publicText(value, fallback = "") {
   const raw = String(value ?? "");
-  if (BACKSTAGE) return raw || fallback;
   let sourceSection = false;
-  const withoutCitations = raw.replace(/[([]\/?(?:[\w.-]+\/)+[\w.-]+\.(?:md|txt|jsonl?|csv|ya?ml|py)(?::[\d–, -]+)?[)\]]/gi, "");
+  const withoutCitations = raw
+    .replace(/\[([^\]\n]*)\]\(\s*([^\n)]+)\s*\)/g, (whole, label, target) =>
+      !/^https?:\/\//i.test(target.trim()) && new RegExp(INTERNAL_FILE, "iu").test(target)
+        ? (new RegExp(INTERNAL_FILE, "iu").test(label) ? "" : label) : whole)
+    .replace(new RegExp("`?" + INTERNAL_FILE + "`?", "giu"), "")
+    .replace(/[\[(（【]\s*(?:(?:출처|근거|source|sources|来源|來源|出典)\s*[:：]?\s*)?[\])）】]/gi, "")
+    .replace(/^\s*(?:출처|근거|source|sources|来源|來源|出典)\s*[:：]\s*$/gim, "");
   const clean = withoutCitations.split("\n").filter((line) => {
     if (/^#{1,4}\s/.test(line)) sourceSection = /^#{1,4}\s*(?:사용한 근거 자료|사용 근거|근거 자료|출처|저장 위치|처리 단계|실행 범위|배제한 자료|차단 로그)\s*$/.test(line);
     return !sourceSection && !TECHNICAL.test(line) && ![...modelNames].some((model) => model && line.toLowerCase().includes(model.toLowerCase()));
@@ -577,7 +583,8 @@ const money = (amount, lang) => typeof amount === "number" && Number.isFinite(am
   ? new Intl.NumberFormat(lang, {style:"currency", currency:"KRW", maximumFractionDigits:0}).format(amount) : I18N[lang].priceUnknown;
 function matchingText(text, lang, fallback = "") {
   if (!text) return fallback;
-  return detectLanguage(text, lang) === lang ? publicText(text, fallback) : fallback;
+  const clean = publicText(text);
+  return clean && detectLanguage(clean, lang) === lang ? clean : fallback;
 }
 
 const mascot = $("#mascot");
@@ -697,7 +704,7 @@ function beauty({ turn, result: r }) {
   return `<div class="bubble">${esc(reply)}</div>
   <div class="profile-chips">${chips.map((c) => publicText(c)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
   ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${shown(c.target, l.product)}</strong><br>${esc(c.trusted ? l.checked : l.caution)}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
-  <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${esc(x.rank)}</div><div class="name">${shown(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${shown((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
+  <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${Number.isInteger(x.rank) && x.rank > 0 ? x.rank : index + 1}</div><div class="name">${shown(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${shown((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
   <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${shown(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${shown(stop.name, l.place)}</span> · ${shown(l.areas[stop.area] || stop.area)}<small>${shown(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""))}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
   <div class="card"><h3>${esc(l.staff)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
   ${caveats.length ? `<div class="card"><h3>${esc(l.caveats)}</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}

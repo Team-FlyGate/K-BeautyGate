@@ -64,7 +64,49 @@ test('citations are hidden without deleting operating hours or food restrictions
   assert.match(shown, /땅콩·참깨 알레르기/);
   assert.doesNotMatch(shown, /local\/|people\//);
   assert.equal(ui.publicText('NVIDIA Nemotron /hackathon/output/demo.md', 'fallback'), 'fallback');
-  assert.match(frontend(true).publicText(text), /local\/notice.txt/);
+  assert.doesNotMatch(frontend(true).publicText(text), /local\/notice.txt/);
+});
+
+test('internal source variants disappear from visitor cards in both display modes', () => {
+  const citations = [
+    '(local/market_notice_2026-10-06.txt)',
+    '( local/market_notice_2026-10-06.txt )',
+    '(`local/market_notice_2026-10-06.txt`)',
+    '（local/market_notice_2026-10-06.txt）',
+    '[local/market_notice_2026-10-06.txt](local/market_notice_2026-10-06.txt)',
+    '[운영 공지](local/market_notice_2026-10-06.txt)',
+    '(출처: local/market_notice_2026-10-06.txt)',
+    '[people/food_needs.md:L12–14]',
+    '`local/market_notice_2026-10-06.txt`',
+  ];
+  for (const backstage of [false, true]) {
+    const display = frontend(backstage);
+    for (const citation of citations) {
+      const text = `10/10 10:00–14:00 · 북문 이용 ${citation}\n땅콩·참깨 알레르기 확인 ${citation}`;
+      const rendered = display.publicText(text);
+      assert.match(rendered, /10\/10 10:00–14:00 · 북문 이용/, citation);
+      assert.match(rendered, /땅콩·참깨 알레르기 확인/, citation);
+      assert.doesNotMatch(rendered, /local\/|people\/|\.txt|\.md|\(\s*\)|\[\s*\]|（\s*）|`/, citation);
+    }
+  }
+});
+
+test('raw source names remain only in separate backstage evidence', () => {
+  const source = 'local/market_notice_2026-10-06.txt';
+  for (const backstage of [false, true]) {
+    const rendered = frontend(backstage).culture({ turn: { language: 'ko' }, result: {
+      language: 'ko', draft: `10:00–14:00 운영, 북문 이용 (${source})`,
+      notices: [`북문 안내소에서 경사로 요청 ( ${source} )`],
+      food_cards: `땅콩·참깨를 피해야 합니다. (\`${source}\`)`,
+      uncertain: { [source]: [{ certainty: '확인 필요', sentence: '당일 경사로 사용 가능 여부를 확인해 주세요.' }] },
+    } });
+    const cards = rendered.split('<details class="bs"')[0];
+    assert.doesNotMatch(cards, /local\/|\.txt/);
+    assert.match(cards, /10:00–14:00 운영, 북문 이용/);
+    assert.match(cards, /북문 안내소에서 경사로 요청/);
+    assert.match(cards, /땅콩·참깨를 피해야 합니다/);
+    assert.ok(rendered.includes(`<strong>${source}</strong>`));
+  }
 });
 
 const explanations = {
