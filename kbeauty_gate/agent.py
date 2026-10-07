@@ -88,6 +88,11 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
                       else {"target": item, "trusted": False, "reasons": ["자료에 없는 제품이라 판단 보류"]})
 
     # 3) 맞춤 판단
+    # 사용자가 고른 지역의 매장에서 살 수 있는 제품만 추천한다
+    areas = profile.get("areas") or []
+    if areas:
+        in_area = {pid for st in stores if st["area"] in areas for pid in st["carries"]}
+        trusted_products = [p for p in trusted_products if p["id"] in in_area]
     picked, excluded = rank_products(trusted_products, profile, settings)
 
     # 4) 동선: 믿을 수 있는 공지와 체험만 반영
@@ -96,6 +101,9 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
     applied = apply_notices(stores, notices, visit)
     experiences = [_experience_from(n, t, visit) for n, t in docs.items()
                    if n.startswith("beauty/events/") and doc_verdicts[n].trusted]
+    if areas:
+        experiences = [e for e in experiences if e["area"] in areas]
+        stores = [st for st in stores if st["area"] in areas]
     route, skipped = plan_route(picked, stores, experiences, profile)
 
     result = {
