@@ -4,6 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
+from . import regulatory
 from .guard import SafeFS, injection_targets
 from .trust import Verdict, assess_document
 
@@ -24,6 +25,8 @@ def collect(fs: SafeFS, input_dir: Path, visit: date,
             text = fs.read_text(path)
             if text is not None:
                 docs[str(path.relative_to(input_dir))] = text
+
+    regulatory.prime(docs)  # 공식 규제 CSV(대만 TFDA)는 추천 단계에서 전성분 대조에 쓴다
 
     verdicts: Dict[str, Verdict] = {}
     for name, text in docs.items():

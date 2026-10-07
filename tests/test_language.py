@@ -280,6 +280,29 @@ class TranslationRetryTests(unittest.TestCase):
                 chat.assert_called_once()
 
     @patch("kbeauty_gate.language.nvidia.chat")
+    def test_internal_conditions_never_leak_through_generated_or_source_fallback_text(self, chat):
+        for language in LOCALES:
+            for internal_text in (
+                "verified_safe_menu_items 목록이 비어 있으므로 특정 음식을 추천할 수 없습니다.",
+                "draft_only 모드에서는 이메일 발송을 처리할 수 없습니다.",
+            ):
+                with self.subTest(language=language, internal_text=internal_text):
+                    chat.reset_mock()
+                    chat.return_value = json.dumps({
+                        "draft": internal_text, "recommendation_reasons": [], "route_notes": [],
+                        "notices": [internal_text], "caveats": [COPY[language]["caveat"]], "display_names": {},
+                    }, ensure_ascii=False)
+                    result = self.project(language, "culture", reasons=[], route_notes=[],
+                                          notices=[internal_text], caveats=[COPY[language]["caveat"]], proper_names=[])
+                    self.assertEqual(result["status_reason"], "technical_content")
+                    self.assertEqual(result["draft"], COPY[language]["draft"])
+                    self.assertEqual(result["notices"], [COPY[language]["notice"]])
+                    self.assertEqual(result["caveats"], [COPY[language]["caveat"]])
+                    self.assertNotIn("verified_safe_menu_items", json.dumps(result))
+                    self.assertNotIn("draft_only", json.dumps(result))
+                    chat.assert_called_once()
+
+    @patch("kbeauty_gate.language.nvidia.chat")
     def test_korean_source_fallback_is_kept_for_user_but_excluded_from_retry(self, chat):
         source_notice = "원자료 확인표 SOURCE_ONLY_NOTICE: 시장은 10:00–14:00 운영하며 북문을 이용합니다. (local/mock_notice.txt)"
         original = {"summary": "Please compare the products before buying.", "recommendation_reasons": [],
@@ -399,6 +422,34 @@ class TranslationRetryTests(unittest.TestCase):
         for field in ("draft", "recommendation_reasons", "route_notes", "notices", "caveats"):
             self.assertEqual(result[field], translated[field])
         self.assertTrue(in_language(result["draft"], "ja"))
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_observed_japanese_demo_translation_keeps_prices_and_display_names(self, chat):
+        original = {
+            "summary": "명동에서 예산 50,000원 안으로 데모 크림을 비교해 보세요. 데모 크림의 가격은 12,000원입니다. 칙칙함과 모공 고민에 맞는지는 확인이 필요하며, 확인되지 않은 제품의 구매 가능성을 보장할 수 없습니다.",
+            "recommendation_reasons": [["피부에 맞는지는 매장에서 확인하세요."]],
+            "route_notes": ["10:00부터 10:40까지 데모 매장에서 비교합니다."],
+            "notices": ["영업 시간은 미확인입니다."], "caveats": ["공개 데모용 가상 상품입니다."],
+            "display_names": {"명동": "明洞", "데모 크림": "Demo Cream", "데모 매장": "デモ店舗", "칙칙함": "くすみ", "모공": "毛穴"},
+        }
+        translated = {
+            "summary": "明洞で予算50,000ウォン以内でDemo Creamを比較してください。Demo Creamの価格は12,000ウォンです。くすみと毛穴の悩みに合うかどうかは確認が必要であり、確認されていない製品の購入可能性を保証することはできません。",
+            "recommendation_reasons": [["店頭で肌に合うか確認してください。"]],
+            "route_notes": ["10:00から10:40までデモ店舗で比較します。"],
+            "notices": ["営業時間は未確認です。"], "caveats": ["公開デモ用の仮想商品です。"],
+            "display_names": {"デモ店舗": "デモ店舗", "デモクリーム": "Demo Cream", "明洞": "明洞", "毛穴": "毛穴", "くすみ": "くすみ"},
+        }
+        facts = {"profile": {"concerns": ["칙칙함", "모공"], "areas": ["명동"]},
+                 "recommendations": [{"name": "Demo Cream", "name_ko": "데모 크림", "price_krw": 12000}],
+                 "route": [{"name": "데모 매장", "area": "명동"}]}
+        chat.side_effect = [json.dumps(original, ensure_ascii=False), json.dumps(translated, ensure_ascii=False)]
+        result = self.project("ja", facts=facts, proper_names=["명동", "데모 크림", "Demo Cream", "데모 매장"])
+        self.assertEqual(chat.call_count, 2)
+        self.assertEqual(chat.call_args_list[1].kwargs["timeout"], 12)
+        self.assertEqual(result["status"], "ready")
+        self.assertEqual(result["summary"], translated["summary"])
+        self.assertEqual(result["route_notes"], translated["route_notes"])
+        self.assertEqual(result["display_names"], original["display_names"])
 
     @patch("kbeauty_gate.language.nvidia.chat")
     def test_chinese_retry_validates_both_writing_systems(self, chat):

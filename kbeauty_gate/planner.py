@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Dict, List, Optional, Tuple
 
-from . import nvidia
+from . import nvidia, regulatory
 from .config import Settings
 
 SKIN_KO = {"combination": "복합성", "dry": "건성", "oily": "지성", "sensitive": "민감성", "normal": "중성"}
@@ -62,12 +62,33 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
             why.append(p["drama_ref"])
         # 고민을 말했으면 그 고민과 맞는 제품만, 아니면 피부 타입이 맞는 제품만 추천한다
         concerns = profile.get("concerns") or []
-        relevant = bool(overlap) if concerns else skin in p["skin_types"]
+        if concerns:
+            relevant = bool(overlap)
+        elif skin:
+            relevant = skin in p["skin_types"]
+        else:  # 피부 정보를 말하지 않았으면 걸러 내지 않는다
+            relevant = True
         if not relevant and not (wants_drama and p.get("drama_ref")):
             excluded.append({"product": p["name"], "reason": "말씀하신 피부 고민과 관련이 적음"})
             continue
         if profile.get("avoid_ingredients"):
             why.append("피하고 싶은 성분이 전성분표에 없음")
+        if p.get("ingredients_verified"):
+            # 공식 규제 데이터 대조: 식약처(나라별 금지·제한) 우선, 대만 TFDA는 금지 목록만 보조로
+            kr_hits = regulatory.check_kr(p["ingredients"])
+            tw = regulatory.check(p["ingredients"])
+            if kr_hits is not None:
+                kr = regulatory.kr_reasons(kr_hits, profile.get("language", "ko"),
+                                           regulatory.recalled(p.get("name_ko", ""), p.get("brand", "")))
+                if kr["block"]:
+                    excluded.append({"product": p["name"], "reason": kr["block"][0]})
+                    continue
+                why.extend(kr["info"])
+            if tw and tw["prohibited"]:
+                excluded.append({"product": p["name"], "reason": regulatory.reasons_ko(tw)[0]})
+                continue
+            if tw and kr_hits is None:
+                why.extend(regulatory.reasons_ko(tw))
         ranked.append({"product": p, "score": score, "why": why})
 
     query = f"{profile.get('skin_type')} skin, concerns {profile.get('concerns')}; {request}"

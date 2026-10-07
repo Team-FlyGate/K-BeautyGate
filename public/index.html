@@ -103,6 +103,15 @@
   .route .exp { color: var(--accent); }
   .route small { color: var(--muted); display: block; font-size: 12px; margin-top: 3px; }
   .route .route-original { font-size: 11px; margin-top: 4px; }
+  .area-searches { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); display: grid; gap: 14px; }
+  .area-search h4 { margin: 0 0 8px; font-size: 12px; font-weight: 600; }
+  .map-links { display: flex; flex-wrap: wrap; gap: 8px; }
+  .map-link { display: inline-flex; align-items: center; min-height: 36px; max-width: 100%; padding: 7px 12px; border: 1px solid var(--line);
+    border-radius: 24px; color: var(--ink); background: var(--surface); text-decoration: none; font-size: 12px; line-height: 1.5; overflow-wrap: anywhere; }
+  .map-link.kakao { background: #fff4bf; border-color: #eee0a0; color: #5b4a28; }
+  .map-link:hover { border-color: var(--accent); }
+  .map-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .area-searches .note { margin: 0; }
   .followups { margin: 4px 0 2px; }
   .followup-label { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
   .followup-options { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -255,6 +264,7 @@ const I18N = {
     "picks": "나를 위한 뷰티 픽",
     "swipe": "옆으로 넘겨 보세요",
     "route": "오늘의 뷰티 산책",
+    "maps": { "area": "{} 일대 둘러보기", "kakao": "카카오맵에서 검색", "google": "Google Maps에서 검색", "hint": "매장 위치가 아닌 지역 검색이에요." },
     "staff": "말이 통하는 한 장",
     "food": "음식 취향을 전하는 한 장",
     "enlarge": "눌러서 크게 보기",
@@ -360,6 +370,7 @@ const I18N = {
     "picks": "Beauty picks for you",
     "swipe": "Swipe to explore",
     "route": "Your beauty day",
+    "maps": { "area": "Explore {}", "kakao": "Search on Kakao Maps", "google": "Search on Google Maps", "hint": "These links search the area, not a specific store." },
     "staff": "A little card that speaks for you",
     "food": "Your food preferences, in Korean",
     "enlarge": "Tap to enlarge",
@@ -465,6 +476,7 @@ const I18N = {
     "picks": "あなたへのコスメセレクト",
     "swipe": "横にスワイプ",
     "route": "今日のビューティー散歩",
+    "maps": { "area": "{}周辺を見てみる", "kakao": "Kakao Mapsで検索", "google": "Google Mapsで検索", "hint": "店舗の所在地ではなく、エリアを検索するリンクです。" },
     "staff": "気持ちを伝える韓国語カード",
     "food": "食事の希望を伝える韓国語カード",
     "enlarge": "タップして拡大",
@@ -570,6 +582,7 @@ const I18N = {
     "picks": "为你精选的美妆好物",
     "swipe": "左右滑动查看",
     "route": "今日美妆漫步",
+    "maps": { "area": "探索{}周边", "kakao": "在Kakao Maps搜索", "google": "在Google Maps搜索", "hint": "链接用于搜索区域，并非具体店铺的位置。" },
     "staff": "替你开口的韩语卡片",
     "food": "用韩语表达饮食需求",
     "enlarge": "点击放大",
@@ -675,6 +688,7 @@ const I18N = {
     "picks": "為你精選的美妝好物",
     "swipe": "左右滑動查看",
     "route": "今日美妝漫步",
+    "maps": { "area": "探索{}周邊", "kakao": "在Kakao Maps搜尋", "google": "在Google Maps搜尋", "hint": "連結用於搜尋區域，並非具體店舖的位置。" },
     "staff": "替你開口的韓語卡片",
     "food": "用韓語表達飲食需求",
     "enlarge": "點擊放大",
@@ -1016,6 +1030,20 @@ function bindFollowups(el) {
     button.onclick = () => { if (!busy && !button.disabled) ask(button.dataset.question); };
   });
 }
+function areaSearchLinks(route, lang) {
+  const l = I18N[normalizeLanguage(lang)];
+  const areas = [...new Set((Array.isArray(route) ? route : []).map((stop) => stop?.area)
+    .filter((area) => ["명동", "성수", "홍대"].includes(area)))];
+  if (!areas.length) return "";
+  return `<div class="area-searches">${areas.map((area) => {
+    const query = encodeURIComponent(area);
+    const title = l.maps.area.replace("{}", l.areas[area]);
+    return `<section class="area-search" aria-label="${esc(title)}"><h4>${esc(title)}</h4><div class="map-links">
+      <a class="map-link kakao" href="https://map.kakao.com/link/search/${query}" target="_blank" rel="noopener noreferrer">${esc(l.maps.kakao)}</a>
+      <a class="map-link" href="https://www.google.com/maps/search/?api=1&amp;query=${query}" target="_blank" rel="noopener noreferrer">${esc(l.maps.google)}</a>
+    </div></section>`;
+  }).join("")}<p class="note">${esc(l.maps.hint)}</p></div>`;
+}
 function beauty({ turn, result: r }) {
   const p = turn.profile || {};
   const lang = normalizeLanguage(turn.language || r.language || p.language || uiLanguage), l = I18N[lang];
@@ -1038,7 +1066,7 @@ function beauty({ turn, result: r }) {
   <div class="profile-chips">${chips.map((c) => text(c, l.translationPending)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
   ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${show(c.target, l.product + " · " + l.translationPending)}</strong><br>${esc(c.trusted ? l.checked : l.caution)}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
   <div class="card"><h3>${esc(l.picks)} <span class="subtitle">${esc(l.swipe)}</span></h3><div class="products">${(r.recommendations || []).map((x, index) => `<div class="product"><div class="rank">PICK ${Number.isInteger(x.rank) && x.rank > 0 ? x.rank : index + 1}</div><div class="name">${show(lang === "ko" ? x.name_ko || x.name : x.name || x.name_ko, l.product + " · " + l.translationPending)}</div>${lang === "ko" && x.name ? `<div class="en">${shown(x.name)}</div>` : ""}<div class="price">${esc(money(x.price_krw, lang))}</div><div class="why">${show((localized.recommendation_reasons?.[index] || (lang === "ko" ? x.why : []) || []).join("\n"), l.why)}</div></div>`).join("") || `<div class="note">${esc(l.empty)}</div>`}</div></div>
-  <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${show(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${show(stop.name, l.place + " · " + l.translationPending)}</span> · ${show(l.areas[stop.area] || stop.area, l.translationPending)}${originalName(stop.name)}<small>${show(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""), l.translationPending)}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
+  <div class="card"><h3>${esc(l.route)}</h3><ul class="route">${(r.route || []).map((stop, index) => `<li><span class="t">${show(stop.time)}</span><span><span class="${stop.kind === "experience" ? "exp" : ""}">${show(stop.name, l.place + " · " + l.translationPending)}</span> · ${show(l.areas[stop.area] || stop.area, l.translationPending)}${originalName(stop.name)}<small>${show(localized.route_notes?.[index] || (lang === "ko" ? stop.note : ""), l.translationPending)}</small></span></li>`).join("")}</ul>${areaSearchLinks(r.route, lang)}${notices.length ? `<div class="note">${esc(l.notices)} · ${esc(notices.join("; "))}</div>` : ""}</div>
   <div class="card"><h3>${esc(l.staff)} <span class="subtitle">${esc(l.enlarge)}</span></h3><p class="note">${esc(l.staffHint)}</p><div class="staff" lang="ko" data-language="${lang}">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
   ${caveats.length ? `<div class="card"><h3>${esc(l.caveats)}</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
   <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 판단</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}

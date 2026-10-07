@@ -167,10 +167,11 @@
     ],
     "ingredients": [
       "snail secretion filtrate",
-      "fragrance"
+      "fragrance",
+      "mercury"
     ],
     "price_krw": 9900,
-    "label_note": "한국어 라벨, 제조원 표기는 광저우",
+    "label_note": "한국어 라벨, 제조원 표기는 광저우. 라벨 전성분에 mercury(수은) 표기 (데모용 가상 데이터)",
     "source": "open_market_listing",
     "ingredients_verified": false
   },

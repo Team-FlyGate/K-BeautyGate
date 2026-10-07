@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import Dict, List
 
+from . import regulatory
 from .guard import find_injections
 
 AD_PATTERNS = [
@@ -108,6 +109,19 @@ def assess_product(product: Dict, registry: Dict[str, Dict]) -> Verdict:
         v.score -= 0.2
     if product.get("label_note"):
         v.reasons.append(f"라벨 메모: {product['label_note']}")
+    kr_hits = regulatory.check_kr(product.get("ingredients") or []) or []
+    kr_banned = [h for h in kr_hits if "한국" in h["prohibited"]]
+    if kr_banned:
+        h = kr_banned[0]
+        v.flags.append("kr_prohibited_ingredient")
+        v.reasons.append(f"식약처 규제정보: {h['ingredient']}({h['std']})은(는) 한국 등 {len(h['prohibited'])}개 국가·지역에서 "
+                         "사용 금지 성분 — 공식 규제 데이터 기준 안전 경고")
+        v.score -= 0.5
+    reg = regulatory.check(product.get("ingredients") or [])
+    if reg and reg["prohibited"] and not kr_banned:
+        v.flags.append("tw_prohibited_ingredient")
+        v.reasons.append(regulatory.reasons_ko(reg)[0] + " — 공식 규제 데이터 기준 안전 경고")
+        v.score -= 0.5
 
     v.score = max(v.score, 0.0)
     v.trusted = v.score >= 0.7
@@ -116,3 +130,21 @@ def assess_product(product: Dict, registry: Dict[str, Dict]) -> Verdict:
     else:
         v.flags.insert(0, "disguised_k_beauty")
     return v
+
+
+def assess_unlisted(name: str) -> Dict:
+    """우리 자료에 없는 제품: 식약처 회수·판매중지 목록과 대조하고, 없으면 판단을 보류한다."""
+    hits = regulatory.recalled(name)
+    if hits:
+        r = hits[0]
+        d = str(r.get("RECALL_COMMAND_DATE") or "")
+        when = f"{d[:4]}-{d[4:6]}-{d[6:8]}" if len(d) == 8 else d
+        return {"target": name, "trusted": False, "score": 0.0,
+                "flags": ["mfds_recalled", "do_not_buy"],
+                "reasons": [f"식약처 회수·판매중지 대상: {r.get('ITEM_NAME')} ({r.get('ENTP_NAME')})",
+                            f"사유: {r.get('DISPS_CONT')} · 회수 명령일 {when}",
+                            "구매하지 마세요 — 공식 회수 정보 기준"]}
+    reasons = ["자료에 없는 제품이라 판단 보류"]
+    if regulatory.available():
+        reasons.append("식약처 회수·판매중지 목록에는 없음 (정품 여부는 매장에서 라벨·제조사 확인)")
+    return {"target": name, "trusted": False, "score": 0.0, "flags": ["unverified"], "reasons": reasons}

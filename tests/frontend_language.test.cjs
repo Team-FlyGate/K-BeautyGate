@@ -56,6 +56,53 @@ function frontend(backstage = false, dom = {}) {
 }
 
 const ui = frontend();
+for (const language of ['ko', 'en', 'ja', 'zh-Hans', 'zh-Hant']) {
+  test(`${language}: map links search each allowed itinerary area once without personal data`, () => {
+    for (const backstage of [false, true]) {
+      const display = frontend(backstage);
+      const rendered = display.beauty({
+        turn: { language, profile: { skin_type: 'dry', avoid_ingredients: ['peanut'], budget_krw: 50000, areas: ['홍대'] } },
+        result: {
+          route: ['명동', '명동', '성수', '홍대', 'unknown', '명동?allergy=peanut', 'https://untrusted.example'].map((area) => ({
+            name: 'Fictional shop with personal details', area, time: '14:00', note: 'peanut allergy',
+          })),
+          area_links: [{ area: '명동', kakao: 'https://untrusted.example', google: 'javascript:alert(1)' }],
+          localized: { language, summary: 'Preview', display_names: { '명동': 'Untrusted replacement' } },
+        },
+      });
+      const section = rendered.match(/<div class="area-searches">([\s\S]*?)<\/p><\/div>/)[1];
+      const links = [...section.matchAll(/<a class="map-link[^"]*" href="([^"]+)" target="_blank" rel="noopener noreferrer">([^<]+)<\/a>/g)];
+      assert.equal(links.length, 6);
+      assert.equal((section.match(/class="area-search"/g) || []).length, 3);
+      for (const [index, area] of ['명동', '성수', '홍대'].entries()) {
+        assert.ok(section.includes(display.I18N[language].maps.area.replace('{}', display.I18N[language].areas[area])));
+        const kakao = new URL(links[index * 2][1].replace(/&amp;/g, '&'));
+        const google = new URL(links[index * 2 + 1][1].replace(/&amp;/g, '&'));
+        assert.equal(kakao.origin, 'https://map.kakao.com');
+        assert.equal(decodeURIComponent(kakao.pathname), `/link/search/${area}`);
+        assert.equal(kakao.search, '');
+        assert.equal(google.origin, 'https://www.google.com');
+        assert.equal(google.pathname, '/maps/search/');
+        assert.deepEqual([...google.searchParams], [['api', '1'], ['query', area]]);
+        assert.equal(links[index * 2][2], display.I18N[language].maps.kakao);
+        assert.equal(links[index * 2 + 1][2], display.I18N[language].maps.google);
+      }
+      assert.ok(section.includes(display.I18N[language].maps.hint));
+      assert.doesNotMatch(section, /peanut|50000|Fictional|unknown|untrusted|javascript:|ETA|km|Untrusted/);
+      if (language !== 'ko') assert.doesNotMatch(section.replace(/href="[^"]*"/g, ''), /[가-힣]/);
+    }
+  });
+}
+
+test('map links require allowed areas in the actual itinerary, not just the profile', () => {
+  for (const route of [undefined, [], [{ name: 'Unverified place', area: '해담' }], [{ area: '<script>alert(1)</script>' }]]) {
+    const rendered = ui.beauty({ turn: { language: 'en', profile: { areas: ['명동'] } }, result: { route } });
+    assert.doesNotMatch(rendered, /class="area-searches"|class="map-link/);
+  }
+  const culture = ui.culture({ turn: { language: 'en' }, result: { draft: 'Myeongdong', route: [{ area: '명동' }] } });
+  assert.doesNotMatch(culture, /class="area-searches"|class="map-link/);
+});
+
 const cases = [
   ['건성 피부에 맞는 화장품을 추천해 주세요.', null, 'ko'],
   ['I have dry skin near 성수 and 명동.', null, 'en'],

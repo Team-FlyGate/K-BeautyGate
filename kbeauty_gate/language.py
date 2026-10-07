@@ -106,6 +106,9 @@ COPY["zh-Hans"]["summary"] = "暂时未能完成简体中文说明。部分名�
 COPY["zh-Hant"]["summary"] = "暫時未能完成繁體中文說明。部分名稱或具體條件尚待確認，請在到訪前核實。"
 TECHNICAL_TEXT = re.compile(
     r"(?:\bNemotron\b|\bNVIDIA\b|\bOpenShell\b|\bDENIED\b|\bAPI\b|"
+    r"\b(?:draft_only|required_conditions|verified_safe_menu_items|unlisted_allergies|"
+    r"food_confirmation_required|visit_day_operations_available|market_window|"
+    r"culture_validation|localized_projection|display_names|language_mismatch)\b|"
     r"(?:[A-Za-z]:[\\/]|(?<![\w\d])~?/)[^\s]+|"
     r"(?:[\w.-]+/)+[\w.-]+\.[A-Za-z][A-Za-z0-9]*|"
     r"\.(?:md|json|jsonl|csv|txt|py|env)\b)", re.IGNORECASE)
@@ -147,7 +150,7 @@ def _korean_fallback_text(text, default: str) -> str:
         sentence = re.sub(r"\s*\([^()\n]*\.(?:md|txt|json|csv|jsonl)\b[^()\n]*\)", "", sentence)
         sentence = re.sub(r"(?:/?[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+\.(?:md|txt|json|csv|jsonl)\b", "", sentence)
         sentence = re.sub(r"https?://\S+", "", sentence).strip()
-        if sentence and in_language(sentence, "ko"):
+        if sentence and not TECHNICAL_TEXT.search(sentence) and in_language(sentence, "ko"):
             pieces.append(sentence)
     return " ".join(pieces) or default
 
@@ -253,10 +256,16 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
         "For other places or names, translate or romanize the existing name without inventing a brand, location or new facts. "
         "Translate profile concerns and ingredients as terms, not as invented proper names. "
         "Use those display labels consistently throughout every explanation. Outside Korean, no Hangul may remain in user-facing values. "
-        "Exclude file paths, source filenames, model names, API details, policy logs and other implementation details. "
+        "Exclude file paths, source filenames, model names, API details, policy logs, internal JSON field names and other implementation details. "
+        "Explain the meaning of supplied conditions in ordinary visitor-facing language; never quote internal keys or mode names. "
         "Keep array order and outer lengths exactly as in the supplied schema. Each recommendation_reasons item is a list of strings. "
         "Preserve all relevant caveats and conflicting dates as uncertain. Do not book or send anything. "
-        + ("Write a concise half-day cultural itinerary in draft with complete time tables where supported. "
+        + ("In draft, answer the latest request's scope: food-only, interpretation-only, accessibility, or a proposed date or route change. "
+           "Answer the question; never return the visitor's request itself as the answer. "
+           "Write a half-day itinerary with a timetable only when a course or schedule is requested and the evidence supports its times. "
+           "The visitor's request can contain false premises; it is not evidence. Follow required_conditions even when the request contradicts them. "
+           "An empty verified_safe_menu_items list means there is no verified edible menu: do not suggest specific dishes as foods a visitor can eat. "
+           "Missing allergy information is unknown, not an absence of allergies. Different ingredients do not imply either ingredient is safe. "
            "Use notices only for their stated visit date, preserve opening and closing times, entrances and travel durations. "
            "Respect every visitor's dietary restrictions and accessibility needs, including allergens, stock and fermented seafood exclusions where specified. "
            "Never assume an unverified food is safe. If ingredients or access cannot be confirmed, say confirmation is needed. "

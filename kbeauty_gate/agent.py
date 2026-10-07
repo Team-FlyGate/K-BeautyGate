@@ -10,15 +10,15 @@ from typing import Dict, Optional
 from . import nvidia
 from .collect import collect
 from .config import get_settings
-from .culture import food_card, run_culture
+from .conversation import BEAUTY_WORDS, select_mode
+from .culture import culture_visit_date, food_card, run_culture
 from .followups import suggest
 from .guard import AuditLog, SafeFS
 from .request_guard import refusal_text, screen_request
 from .language import COPY, LANG_NAME, detect_language, display_name, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
-from .trust import assess_product
+from .trust import assess_product, assess_unlisted
 
-BEAUTY_WORDS = re.compile(r"화장품|뷰티|코스메|beauty|cosmetic|skincare|コスメ|化妆品|美妆", re.IGNORECASE)
 AREAS = ("성수", "명동", "홍대")
 SKIN_KO = {"combination": "복합성", "dry": "건성", "oily": "지성", "sensitive": "민감성", "normal": "중성"}
 CONCERN_KO = {"redness": "붉어짐", "dryness": "건조함", "dullness": "칙칙함", "pores": "모공"}
@@ -41,7 +41,7 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
     audit = AuditLog()
     fs = SafeFS(input_dir, output_dir, audit)
     if mode == "auto":
-        mode = "beauty" if (profile and profile.get("skin_type")) or BEAUTY_WORDS.search(request) else "culture"
+        mode = select_mode(request, profile)
     profile = dict(profile or {})
     language = detect_language(request, previous=profile.get("language"), default=normalize_locale(profile.get("language")))
     profile["language"] = language
@@ -55,7 +55,7 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         except FileNotFoundError:
             group_text = None
         group = json.loads(group_text or "{}")
-        visit = date.fromisoformat(group.get("date", date.today().isoformat()))
+        visit = culture_visit_date(request, group.get("date", date.today().isoformat()))
     else:
         visit = date.fromisoformat(profile["visit_date"]) if profile.get("visit_date") else date.today()
 
@@ -97,7 +97,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
     for item in profile.get("check_items", []):
         match = next((p for p in products if p["name"].lower() == item.lower()), None)
         checks.append(product_verdicts[match["id"]].to_dict() if match
-                      else {"target": item, "trusted": False, "reasons": ["자료에 없는 제품이라 판단 보류"]})
+                      else assess_unlisted(item))
 
     # 3) 맞춤 판단
     # 사용자가 고른 지역의 매장에서 살 수 있는 제품만 추천한다
@@ -156,18 +156,19 @@ def _in_language(text: str, lang: str) -> bool:
 
 
 def render_card(result: Dict, profile: Dict) -> str:
-    skin = SKIN_KO.get(profile["skin_type"], profile["skin_type"])
-    concerns = "·".join(CONCERN_KO.get(c, c) for c in profile["concerns"])
-    avoid = "·".join(INGREDIENT_KO.get(a, a) for a in profile.get("avoid_ingredients", []))
-    lines = [
-        "# 매장 직원에게 보여주세요",
-        "",
-        f"안녕하세요. 저는 **{skin} 피부**이고 **{concerns}**이 고민이에요.",
-        f"**{avoid}**이 들어간 제품은 피하고 싶어요.",
-        "",
-        "아래 제품이 있나요? 없다면 비슷한 제품을 추천해 주세요.",
-        "",
-    ]
+    """매장 직원용 한글 카드. 사용자가 말한 정보만 넣는다."""
+    skin = profile.get("skin_type")
+    concerns = "·".join(CONCERN_KO.get(c, c) for c in profile.get("concerns") or [])
+    avoid = "·".join(INGREDIENT_KO.get(a, a) for a in profile.get("avoid_ingredients") or [])
+    intro = "안녕하세요."
+    if skin:
+        intro += f" 저는 **{SKIN_KO.get(skin, skin)} 피부**예요."
+    if concerns:
+        intro += f" **{concerns}**이(가) 고민이에요."
+    lines = ["# 매장 직원에게 보여주세요", "", intro]
+    if avoid:
+        lines.append(f"**{avoid}**이(가) 들어간 제품은 피하고 싶어요.")
+    lines += ["", "아래 제품이 있나요? 없다면 비슷한 제품을 추천해 주세요.", ""]
     lines += [f"- {r['name_ko']} ({r['price_krw']:,}원)" for r in result["recommendations"]]
     lines += ["", "면세(Tax Free) 가능한가요? 감사합니다!"]
     return "\n".join(lines) + "\n"
