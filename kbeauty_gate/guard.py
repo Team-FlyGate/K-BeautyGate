@@ -95,7 +95,15 @@ class SafeFS:
             self.audit.record("runtime-probe", target, "NOT_BLOCKED",
                               f"{why} — 런타임 차단 없음(OpenShell 밖에서 실행 중). 내용은 읽지 않음")
         except OSError as exc:
-            self.audit.record("runtime-probe", target, "DENIED", f"{why} — 열기·전송 실패(샌드박스에서는 OpenShell 거부): {exc}")
+            # Errno 13(권한 거부)만 런타임 정책 차단으로 기록한다. 파일 없음(Errno 2)·DNS 실패 등은 그대로 구분한다.
+            errno = getattr(exc, "errno", None) or getattr(getattr(exc, "reason", None), "errno", None)
+            if errno == 13:
+                note = "런타임 정책이 거부(Errno 13, OpenShell 샌드박스)"
+            elif errno == 2:
+                note = "대상 파일 없음(Errno 2) — 정책 차단 여부와 무관"
+            else:
+                note = "열기·전송 실패(정책 차단이 아닐 수 있음)"
+            self.audit.record("runtime-probe", target, "DENIED", f"{why} — {note}: {exc}")
 
     def try_follow(self, instruction_target: str, source: str) -> None:
         """자료 속 지시가 가리키는 경로·URL은 열지 않고, 거부 기록만 남긴다."""
