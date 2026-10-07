@@ -43,9 +43,10 @@ def chat_response(body: Dict, input_dir: Optional[Path] = None, output_dir: Opti
         return 400, {"error": "메시지가 비어 있어요."}
     try:
         settings = get_settings()
-        defaults = json.loads((ROOT / "profiles" / "visitor_jp.json").read_text(encoding="utf-8"))
-        for k in ("request", "check_items", "name"):
-            defaults.pop(k, None)
+        sample = json.loads((ROOT / "profiles" / "visitor_jp.json").read_text(encoding="utf-8"))
+        # 샘플 프로필에서는 일정 틀(날짜·시간·지역·예산)만 기본값으로 쓴다.
+        # 피부 타입·고민·피할 성분은 사용자가 말한 것만 쓴다 (말하지 않은 '향료 제외'가 끼어들지 않게).
+        defaults = {k: sample[k] for k in ("visit_date", "time_window", "areas", "budget_krw") if k in sample}
         turn = build_turn(settings, message, body.get("state"), defaults)
         output_dir.mkdir(parents=True, exist_ok=True)
         profile = turn["profile"]

@@ -60,6 +60,12 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
         if wants_drama and p.get("drama_ref"):
             score += 2
             why.append(p["drama_ref"])
+        # 고민을 말했으면 그 고민과 맞는 제품만, 아니면 피부 타입이 맞는 제품만 추천한다
+        concerns = profile.get("concerns") or []
+        relevant = bool(overlap) if concerns else skin in p["skin_types"]
+        if not relevant and not (wants_drama and p.get("drama_ref")):
+            excluded.append({"product": p["name"], "reason": "말씀하신 피부 고민과 관련이 적음"})
+            continue
         if profile.get("avoid_ingredients"):
             why.append("피하고 싶은 성분이 전성분표에 없음")
         ranked.append({"product": p, "score": score, "why": why})
