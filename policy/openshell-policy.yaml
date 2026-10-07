@@ -75,6 +75,21 @@ network_policies:
       - path: /usr/bin/python3
       - path: /usr/bin/python3.12   # [실측]
 
+  # 비자기회귀 판단 모델(TypeSafe AI): 판단 질문 전송만 허용(POST /v1/systemone). 키는 provider 가 주입
+  # [미시험] 프로필 openshell/typesafe-profile.yaml 과 함께 Brev 에서 확인할 것
+  typesafe_judgment:
+    name: TypeSafe judgment API
+    endpoints:
+      - host: api.typesafe.ai
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: "/v1/systemone" }
+    binaries:
+      - path: /usr/bin/python3
+      - path: /usr/bin/python3.12
+
 # 의도적으로 넣지 않은 것 (기본 거부로 차단됨)
 # - 오픈마켓(amazon, ebay, aliexpress 등): 위장 K-뷰티 유통 경로
 # - 자료 속 숨은 지시가 가리키는 업로드 주소(coupon-upload.example.net, validation-kculture.example)

@@ -1,0 +1,30 @@
+# 비자기회귀 판단 모델(TypeSafe AI systemone) provider 프로필. 키는 여기에 적지 않는다.
+# 예선 저장소 Team-FlyGate/Project-FlyGate 의 agent/policy/typesafe-provider.yaml 을 옮겨 왔고,
+# 실행 파일만 지금 이미지의 실측 경로(/usr/bin/python3.12)로 바꿨다.
+# 샌드박스 안의 TYPESAFE_API_KEY 에는 자리표시자만 들어가고, 프록시가 api.typesafe.ai:443 POST /v1/systemone 요청에만 진짜 키를 넣는다.
+#   openshell provider profile lint   -f openshell/typesafe-profile.yaml
+#   openshell provider profile import -f openshell/typesafe-profile.yaml
+#   read -rs TYPESAFE_API_KEY; export TYPESAFE_API_KEY
+#   openshell provider create --name typesafe --type typesafe-judgment --credential TYPESAFE_API_KEY; unset TYPESAFE_API_KEY
+id: typesafe-judgment
+display_name: TypeSafe AI judgment API
+description: Typed probability judgments (systemone) for the K-BeautyGate python agent
+category: agent
+credentials:
+  - name: api_key
+    description: TypeSafe API key
+    env_vars: [TYPESAFE_API_KEY]
+    required: true
+    auth_style: bearer
+    header_name: authorization
+endpoints:
+  - host: api.typesafe.ai
+    port: 443
+    protocol: rest
+    enforcement: enforce
+    rules:
+      - allow: { method: POST, path: /v1/systemone }
+binaries:
+  - /usr/bin/python3
+  - /usr/bin/python3.12
+inference_capable: false
