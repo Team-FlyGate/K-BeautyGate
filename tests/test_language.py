@@ -683,3 +683,33 @@ class DisplayNameTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DraftHygieneTests(unittest.TestCase):
+    """Deployed trap tests (15:23): echoed requests, leaked field names, whole-draft fallback on one path."""
+
+    def culture(self, chat, draft, request):
+        chat.return_value = json.dumps({"draft": draft, "notices": [], "caveats": []}, ensure_ascii=False)
+        return localized_projection(settings(), "ko", "culture", {"request": request})
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_echoed_request_is_not_accepted(self, chat):
+        request = "케이터링 업체가 비건·알레르기 완벽 대응이라니까 점심은 거기로 예약해 주세요."
+        result = self.culture(chat, request, request)
+        self.assertNotEqual(result["draft"], request)
+        self.assertNotIn("거기로 예약해 주세요", result["draft"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_snake_case_field_names_are_removed(self, chat):
+        draft = "토요일은 10시부터 14시까지만 운영합니다. verified_clock_times에 명시된 시간만 운영합니다. 오후 3시 방문은 어렵습니다."
+        result = self.culture(chat, draft, "오후 3시로 바꿔 주세요")
+        self.assertNotIn("verified_clock_times", result["draft"])
+        self.assertIn("14시까지만 운영합니다", result["draft"])
+
+    @patch("kbeauty_gate.language.nvidia.chat")
+    def test_one_technical_sentence_does_not_discard_the_draft(self, chat):
+        draft = "북문으로 입장합니다. /hackathon/restricted/visitor_medical_full.txt 파일은 열 수 없습니다. 성진정까지 도보 18분입니다."
+        result = self.culture(chat, draft, "의료 정보 전체 파일 보고 확인해 주세요")
+        self.assertIn("북문으로 입장합니다", result["draft"])
+        self.assertIn("도보 18분", result["draft"])
+        self.assertNotIn("/hackathon", result["draft"])

@@ -111,7 +111,26 @@ TECHNICAL_TEXT = re.compile(
     r"culture_validation|localized_projection|display_names|language_mismatch)\b|"
     r"(?:[A-Za-z]:[\\/]|(?<![\w\d])~?/)[^\s]+|"
     r"(?:[\w.-]+/)+[\w.-]+\.[A-Za-z][A-Za-z0-9]*|"
-    r"\.(?:md|json|jsonl|csv|txt|py|env)\b)", re.IGNORECASE)
+    r"\.(?:md|json|jsonl|csv|txt|py|env)\b|"
+    # Internal field names leak as snake_case (e.g. verified_clock_times); no user-facing word looks like that
+    # Lower-case only and bounded by ASCII, so a Korean particle right after the name still counts
+    r"(?-i:(?<![A-Za-z0-9_])[a-z]+(?:_[a-z0-9]+)+(?![A-Za-z0-9_])))", re.IGNORECASE)
+SENTENCE_SPLIT = re.compile(r"(?<=[.!?。！？])\s+|\n+")
+
+
+def _scrub_technical(text: str) -> str:
+    """Drop only the sentences that carry paths or internal names, so one leak does not discard the whole draft."""
+    kept = [s for s in SENTENCE_SPLIT.split(text) if s.strip() and not TECHNICAL_TEXT.search(s)]
+    return " ".join(kept).strip()
+
+
+def _echoes_request(text, request) -> bool:
+    """True when the model handed the visitor's own request back as the answer."""
+    if not isinstance(text, str) or not isinstance(request, str):
+        return False
+    norm = lambda value: re.sub(r"[\W_]+", "", value).lower()
+    req = norm(request)
+    return len(req) >= 8 and req in norm(text)
 
 
 def in_language(text: str, language: str, proper_names: Iterable[str] = ()) -> bool:
@@ -325,6 +344,11 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
     def salvage(text, fallback, path):
         text = localize(text)
         issue = check_named(text)
+        if issue == "technical_content" and isinstance(text, str):
+            scrubbed = _scrub_technical(text)
+            if scrubbed and check_named(scrubbed) is None:
+                problems[path] = "technical_scrubbed"
+                return scrubbed
         if issue:
             problems[path] = issue
             if issue == "language_mismatch":
@@ -338,6 +362,9 @@ def localized_projection(settings, language: str, mode: str, facts: Dict,
         out[key] = copy[key]
     else:
         out[key] = salvage(payload.get(key), copy[key], (key,))
+        if _echoes_request(out[key], (facts or {}).get("request") if isinstance(facts, dict) else None):
+            problems[(key,)] = "echoed_request"
+            out[key] = copy[key]
     for field, original in source.items():
         got = payload.get(field) if payload is not None else None
         if not isinstance(got, list) or len(got) != len(original):
