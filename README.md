@@ -2,12 +2,64 @@
 
 Team FlyGate · Korea Agentic AI Hackathon 2026 (NVIDIA OpenShell)
 
-외국인 방문객에게 진짜 K-뷰티 제품과 매장 동선을 추천하고, 위장 K-뷰티·광고성 정보·지난 행사는 스스로 걸러내는 OpenShell 기반 에이전트입니다.
+외국인 방문객의 피부 정보와 일정을 받아 **진짜 K-뷰티 제품과 체험·매장 동선**을 짜 주고, 위장 K-뷰티·광고성 후기·지난 행사·자료 속 숨은 지시는 스스로 걸러내는 에이전트입니다. 같은 하네스로 주최측 공통 테스트(문화 코스 초안)도 처리합니다.
 
 - 챌린지 원문: [CHALLENGE.md](CHALLENGE.md) · [TASK.md](TASK.md)
-- 공통 테스트 자료: `hackathon/` (출처: seriousran/k-culture-openshell-challenge)
+- OpenShell 정책 파일: [`policy/openshell-policy.yaml`](policy/openshell-policy.yaml)
 
-> TODO: 설치·실행 방법, 데모 방법, OpenShell policy 파일 경로, 권한 설계와 근거, 외부 API 허용 범위
+## 동작 흐름
+
+1. **수집** — `hackathon/input`을 읽기 전용으로 읽습니다. `restricted`·`secrets`는 OpenShell 정책에 없고, 앱 가드(`kbeauty_gate/guard.py`)도 한 번 더 거부합니다.
+2. **신뢰성 판단** (`kbeauty_gate/trust.py`) — 문서마다 지난 기간, 오래된 캐시, 광고 문구, 무관 자료, 판독 불확실, 숨은 지시를 검사합니다. 제품은 국내 브랜드 등록부와 공식 유통 여부로 판단합니다. 해외 제조라는 이유만으로 가품 처리하지 않습니다.
+3. **맞춤 판단** (`kbeauty_gate/planner.py`) — 피부 타입·고민·회피 성분·예산으로 순위를 매깁니다. 전성분표가 확인되지 않은 제품은 "확인 필요"로 빼 둡니다. 키가 있으면 Nemotron 리랭커 점수를 더합니다.
+4. **동선·카드** — 방문일 공지(조기 마감 등)를 반영해 체험과 매장을 잇고, 매장 직원에게 보여 줄 한글 카드와 Nemotron 요약(사용자 언어)을 `hackathon/output`에 저장합니다.
+
+공통 테스트 모드(`kbeauty_gate/culture.py`)는 같은 1–2단계를 거친 뒤, 방문일 공지·음식 제한·접근성을 반영한 코스 초안과 음식 제한 한글 카드를 만듭니다. 예약·발송·결제는 하지 않습니다.
+
+## 설치 및 실행
+
+Python 3.9 이상, 외부 패키지 없음(표준 라이브러리만 사용).
+
+```bash
+cp .env.example .env          # NVIDIA_API_KEY 입력 (없으면 규칙 기반으로만 동작)
+
+# K-뷰티 플랜 (가상 프로필)
+python3 -m kbeauty_gate --input hackathon/input --output hackathon/output --profile profiles/visitor_jp.json
+
+# 공통 테스트 (TASK.md 요청)
+python3 -m kbeauty_gate --input hackathon/input --output hackathon/output --mode culture
+```
+
+## 데모 (웹앱)
+
+```bash
+python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --port 8080
+```
+
+`http://localhost:8080`에서 프로필을 입력하고 실행하면 정품 확인, 추천 제품, 하루 동선, 한글 카드(크게 보기), 걸러낸 정보, 차단한 행동 로그가 한 화면에 나옵니다. 탭을 바꾸면 공통 테스트를 실행합니다.
+
+OpenShell 샌드박스 안에서 실행:
+
+```bash
+openshell sandbox create --name kbeauty --policy ./policy/openshell-policy.yaml
+```
+
+## 권한 설계와 이유
+
+| 대상 | 권한 | 이유 |
+| --- | --- | --- |
+| `/hackathon/input` | 읽기 | 판단 근거 자료. 쓰기는 필요 없음 |
+| `/hackathon/output` | 쓰기 | 동선·카드·신뢰성 보고서·감사 로그 저장만 |
+| `/hackathon/restricted`, `/hackathon/secrets` | 없음 | 정책에 경로를 넣지 않아 접근 불가. 앱 가드도 거부하고 기록 |
+| `integrate.api.nvidia.com`, `ai.api.nvidia.com` | POST, 지정 경로만 | Nemotron 추론·리랭크 호출 |
+| `english.visitkorea.or.kr`, `english.visitseoul.net` | GET만 | 공식 관광·행사 정보 확인 |
+| 그 밖의 모든 호스트 (오픈마켓, 업로드 주소, 메일·예약·결제) | 거부 | 기본 거부. 위장 K-뷰티 유통 경로와 숨은 지시의 전송 대상 차단 |
+
+## 사용하는 외부 API와 데이터 고지
+
+- NVIDIA API Catalog: `nvidia/nemotron-3-ultra-550b-a55b`(요약·코스 문장), `nvidia/llama-nemotron-rerank-1b-v2`(선택). 모델은 `.env`에서 바꿀 수 있습니다.
+- Nemotron 호출 시 신뢰 판정을 통과한 자료와 프로필 일부(피부 타입, 고민, 일정)가 NVIDIA API로 전송됩니다. 이름은 보내지 않습니다. 데모는 가상 프로필을 씁니다.
+- `hackathon/input/beauty/`의 브랜드·제품·매장은 데모용 가상 데이터입니다. 행사 일정은 한국관광공사·서울관광 공개 안내를 참고했습니다.
 
 ## Meet the team
 

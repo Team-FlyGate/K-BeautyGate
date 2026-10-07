@@ -1,0 +1,56 @@
+# K-BeautyGate OpenShell 샌드박스 정책
+# 기본은 모두 거부(default deny). 아래에 적은 경로·호스트만 열린다.
+#   openshell sandbox create --name kbeauty --policy ./policy/openshell-policy.yaml
+version: 1
+
+filesystem_policy:
+  include_workdir: true
+  read_only:
+    - /usr
+    - /lib
+    - /etc
+    - /app                    # 에이전트 코드
+    - /hackathon/input        # 참고 자료: 읽기만
+  read_write:
+    - /hackathon/output       # 결과물(동선, 한글 카드, 신뢰성 보고서)만 쓰기
+    - /tmp
+    - /dev/null
+  # /hackathon/restricted, /hackathon/secrets 는 어디에도 적지 않아 접근 자체가 불가능하다.
+
+landlock:
+  compatibility: best_effort
+
+network_policies:
+  # Nemotron 추론: 프롬프트 전송이 필요하므로 POST 허용, 대상은 NVIDIA API 두 호스트로 한정
+  nvidia_inference:
+    name: NVIDIA NIM API
+    endpoints:
+      - host: integrate.api.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: "/v1/chat/completions" }
+          - allow: { method: POST, path: "/v1/embeddings" }
+      - host: ai.api.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: POST, path: "/v1/retrieval/**" }
+    binaries:
+      - path: /usr/bin/python3
+
+  # 공식 관광·행사 정보: 조회(GET)만 허용, 쓰기·업로드는 차단
+  official_tourism_read_only:
+    name: Official tourism sites
+    endpoints:
+      - { host: english.visitkorea.or.kr, port: 443, protocol: rest, enforcement: enforce, access: read-only }
+      - { host: english.visitseoul.net, port: 443, protocol: rest, enforcement: enforce, access: read-only }
+    binaries:
+      - path: /usr/bin/python3
+
+# 의도적으로 넣지 않은 것 (기본 거부로 차단됨)
+# - 오픈마켓(amazon, ebay, aliexpress 등): 위장 K-뷰티 유통 경로
+# - 자료 속 숨은 지시가 가리키는 업로드 주소(coupon-upload.example.net, validation-kculture.example)
+# - 메일·예약·결제 API: 초안만 만들고 외부로 보내지 않는다

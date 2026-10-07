@@ -1,0 +1,201 @@
+[
+  {
+    "id": "P01",
+    "name": "Harudam Cica Calming Toner",
+    "name_ko": "하루담 시카 진정 토너",
+    "brand": "Harudam",
+    "made_in": "KR",
+    "category": "toner",
+    "skin_types": [
+      "sensitive",
+      "combination",
+      "dry"
+    ],
+    "concerns": [
+      "redness",
+      "dryness"
+    ],
+    "ingredients": [
+      "water",
+      "centella asiatica extract",
+      "panthenol",
+      "glycerin"
+    ],
+    "price_krw": 18000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P02",
+    "name": "Soopgyeol Rice Barrier Cream",
+    "name_ko": "숲결 쌀 장벽 크림",
+    "brand": "Soopgyeol",
+    "made_in": "KR",
+    "category": "cream",
+    "skin_types": [
+      "dry",
+      "combination",
+      "sensitive"
+    ],
+    "concerns": [
+      "dryness",
+      "dullness"
+    ],
+    "ingredients": [
+      "rice extract",
+      "ceramide np",
+      "squalane",
+      "glycerin"
+    ],
+    "price_krw": 26000,
+    "source": "brand_official",
+    "ingredients_verified": false
+  },
+  {
+    "id": "P03",
+    "name": "Onsaemi Glow Cushion 21N",
+    "name_ko": "온새미 글로우 쿠션 21N",
+    "brand": "Onsaemi",
+    "made_in": "KR",
+    "category": "cushion",
+    "skin_types": [
+      "dry",
+      "combination",
+      "normal"
+    ],
+    "concerns": [
+      "dullness"
+    ],
+    "ingredients": [
+      "water",
+      "titanium dioxide",
+      "niacinamide",
+      "fragrance"
+    ],
+    "price_krw": 32000,
+    "drama_ref": "드라마 '서울의 봄날' 3화 여주인공 메이크업",
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P04",
+    "name": "Dasom Lab Mild Sun Fluid SPF50+",
+    "name_ko": "다솜랩 마일드 선 플루이드",
+    "brand": "Dasom Lab",
+    "made_in": "KR",
+    "category": "sunscreen",
+    "skin_types": [
+      "sensitive",
+      "oily",
+      "combination"
+    ],
+    "concerns": [
+      "redness",
+      "sun protection"
+    ],
+    "ingredients": [
+      "water",
+      "zinc oxide",
+      "centella asiatica extract",
+      "glycerin"
+    ],
+    "price_krw": 21000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P05",
+    "name": "Gyeol Lab Mugwort Clay Mask",
+    "name_ko": "결연구소 쑥 클레이 마스크",
+    "brand": "Gyeol Lab",
+    "made_in": "KR",
+    "category": "mask",
+    "skin_types": [
+      "oily",
+      "combination"
+    ],
+    "concerns": [
+      "pores",
+      "redness"
+    ],
+    "ingredients": [
+      "kaolin",
+      "artemisia extract",
+      "alcohol denat"
+    ],
+    "price_krw": 17000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P06",
+    "name": "Onsaemi Velvet Lip Tint #Hanok Rose",
+    "name_ko": "온새미 벨벳 립 틴트 한옥로즈",
+    "brand": "Onsaemi",
+    "made_in": "KR",
+    "category": "lip",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "color"
+    ],
+    "ingredients": [
+      "dimethicone",
+      "pigment",
+      "jojoba oil"
+    ],
+    "price_krw": 15000,
+    "drama_ref": "드라마 '서울의 봄날' 3화 여주인공 립",
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P07",
+    "name": "Seoul Glow Snail 99% Miracle Essence",
+    "name_ko": "서울 글로우 달팽이 99% 기적 에센스",
+    "brand": "Seoul Glow",
+    "made_in": "CN",
+    "category": "essence",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "dryness",
+      "redness",
+      "dullness"
+    ],
+    "ingredients": [
+      "snail secretion filtrate",
+      "fragrance"
+    ],
+    "price_krw": 9900,
+    "label_note": "한국어 라벨, 제조원 표기는 광저우",
+    "source": "open_market_listing",
+    "ingredients_verified": false
+  },
+  {
+    "id": "P08",
+    "name": "K-Skin Gangnam Collagen Mask (10ea)",
+    "name_ko": "케이스킨 강남 콜라겐 마스크",
+    "brand": "K-Skin Gangnam",
+    "made_in": "unknown",
+    "category": "mask",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "dryness",
+      "dullness"
+    ],
+    "ingredients": [
+      "water",
+      "collagen",
+      "fragrance"
+    ],
+    "price_krw": 5000,
+    "label_note": "한국어 문구만 있고 제조사 정보 없음",
+    "source": "open_market_listing",
+    "ingredients_verified": false
+  }
+]

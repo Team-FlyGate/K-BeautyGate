@@ -1,3 +1,9 @@
 # 운영체제 및 편집기 임시 파일
 .DS_Store
 *.swp
+
+# 비밀값과 실행 결과
+.env
+__pycache__/
+hackathon/output/*
+!hackathon/output/.gitkeep
