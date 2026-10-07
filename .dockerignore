@@ -1,0 +1,9 @@
+# 이미지에 키·팀 기록·로컬 결과가 들어가지 않게 한다
+.env
+.git
+workspace/
+hackathon/output/*
+!hackathon/output/.gitkeep
+__pycache__/
+**/__pycache__/
+.vercel

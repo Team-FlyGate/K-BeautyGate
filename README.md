@@ -42,19 +42,34 @@ python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --
 
 `public/index.html`이 화면, `api/index.py`가 `/`·`/api/status`·`/api/chat`을 처리하는 단일 서버리스 함수입니다(`vercel.json`, `pyproject.toml`의 `[tool.vercel]`). Vercel 프로젝트 설정의 Environment Variables에 `NVIDIA_API_KEY`를 넣으면 됩니다. 결과물은 `/tmp`에 저장됩니다. Vercel에는 OpenShell이 없어 앱 가드만 동작하고, 정책 차단 데모는 아래 샌드박스에서 보여 줍니다.
 
-OpenShell 샌드박스 안에서 실행:
+### OpenShell 샌드박스 실행 (OpenShell 0.1.2에서 검증)
+
+전체 과정과 차단 시험 기록은 [`docs/openshell-setup-log.md`](docs/openshell-setup-log.md)에 있습니다.
 
 ```bash
-openshell sandbox create --name kbeauty --policy ./policy/openshell-policy.yaml
+# 1) 샌드박스 이미지 (WORKDIR /sandbox, 코드는 root 소유 /app 에 읽기 전용)
+docker build -f openshell/Dockerfile -t kbg-sandbox:v2 .
+
+# 2) NVIDIA 키는 provider 로 등록 → 샌드박스 안 에이전트는 자리표시자만 본다
+openshell provider profile import -f openshell/nvidia-profile.yaml
+read -rs NVIDIA_API_KEY; export NVIDIA_API_KEY
+openshell provider create --name nvidia --type nvidia-hackathon --credential NVIDIA_API_KEY; unset NVIDIA_API_KEY
+
+# 3) 정책을 걸고 샌드박스 생성
+openshell sandbox create --name kbg --from kbg-sandbox:v2 --policy ./policy/openshell-policy.yaml \
+  --provider nvidia --detach -- sleep infinity
 ```
 
-발표용 런타임 시연: `KBG_OPENSHELL_PROBE=1`을 주면 에이전트가 앱 가드를 건너뛰고 숨은 지시 대상과 미끼 파일(`/hackathon/restricted/latest_verified_history.md` 등)을 실제로 열어/보내 봅니다. 파일은 열기만 하고 읽지 않으며 URL에는 본문 없이 HEAD만 보냅니다. OpenShell 샌드박스 안에서는 이 시도가 정책에 막히고 `openshell logs`와 `audit.jsonl`에 함께 남습니다.
+**두 겹 차단 시연:** `KBG_OPENSHELL_PROBE=1`을 주면 에이전트가 앱 가드를 건너뛰고 숨은 지시 대상과 미끼 파일(`/hackathon/restricted/latest_verified_history.md` 등)을 실제로 열어/보내 봅니다. 파일은 열기만 하고 읽지 않으며 URL에는 본문 없이 HEAD만 보냅니다. OpenShell 샌드박스 안에서는 이 시도가 정책에 막히고(`Permission denied`, `NET:OPEN DENIED`) `openshell logs`와 `audit.jsonl`에 함께 남습니다. 1겹은 앱의 신뢰성 판단, 2겹은 OpenShell 런타임입니다(setup log 14절).
 
 ## 권한 설계와 이유
 
 | 대상 | 권한 | 이유 |
 | --- | --- | --- |
 | `/hackathon/input` | 읽기 | 판단 근거 자료. 쓰기는 필요 없음 |
+| `/app` (에이전트 코드) | 읽기 | root 소유. 에이전트가 자기 코드를 고치지 못함 |
+| 실행 사용자 | `sandbox` | root 가 아닌 사용자로 실행 |
+| NVIDIA API 키 | 샌드박스 밖 | OpenShell provider 가 허용된 NVIDIA 주소로 나갈 때만 주입. 에이전트는 자리표시자만 봄 |
 | `/hackathon/output` | 쓰기 | 동선·카드·신뢰성 보고서·감사 로그 저장만 |
 | `/hackathon/restricted`, `/hackathon/secrets` | 없음 | 정책에 경로를 넣지 않아 접근 불가. 앱 가드도 거부하고 기록 |
 | `integrate.api.nvidia.com`, `ai.api.nvidia.com` | POST, 지정 경로만 | Nemotron 추론·리랭크 호출 |
