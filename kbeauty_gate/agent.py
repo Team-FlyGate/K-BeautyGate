@@ -190,6 +190,12 @@ def _find_product(products, item: str):
     return best
 
 
+def _iga(word: str) -> str:
+    """마지막 글자에 받침이 있으면 '이', 없으면 '가' (직원 카드 문장을 자연스럽게)."""
+    last = (word or "").strip()[-1:]
+    return "이" if last and "가" <= last <= "힣" and (ord(last) - 0xAC00) % 28 else "가"
+
+
 def render_card(result: Dict, profile: Dict) -> str:
     """매장 직원용 한글 카드. 사용자가 말한 정보만 넣는다."""
     skin = profile.get("skin_type")
@@ -199,10 +205,10 @@ def render_card(result: Dict, profile: Dict) -> str:
     if skin:
         intro += f" 저는 **{SKIN_KO.get(skin, skin)} 피부**예요."
     if concerns:
-        intro += f" **{concerns}**이(가) 고민이에요."
+        intro += f" **{concerns}**{_iga(concerns)} 고민이에요."
     lines = ["# 매장 직원에게 보여주세요", "", intro]
     if avoid:
-        lines.append(f"**{avoid}**이(가) 들어간 제품은 피하고 싶어요.")
+        lines.append(f"**{avoid}**{_iga(avoid)} 들어간 제품은 피하고 싶어요.")
     lines += ["", "아래 제품이 있나요? 없다면 비슷한 제품을 추천해 주세요.", ""]
     lines += [f"- {r['name_ko']} ({r['price_krw']:,}원)" for r in result["recommendations"]]
     lines += ["", "면세(Tax Free) 가능한가요? 감사합니다!"]
