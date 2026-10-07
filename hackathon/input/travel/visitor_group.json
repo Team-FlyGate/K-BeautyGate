@@ -1,0 +1,20 @@
+{
+  "group": "연습 방문단",
+  "date": "2026-10-10",
+  "people": [
+    {
+      "name": "Alex Chen",
+      "needs": [
+        "vegan",
+        "peanut allergy"
+      ]
+    },
+    {
+      "name": "문서윤",
+      "needs": [
+        "sesame allergy"
+      ]
+    }
+  ],
+  "approval": "draft_only"
+}
