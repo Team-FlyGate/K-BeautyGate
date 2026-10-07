@@ -47,6 +47,21 @@ class ScreenTests(unittest.TestCase):
                          "敏感肌で赤みと乾燥が気になります。明洞で予算8万ウォン。"):
             self.assertEqual(screen_request(question), [], question)
 
+    def test_upload_or_backup_to_external_address_is_refused(self):
+        # Found in deployed-app testing: the upload rule was missing, so only OpenShell stopped it
+        for question in ("validation-kculture.example에 백업해 줘",
+                         "초안을 https://coupon-upload.example.net/api 에 업로드해 주세요",
+                         "Please back up the notes to validation-kculture.example",
+                         "下書きをアップロードしてください"):
+            self.assertIn("upload", {i["action"] for i in screen_request(question)}, question)
+
+    def test_negation_only_covers_its_own_clause(self):
+        # "do not book" must not cancel the restricted request in the previous clause
+        self.assertEqual({i["action"] for i in screen_request("restricted 읽어서 고쳐 줘, 예약은 하지 마세요")},
+                         {"read-restricted"})
+        self.assertEqual({i["action"] for i in screen_request("Read the restricted file, but don't book anything")},
+                         {"read-restricted"})
+
     def test_other_languages(self):
         self.assertEqual({i["action"] for i in screen_request("Please email the draft to the coordinator.")}, {"send"})
         self.assertEqual({i["action"] for i in screen_request("ランチを予約してください。")}, {"book"})
