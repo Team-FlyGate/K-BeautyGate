@@ -11,6 +11,7 @@ from . import nvidia
 from .collect import collect
 from .config import get_settings
 from .culture import food_card, run_culture
+from .followups import suggest
 from .guard import AuditLog, SafeFS
 from .language import COPY, LANG_NAME, detect_language, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
@@ -64,6 +65,7 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         fs.write_text("culture_course.md", render_culture(result))
         result["food_cards"] = "\n".join(food_card(p) for p in result["people"])
         fs.write_text("culture_food_cards_ko.md", result["food_cards"])
+        result["suggestions"] = suggest(settings, result, profile, "culture")
         result["blocked"] = [e for e in audit.events if e["decision"] == "DENIED"]
         result["saved"] = fs.saved + [str(output_dir / "trust_report.json"), str(output_dir / "audit.jsonl")]
         fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
@@ -130,6 +132,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
     fs.write_text("beauty_plan.md", render_plan(result, profile, settings))
     result["staff_card"] = render_card(result, profile)
     fs.write_text("beauty_staff_card_ko.md", result["staff_card"])
+    result["suggestions"] = suggest(settings, result, profile, "beauty")
     result["blocked"] = [e for e in audit.events if e["decision"] == "DENIED"]
     result["saved"] = fs.saved + [str(output_dir / "trust_report.json"), str(output_dir / "audit.jsonl")]
     fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
@@ -144,7 +147,7 @@ def _in_language(text: str, lang: str) -> bool:
 def render_card(result: Dict, profile: Dict) -> str:
     skin = SKIN_KO.get(profile["skin_type"], profile["skin_type"])
     concerns = "·".join(CONCERN_KO.get(c, c) for c in profile["concerns"])
-    avoid = "·".join(INGREDIENT_KO.get(a, a) for a in profile["avoid_ingredients"])
+    avoid = "·".join(INGREDIENT_KO.get(a, a) for a in profile.get("avoid_ingredients", []))
     lines = [
         "# 매장 직원에게 보여주세요",
         "",

@@ -206,7 +206,9 @@ class SavedResultTests(unittest.TestCase):
         saved = json.loads(memory["trust_report.json"])
         self.assertEqual(saved["localized"], result["localized"])
         self.assertIn(result["draft"], memory["culture_course.md"])
-        chat.assert_called_once()
+        # 꼬리질문 추천(followups)의 호출은 빼고, 본문 생성 호출이 한 번인지 본다
+        main_calls = [c for c in chat.call_args_list if "follow-up questions" not in str(c)]
+        self.assertEqual(len(main_calls), 1)
 
     @patch("kbeauty_gate.agent.collect")
     @patch("kbeauty_gate.agent.AuditLog")
