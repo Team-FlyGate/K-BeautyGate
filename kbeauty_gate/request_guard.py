@@ -71,6 +71,22 @@ def screen_request(message: str) -> List[Dict]:
     return found
 
 
+# After a refusal the model's draft is dropped: it answered the refused request and once claimed to have
+# checked a file it never opened. The refusal plus this line is the whole answer.
+AFTER_REFUSAL = {
+    "ko": "다른 조건으로 다시 요청해 주시면 허용된 자료로 정리해 드릴게요.",
+    "en": "Ask again with other conditions and I will answer from the permitted sources.",
+    "ja": "別の条件でもう一度ご依頼いただければ、許可された資料でまとめます。",
+    "zh-Hans": "请换个条件再次提出，我会根据允许的资料整理。",
+    "zh-Hant": "請換個條件再次提出，我會根據允許的資料整理。",
+}
+
+
+def refusal_answer(refusals: List[Dict], language: str) -> str:
+    note = refusal_text(refusals, language)
+    return f"{note} {AFTER_REFUSAL.get(language, AFTER_REFUSAL['en'])}" if note else ""
+
+
 def refusal_text(refusals: List[Dict], language: str) -> str:
     copy = MESSAGES.get(language, MESSAGES["en"])
     return " ".join(copy[item["action"]] for item in refusals)

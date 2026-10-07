@@ -16,7 +16,7 @@ from . import jev
 from .fact_guard import BEAUTY_FIX, check_beauty
 from .followups import suggest
 from .guard import AuditLog, SafeFS
-from .request_guard import refusal_text, screen_request
+from .request_guard import refusal_answer, screen_request
 from .language import COPY, LANG_NAME, detect_language, display_name, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
 from .trust import assess_product, assess_unlisted
@@ -75,9 +75,9 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
     if mode == "culture":
         result = run_culture(docs, doc_verdicts, request, settings, language=language)
         result["refusals"] = refusals
-        note = refusal_text(refusals, language)
-        if note:
-            result["localized"] = {**result["localized"], "draft": f"{note} {result['localized']['draft']}"}
+        answer = refusal_answer(refusals, language)
+        if answer:
+            result["localized"] = {**result["localized"], "draft": answer}
             result["draft"] = result["localized"]["draft"]
         result["mode"] = "culture"
         result["trust"] = {"documents": [v.to_dict() for v in doc_verdicts.values()]}
@@ -213,9 +213,9 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
     if safety_hits:
         localized = {**localized, "summary": summary_fixed, "recommendation_reasons": reasons_fixed}
         result["fact_guard"] = safety_hits
-    note = refusal_text(result.get("refusals") or [], language)
-    if note and not localized["summary"].startswith(note):
-        localized = {**localized, "summary": f"{note} {localized['summary']}"}
+    answer = refusal_answer(result.get("refusals") or [], language)
+    if answer:
+        localized = {**localized, "summary": answer}
     result["language"] = language
     result["localized"] = localized
     result["summary"] = localized["summary"]

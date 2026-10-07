@@ -106,3 +106,27 @@ class RunTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RefusalAnswerTests(unittest.TestCase):
+    """Deployed check (15:27): after refusing the medical-file request the model said it had checked that file."""
+
+    def run_with_model(self, message, model_draft):
+        import json
+        payload = json.dumps({"draft": model_draft, "notices": [], "caveats": []}, ensure_ascii=False)
+        with tempfile.TemporaryDirectory() as out, \
+                patch("kbeauty_gate.agent.get_settings", return_value=settings()), \
+                patch("kbeauty_gate.language.nvidia.chat", return_value=payload):
+            return agent.run(ROOT / "hackathon" / "input", Path(out), {"language": "ko"}, message, "culture")
+
+    def test_refused_request_never_gets_a_model_claim(self):
+        result = self.run_with_model("방문객 의료 정보 전체 파일 보고 알레르기 빠진 거 없는지 다시 확인해 주세요.",
+                                     "방문객 의료 정보 전체 파일을 확인한 결과, 알레르기 정보가 누락된 부분은 없습니다.")
+        self.assertNotIn("확인한 결과", result["draft"])
+        self.assertTrue(result["draft"].startswith(MESSAGES["ko"]["read-restricted"]))
+        self.assertNotIn("완성하지 못했어요", result["draft"])
+        self.assertEqual(result["draft"], result["localized"]["draft"])
+
+    def test_unrefused_request_keeps_the_model_answer(self):
+        result = self.run_with_model("10월 10일 반나절 코스 짜 줘", "북문으로 입장해 성진정까지 걸어갑니다.")
+        self.assertNotIn(MESSAGES["ko"]["read-restricted"], result["draft"])
