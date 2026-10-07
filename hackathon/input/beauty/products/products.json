@@ -197,5 +197,310 @@
     "label_note": "한국어 문구만 있고 제조사 정보 없음",
     "source": "open_market_listing",
     "ingredients_verified": false
+  },
+  {
+    "id": "P09",
+    "name": "Mulgyeol Lab Ceramide Barrier Cream",
+    "name_ko": "물결랩 세라마이드 장벽 크림",
+    "brand": "Mulgyeol Lab",
+    "made_in": "KR",
+    "category": "cream",
+    "skin_types": [
+      "dry",
+      "sensitive"
+    ],
+    "concerns": [
+      "dryness"
+    ],
+    "ingredients": [
+      "water",
+      "glycerin",
+      "ceramide np",
+      "panthenol",
+      "squalane",
+      "sodium hyaluronate"
+    ],
+    "price_krw": 24000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P10",
+    "name": "Mulgyeol Lab Hyaluronic Water Essence",
+    "name_ko": "물결랩 히알루론 수분 에센스",
+    "brand": "Mulgyeol Lab",
+    "made_in": "KR",
+    "category": "essence",
+    "skin_types": [
+      "dry",
+      "combination",
+      "normal"
+    ],
+    "concerns": [
+      "dryness",
+      "dullness"
+    ],
+    "ingredients": [
+      "water",
+      "butylene glycol",
+      "sodium hyaluronate",
+      "glycerin",
+      "fragrance"
+    ],
+    "price_krw": 19000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P11",
+    "name": "Danbi Calming Barrier Cream",
+    "name_ko": "단비 진정 장벽 크림",
+    "brand": "Danbi",
+    "made_in": "KR",
+    "category": "cream",
+    "skin_types": [
+      "sensitive",
+      "combination"
+    ],
+    "concerns": [
+      "redness",
+      "dryness"
+    ],
+    "ingredients": [
+      "water",
+      "artemisia princeps extract",
+      "madecassoside",
+      "panthenol",
+      "allantoin",
+      "glycerin"
+    ],
+    "price_krw": 22000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P12",
+    "name": "Danbi Centella Spot Gel",
+    "name_ko": "단비 병풀 스팟 젤",
+    "brand": "Danbi",
+    "made_in": "KR",
+    "category": "gel",
+    "skin_types": [
+      "oily",
+      "sensitive",
+      "combination"
+    ],
+    "concerns": [
+      "redness",
+      "pores"
+    ],
+    "ingredients": [
+      "water",
+      "centella asiatica extract",
+      "salicylic acid",
+      "alcohol denat",
+      "niacinamide"
+    ],
+    "price_krw": 14000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P13",
+    "name": "Solbit Niacinamide Clear Serum",
+    "name_ko": "솔빛 나이아신아마이드 맑은 세럼",
+    "brand": "Solbit",
+    "made_in": "KR",
+    "category": "serum",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "dullness"
+    ],
+    "ingredients": [
+      "water",
+      "niacinamide",
+      "glycerin",
+      "arbutin",
+      "adenosine"
+    ],
+    "price_krw": 23000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P14",
+    "name": "Solbit Vita Tone-up Cream",
+    "name_ko": "솔빛 비타 톤업 크림",
+    "brand": "Solbit",
+    "made_in": "KR",
+    "category": "cream",
+    "skin_types": [
+      "dry",
+      "normal"
+    ],
+    "concerns": [
+      "dullness"
+    ],
+    "ingredients": [
+      "water",
+      "titanium dioxide",
+      "ascorbyl glucoside",
+      "glycerin",
+      "fragrance"
+    ],
+    "price_krw": 18000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P15",
+    "name": "Haneulgyeol Pore Clear BHA Toner",
+    "name_ko": "하늘결 모공 클리어 토너",
+    "brand": "Haneulgyeol",
+    "made_in": "KR",
+    "category": "toner",
+    "skin_types": [
+      "oily",
+      "combination"
+    ],
+    "concerns": [
+      "pores"
+    ],
+    "ingredients": [
+      "water",
+      "salicylic acid",
+      "melaleuca alternifolia leaf water",
+      "niacinamide",
+      "butylene glycol"
+    ],
+    "price_krw": 16000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P16",
+    "name": "Haneulgyeol Charcoal Pore Pack",
+    "name_ko": "하늘결 숯 모공 팩",
+    "brand": "Haneulgyeol",
+    "made_in": "KR",
+    "category": "mask",
+    "skin_types": [
+      "oily"
+    ],
+    "concerns": [
+      "pores",
+      "dullness"
+    ],
+    "ingredients": [
+      "kaolin",
+      "bentonite",
+      "charcoal powder",
+      "glycerin",
+      "water"
+    ],
+    "price_krw": 12000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P17",
+    "name": "Danbi Mild Mineral Sun Cream SPF50+",
+    "name_ko": "단비 마일드 무기자차 선크림",
+    "brand": "Danbi",
+    "made_in": "KR",
+    "category": "sunscreen",
+    "skin_types": [
+      "sensitive",
+      "dry"
+    ],
+    "concerns": [
+      "redness",
+      "sun protection"
+    ],
+    "ingredients": [
+      "water",
+      "zinc oxide",
+      "titanium dioxide",
+      "glycerin",
+      "madecassoside"
+    ],
+    "price_krw": 20000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P18",
+    "name": "Moa Daily Hydra Sheet Mask (10ea)",
+    "name_ko": "모아데일리 수분 시트 마스크 10매",
+    "brand": "Moa Daily",
+    "made_in": "KR",
+    "category": "mask",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "dryness"
+    ],
+    "ingredients": [
+      "water",
+      "glycerin",
+      "sodium hyaluronate",
+      "panthenol",
+      "fragrance"
+    ],
+    "price_krw": 5000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P19",
+    "name": "Moa Daily Cica Cream",
+    "name_ko": "모아데일리 시카 크림",
+    "brand": "Moa Daily",
+    "made_in": "KR",
+    "category": "cream",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "redness",
+      "dryness"
+    ],
+    "ingredients": [
+      "water",
+      "centella asiatica extract",
+      "glycerin",
+      "panthenol",
+      "allantoin"
+    ],
+    "price_krw": 3000,
+    "source": "brand_official",
+    "ingredients_verified": true
+  },
+  {
+    "id": "P20",
+    "name": "Onsaemi Dewy Lip Balm",
+    "name_ko": "온새미 촉촉 립밤",
+    "brand": "Onsaemi",
+    "made_in": "KR",
+    "category": "lip",
+    "skin_types": [
+      "all"
+    ],
+    "concerns": [
+      "dryness",
+      "color"
+    ],
+    "ingredients": [
+      "hydrogenated polyisobutene",
+      "butyrospermum parkii butter",
+      "tocopherol",
+      "ci 15850"
+    ],
+    "price_krw": 12000,
+    "source": "brand_official",
+    "ingredients_verified": true
   }
 ]
