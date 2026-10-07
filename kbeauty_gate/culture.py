@@ -6,6 +6,7 @@ import csv
 import io
 import json
 import re
+from pathlib import Path
 from datetime import date
 from typing import Dict, List
 
@@ -85,13 +86,31 @@ def classify_sentences(text: str) -> List[Dict]:
     return out
 
 
+SOURCE_KINDS = [
+    (r"tourism_leaflet|leaflet", "관광 홍보 전단"), (r"field_note", "현장 조사 메모"),
+    (r"newspaper_ocr", "신문 OCR 발췌"), (r"blog_cache", "블로그 캐시"), (r"notice", "공지"),
+    (r"route_card", "경로 카드"), (r"route_note", "경로 메모"), (r"interpretation_draft", "해설 초안"),
+    (r"community_board", "지역 게시판"), (r"food_glossary", "음식 용어집"), (r"etiquette", "시장 예절 안내"),
+]
+
+
+def source_label(name: str) -> str:
+    """Readable source name for the model and the screen; file paths make the model echo them."""
+    stem = Path(name).stem
+    date_match = re.search(r"\d{4}(?:-\d{2}-\d{2})?", stem)
+    kind = next((ko for pattern, ko in SOURCE_KINDS if re.search(pattern, stem, re.IGNORECASE)), None)
+    if kind is None:
+        kind = re.sub(r"[_-]+", " ", re.sub(r"\d{4}(?:-\d{2}-\d{2})?", "", stem)).strip() or "참고 자료"
+    return f"{date_match.group(0)} {kind}" if date_match else kind
+
+
 def find_conflicts(docs: Dict[str, str], verdicts: Dict[str, Verdict]) -> List[str]:
     """광고성 '원형 보존' 주장과 현장 조사의 철거·재건 기록이 부딪히면 제외 이유로 남긴다."""
     notes = []
     restored = [n for n, t in docs.items() if re.search(r"철거|재건|보수", t) and verdicts.get(n) and verdicts[n].trusted]
     for name, text in docs.items():
         if re.search(r"원형|처음\s*모습", text) and verdicts.get(name) and not verdicts[name].trusted and restored:
-            reason = f"'{name}'의 원형 보존 주장은 {', '.join(restored)}의 철거·재건 기록과 충돌해 제외"
+            reason = f"'{source_label(name)}'의 원형 보존 주장은 {', '.join(map(source_label, restored))}의 철거·재건 기록과 충돌해 제외"
             verdicts[name].reasons.append(reason)
             notes.append(reason)
     return notes
@@ -114,8 +133,8 @@ def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str
         "approval": group.get("approval", "draft_only"),
         "people": people,
         "notices_for_visit_date": notices,
-        "trusted_sources": trusted,
-        "statements_by_certainty": caveats,
+        "trusted_sources": {source_label(n): t for n, t in trusted.items()},
+        "statements_by_certainty": {source_label(n): items for n, items in caveats.items()},
         "excluded_due_to_conflict": conflicts,
     }
     localized = localized_projection(

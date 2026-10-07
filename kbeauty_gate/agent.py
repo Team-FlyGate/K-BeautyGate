@@ -13,6 +13,7 @@ from .config import get_settings
 from .culture import food_card, run_culture
 from .followups import suggest
 from .guard import AuditLog, SafeFS
+from .request_guard import refusal_text, screen_request
 from .language import COPY, LANG_NAME, detect_language, in_language, localized_projection, normalize_locale
 from .planner import apply_notices, fmt, plan_route, rank_products
 from .trust import assess_product
@@ -44,6 +45,10 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
     profile = dict(profile or {})
     language = detect_language(request, previous=profile.get("language"), default=normalize_locale(profile.get("language")))
     profile["language"] = language
+    # 0) 사용자 요청 자체를 먼저 본다 (금지 구역, 비밀, 발송, 예약, 자료 속 지시)
+    refusals = screen_request(request)
+    for item in refusals:
+        audit.record("user-request", item["action"], "DENIED", item["reason"])
     if mode == "culture":
         try:
             group_text = fs.read_text(input_dir / "travel" / "visitor_group.json")
@@ -60,6 +65,11 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
 
     if mode == "culture":
         result = run_culture(docs, doc_verdicts, request, settings, language=language)
+        result["refusals"] = refusals
+        note = refusal_text(refusals, language)
+        if note:
+            result["localized"] = {**result["localized"], "draft": f"{note} {result['localized']['draft']}"}
+            result["draft"] = result["localized"]["draft"]
         result["mode"] = "culture"
         result["trust"] = {"documents": [v.to_dict() for v in doc_verdicts.values()]}
         fs.write_text("culture_course.md", render_culture(result))
@@ -71,10 +81,10 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
         audit.write(output_dir / "audit.jsonl")
         return result
-    return run_beauty(fs, audit, docs, doc_verdicts, profile or {}, visit, settings, output_dir)
+    return run_beauty(fs, audit, docs, doc_verdicts, profile or {}, visit, settings, output_dir, refusals)
 
 
-def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_dir) -> Dict:
+def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_dir, refusals=()) -> Dict:
     profile = dict(profile)
     profile["language"] = normalize_locale(profile.get("language"))
     registry = {r["brand"]: r for r in csv.DictReader(io.StringIO(docs["beauty/brands/kr_brand_registry.csv"]))}
@@ -124,6 +134,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
         "route_skipped": skipped,
         "notices_applied": applied,
         "authenticity_checks": checks,
+        "refusals": list(refusals),
         "trust": {"documents": [v.to_dict() for v in doc_verdicts.values()],
                   "products": [v.to_dict() for v in product_verdicts.values()]},
     }
@@ -178,6 +189,9 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
             notices=result["notices_applied"], caveats=result.get("route_skipped", []),
             proper_names=names,
         )
+    note = refusal_text(result.get("refusals") or [], language)
+    if note and not localized["summary"].startswith(note):
+        localized = {**localized, "summary": f"{note} {localized['summary']}"}
     result["language"] = language
     result["localized"] = localized
     result["summary"] = localized["summary"]
