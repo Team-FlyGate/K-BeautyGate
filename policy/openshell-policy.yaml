@@ -75,6 +75,22 @@ network_policies:
       - path: /usr/bin/python3
       - path: /usr/bin/python3.12   # [실측]
 
+  # 식약처 화장품 공공데이터(원료성분정보 등): 공공데이터포털 식약처 기관 경로의 조회(GET)만 허용
+  # [미시험] 인증키 발급 대기 중. 키는 요청 주소의 serviceKey 변수에 들어가므로 provider 의 헤더 주입으로
+  # 숨길 수 있는지 Brev 에서 확인해야 한다. 실패하면 앱은 협회 표준명 대응표로 돌아간다(kbeauty_gate/ingredients.py)
+  mfds_public_data_read_only:
+    name: MFDS cosmetics open data
+    endpoints:
+      - host: apis.data.go.kr
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        rules:
+          - allow: { method: GET, path: "/1471000/**" }
+    binaries:
+      - path: /usr/bin/python3
+      - path: /usr/bin/python3.12
+
 # 의도적으로 넣지 않은 것 (기본 거부로 차단됨)
 # - 오픈마켓(amazon, ebay, aliexpress 등): 위장 K-뷰티 유통 경로
 # - 자료 속 숨은 지시가 가리키는 업로드 주소(coupon-upload.example.net, validation-kculture.example)

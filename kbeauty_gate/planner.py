@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 from . import nvidia
 from .config import Settings
+from .ingredients import expand_avoid
 
 SKIN_KO = {"combination": "복합성", "dry": "건성", "oily": "지성", "sensitive": "민감성", "normal": "중성"}
 CONCERN_KO = {"redness": "붉어짐", "dryness": "건조함", "dullness": "칙칙함", "pores": "모공", "color": "색조"}
@@ -24,7 +25,8 @@ def fmt(minutes: int) -> str:
 
 
 def _avoided(product: Dict, avoid: List[str]) -> Optional[str]:
-    for word in avoid:
+    # 향료를 피하면 Parfum, Perfume 도 같은 성분이다 (식약처 API 또는 협회 표준명 대응표로 확장)
+    for word in expand_avoid(avoid):
         for ing in product.get("ingredients", []):
             if word.lower() in ing.lower():
                 return ing
