@@ -11,8 +11,6 @@ Team FlyGate · Korea Agentic AI Hackathon 2026 (NVIDIA OpenShell)
 
 ## Meet the team
 
-면역학, 바이오 데이터, 의료영상 AI, 약학, 에이전트 개발의 관점을 하나의 검토 흐름으로 연결합니다.
-
 <table>
 <tr>
 <td align="center" width="20%"><a href="https://github.com/kakyungkim"><img src="https://avatars.githubusercontent.com/u/84395053?v=4" width="88" alt="Ka-Kyung Kim"><br><strong>김가경</strong><br>Ka-Kyung Kim</a></td>
