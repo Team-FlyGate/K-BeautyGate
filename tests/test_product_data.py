@@ -49,7 +49,9 @@ class CatalogueTests(unittest.TestCase):
             self.assertTrue(set(p["concerns"]) <= CONCERNS, p["id"])
 
     def test_every_ingredient_has_a_korean_name(self):
-        missing = {i for p in self.products for i in p["ingredients"]} - set(self.glossary)
+        known = set(self.glossary) | {alias.strip().lower() for row in self.glossary.values()
+                                      for alias in (row.get("kcia_en") or "").split("|") if alias.strip()}
+        missing = {i for p in self.products for i in p["ingredients"]} - known
         self.assertEqual(missing, set())
 
     def test_each_concern_has_at_least_two_official_choices(self):
