@@ -490,7 +490,7 @@ def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str
         text = UNLISTED_PLACE.get(language, UNLISTED_PLACE["en"]).format(places=", ".join(outside))
         localized = {"language": language, "display_names": {}, "draft": text, "recommendation_reasons": [],
                      "route_notes": [], "notices": [], "caveats": [], "status": "ok", "status_reason": None}
-        return {"visit_date": visit.isoformat(), "people": people, "notices": [], "language": language,
+        return {"visit_date": visit.isoformat(), "people": [], "notices": [], "language": language,
                 "localized": localized, "draft": text, "uncertain": {}, "conflicts": [],
                 "culture_validation": {"replaced_fields": [], "unlisted_places": outside}}
     constraints = culture_constraints(trusted, visit, people, request, caveats,
