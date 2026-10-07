@@ -106,7 +106,7 @@ def suggest(settings, result: Dict, profile: Dict, mode: str) -> List[Dict]:
     lang = normalize_locale(profile.get("language") or result.get("language"))
     rules = rule_based(result, profile, mode, lang)
     picked = [{"text": q, "source": "rule"} for q in rules[:2]]
-    gen = generated(settings, result, profile, mode, lang, [p["text"] for p in picked])
+    gen = []  # 속도: 꼬리질문은 규칙 기반만 쓴다 (생성 호출 1~3초 절약). generated()는 필요 시 다시 켤 수 있게 남겨 둠
     picked += [{"text": q, "source": "nemotron"} for q in gen]
     for q in rules[2:]:
         if len(picked) >= 4:

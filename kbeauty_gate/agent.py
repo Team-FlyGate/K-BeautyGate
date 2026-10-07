@@ -107,7 +107,7 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
 
     checks = []
     for item in profile.get("check_items", []):
-        match = next((p for p in products if p["name"].lower() == item.lower()), None)
+        match = _find_product(products, item)
         checks.append(product_verdicts[match["id"]].to_dict() if match
                       else assess_unlisted(item))
 
@@ -165,6 +165,22 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
 
 def _in_language(text: str, lang: str) -> bool:
     return in_language(text, lang)
+
+
+def _find_product(products, item: str):
+    """정품 확인 대상 찾기: 완전 일치가 없으면 이름의 단어가 2개 이상 겹치는 제품 (예: "Seoul Glow Snail 에센스")."""
+    key = re.sub(r"\s+", " ", item or "").strip().lower()
+    for p in products:
+        if key in (p["name"].lower(), p.get("name_ko", "").lower()):
+            return p
+    words = {w for w in re.split(r"[\s.()\[\]·,_%-]+", key) if len(w) >= 3}
+    best, best_hits = None, 1
+    for p in products:
+        name = f"{p['name']} {p.get('name_ko', '')} {p.get('brand', '')}".lower()
+        hits = sum(1 for w in words if w in name)
+        if hits > best_hits:
+            best, best_hits = p, hits
+    return best
 
 
 def render_card(result: Dict, profile: Dict) -> str:
