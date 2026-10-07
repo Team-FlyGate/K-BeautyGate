@@ -1289,12 +1289,15 @@ function stopPanel(refusals, lang) {
   const l = I18N[lang] || I18N.ko;
   const actions = [...new Set((refusals || []).map((item) => item && item.action))].filter((action) => l.refusals[action]);
   if (!actions.length || !l.stop) return "";
-  return `<div class="panel stop-panel" role="alert">${art(ART.stop ? "stop" : "guard")}<div><b>${esc(l.stop.title)}</b><p>${esc(l.stop.sub)}</p>
+  return `<div class="panel stop-panel" role="alert">${art(ART.gatekeeper ? "gatekeeper" : "guard")}<div><b>${esc(l.stop.title)}</b><p>${esc(l.stop.sub)}</p>
     <ul>${actions.map((action) => `<li><strong>${esc(l.refusalShort?.[action] || action)}</strong> · ${esc(l.refusals[action])}</li>`).join("")}</ul></div></div>`;
 }
 function renderResult(data, turnId) {
   const lang = normalizeLanguage(data.turn?.language || uiLanguage);
-  return stopPanel(data.result?.refusals, lang) + (data.turn?.mode === "beauty" ? renderBeauty(data, turnId) : renderCulture(data, turnId)) + followupChips(data.result?.suggestions, data.turn?.language) + backstageBox(data);
+  // 위험한 부탁을 막았으면 추천·동선은 이어서 보여 주지 않는다 (막은 이유만 보여 준다)
+  const stop = stopPanel(data.result?.refusals, lang);
+  if (stop) return stop + safetyRow(data.result || {}, data.turn?.mode, { l: I18N[lang] || I18N.ko, lang }) + backstageBox(data);
+  return (data.turn?.mode === "beauty" ? renderBeauty(data, turnId) : renderCulture(data, turnId)) + followupChips(data.result?.suggestions, data.turn?.language) + backstageBox(data);
 }
 function remember(data, turnId) {
   memory.lastMode = data.turn?.mode;
