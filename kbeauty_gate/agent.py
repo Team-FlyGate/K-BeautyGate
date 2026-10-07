@@ -93,6 +93,7 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
         fs.write_text("trust_report.json", json.dumps(result, ensure_ascii=False, indent=2))
         audit.write(output_dir / "audit.jsonl")
         return result
+    profile = {**(profile or {}), "latest_request": request}
     return run_beauty(fs, audit, docs, doc_verdicts, profile or {}, visit, settings, output_dir, refusals)
 
 
@@ -129,11 +130,17 @@ def run_beauty(fs, audit, docs, doc_verdicts, profile, visit, settings, output_d
         experiences = [e for e in experiences if e["area"] in areas]
         stores = [st for st in stores if st["area"] in areas]
     route, skipped = plan_route(picked, stores, experiences, profile)
+    # 행사 질문("뷰티페스타 일정")에 답할 수 있도록, 믿을 수 있는 행사 자료의 원문 일정을 답변 단계에 넘긴다
+    events_info = [{"title": _experience_from(n, t, visit)["name"], "details": t[:500],
+                    "status": "usable" if doc_verdicts[n].trusted else "not usable on visit date or unreliable: " + ", ".join(doc_verdicts[n].flags)}
+                   for n, t in docs.items() if n.startswith("beauty/events/") and "prompt_injection" not in doc_verdicts[n].flags]
 
     result = {
         "mode": "beauty",
         "language": normalize_locale(profile.get("language")),
-        "profile": {k: v for k, v in profile.items() if k != "name"},
+        "profile": {k: v for k, v in profile.items() if k not in ("name", "latest_request")},
+        "events_info": events_info,
+        "visit_date": visit.isoformat(),
         "nvidia": {"online": settings.online, "chat_model": settings.chat_model,
                    "embed_model": settings.embed_model,
                    "embedding_used": any("relevance" in r for r in picked)},
@@ -209,6 +216,10 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
     if not localized or localized.get("language") != language or "display_names" not in localized:
         facts = {k: result[k] for k in ("recommendations", "route", "authenticity_checks")}
         facts["profile"] = {key: profile.get(key) for key in ("skin_type", "concerns", "avoid_ingredients", "areas")}
+        # 방문객이 이번에 물은 것에 먼저 답하게 한다 (매번 같은 추천 요약을 내놓지 않도록)
+        facts["request"] = profile.get("latest_request", "")
+        facts["visit_date"] = result.get("visit_date")
+        facts["events"] = result.get("events_info", [])
         names = [name for r in result["recommendations"] for name in (r["name"], r["name_ko"])]
         names += [name for stop in result["route"] for name in (stop["name"], stop["area"])]
         names += [check["target"] for check in result["authenticity_checks"]]
