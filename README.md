@@ -48,6 +48,8 @@ OpenShell 샌드박스 안에서 실행:
 openshell sandbox create --name kbeauty --policy ./policy/openshell-policy.yaml
 ```
 
+발표용 런타임 시연: `KBG_OPENSHELL_PROBE=1`을 주면 에이전트가 앱 가드를 건너뛰고 숨은 지시 대상과 미끼 파일(`/hackathon/restricted/latest_verified_history.md` 등)을 실제로 열어/보내 봅니다. 파일은 열기만 하고 읽지 않으며 URL에는 본문 없이 HEAD만 보냅니다. OpenShell 샌드박스 안에서는 이 시도가 정책에 막히고 `openshell logs`와 `audit.jsonl`에 함께 남습니다.
+
 ## 권한 설계와 이유
 
 | 대상 | 권한 | 이유 |

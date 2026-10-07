@@ -6,157 +6,229 @@
 <title>K-BeautyGate</title>
 <style>
   :root {
-    --bg: #faf8f6; --surface: #ffffff; --ink: #1a1817; --muted: #77706a; --line: #ebe6e1;
-    --accent: #d9480f; --accent-ink: #ffffff; --accent-soft: #fff0e8; --user: #1a1817; --user-ink: #ffffff;
-    --good: #12805c; --good-soft: #e9f7f1; --bad: #c92a2a; --bad-soft: #fdeeee; --warn: #9a6700; --warn-soft: #fff8db;
-    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+    color-scheme: light dark;
+    --bg: #fcf8f6; --surface: #fffdfb; --ink: #422f38; --muted: #82717a; --line: #eddfe1;
+    --accent: #ac4e69; --accent-ink: #fff; --accent-soft: #f8e7eb; --user: #ac4e69; --user-ink: #fff;
+    --good: #467860; --good-soft: #edf4ed; --bad: #aa5562; --bad-soft: #fae9e9; --warn: #87653b; --warn-soft: #f8f0df;
+    --shadow: 0 8px 30px rgba(94, 53, 68, .045); --hero: #f1dce1;
   }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #121110; --surface: #1c1a19; --ink: #f3f0ec; --muted: #a39b94; --line: #2e2b28;
-      --accent: #ff8a4c; --accent-ink: #1a0d05; --accent-soft: #2a1a10; --user: #f3f0ec; --user-ink: #121110;
-      --good: #51cf9a; --good-soft: #10241c; --bad: #ff8787; --bad-soft: #2b1414; --warn: #ffd43b; --warn-soft: #2a2410;
-      --shadow: none;
-    }
+    :root { --bg: #211b20; --surface: #2b2329; --ink: #f5e8ee; --muted: #beabb5; --line: #49333f;
+      --accent: #eca2b9; --accent-ink: #38202c; --accent-soft: #452b37; --user: #db99ad; --user-ink: #30212a;
+      --good: #a3c9ad; --good-soft: #293a30; --bad: #eeacb7; --bad-soft: #442d34; --warn: #ddc19a; --warn-soft: #3c3329;
+      --shadow: none; --hero: #4d3340; }
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
   body { margin: 0; background: var(--bg); color: var(--ink); display: flex; flex-direction: column;
-         font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Hiragino Sans", sans-serif; }
-  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px;
-           border-bottom: 1px solid var(--line); background: var(--bg); position: sticky; top: 0; z-index: 5; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.01em; }
-  .logo { width: 30px; height: 30px; border-radius: 9px; background: var(--accent); color: var(--accent-ink);
-          display: grid; place-items: center; font-size: 15px; font-weight: 800; }
-  .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; margin-top: -2px; }
-  .status { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+    font: 15px/1.65 "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Hiragino Sans", sans-serif; }
+  button, textarea { font: inherit; }
+  button { -webkit-tap-highlight-color: transparent; }
+  button:focus-visible, [role="button"]:focus-visible, summary:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; }
+  [hidden] { display: none !important; }
+  header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    padding: 17px max(22px, calc((100vw - 1000px)/2)); border-bottom: 1px solid var(--line); background: var(--bg); z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 750; letter-spacing: -.04em; font-size: 18px; flex-shrink: 0; }
+  .logo { width: 36px; height: 38px; border-radius: 18px 18px 10px 10px; background: var(--accent-soft); color: var(--accent);
+    display: grid; place-items: center; font-family: Georgia, serif; font-size: 23px; font-weight: 500; }
+  .brand small { display: block; font-weight: 400; color: var(--muted); font-size: 10px; letter-spacing: .025em; margin-top: -4px; }
+  .header-note { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .status { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; max-width: 100%; }
+  .dot { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--muted); }
   .dot.on { background: var(--good); }
-  #thread { flex: 1; overflow-y: auto; padding: 24px 16px 140px; }
-  .wrap { max-width: 760px; margin: 0 auto; }
-  .hello { text-align: center; padding: 8vh 0 24px; }
-  .hello h1 { font-size: 28px; letter-spacing: -.02em; margin: 0 0 6px; }
-  .hello p { color: var(--muted); margin: 0 0 22px; }
-  .suggest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; text-align: left; }
-  @media (max-width: 600px) { .suggest { grid-template-columns: 1fr; } }
-  .suggest button { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px;
-                    color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; text-align: left; box-shadow: var(--shadow); }
-  .suggest button:hover { border-color: var(--accent); }
-  .suggest b { display: block; font-size: 12px; color: var(--accent); margin-bottom: 2px; }
-  .msg { display: flex; margin: 18px 0; }
+  #thread { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 20px 170px; scroll-behavior: smooth; }
+  .wrap { max-width: 720px; min-width: 0; margin: 0 auto; }
+  .hello { text-align: center; padding: 20px 0 12px; }
+  .mascot-slot { position: relative; width: 108px; height: 108px; margin: 0 auto 18px; display: grid; place-items: center;
+    background: radial-gradient(circle at 30% 20%, var(--surface), var(--hero)); border-radius: 46% 54% 45% 55%; }
+  .mascot-slot::after { content: "✦"; position: absolute; right: -8px; top: 4px; color: var(--accent); font-size: 20px; }
+  .mascot-slot img { width: 124px; height: 124px; object-fit: contain; position: absolute; inset: -8px; }
+  .gate-mark { width: 62px; height: 66px; color: var(--accent); }
+  .eyebrow { color: var(--accent); font-size: 10px; font-weight: 600; letter-spacing: .19em; margin-bottom: 9px; }
+  .hello h1 { font-size: clamp(28px, 4vw, 39px); line-height: 1.35; font-weight: 650; letter-spacing: -.045em; margin: 0 0 12px; }
+  .hello h1 em { font-style: normal; color: var(--accent); }
+  .hello p { color: var(--muted); margin: 0 auto 24px; font-size: 14px; max-width: 460px; word-break: keep-all; }
+  .suggest-label { text-align: left; font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+  .suggest { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; text-align: left; }
+  .suggest button { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 17px 34px 18px 18px;
+    color: var(--ink); font-size: 14px; line-height: 1.55; cursor: pointer; text-align: left; box-shadow: var(--shadow); min-width: 0;
+    transition: border-color .2s, background .2s; overflow-wrap: anywhere; }
+  .suggest button::after { content: "↗"; position: absolute; right: 15px; top: 17px; color: var(--accent); }
+  .suggest button:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .suggest b { display: block; font-size: 10px; font-weight: 550; color: var(--accent); margin-bottom: 9px; }
+  .hello .languages { font-size: 10px; letter-spacing: .07em; margin: 20px auto 0; }
+  .msg { display: flex; margin: 25px 0; min-width: 0; }
   .msg.user { justify-content: flex-end; }
-  .bubble { max-width: 85%; padding: 10px 14px; border-radius: 18px; white-space: pre-wrap; word-break: break-word; }
-  .user .bubble { background: var(--user); color: var(--user-ink); border-bottom-right-radius: 6px; }
-  .bot { flex-direction: column; gap: 10px; }
-  .bot .bubble { background: transparent; padding: 0; max-width: 100%; }
-  .avatar { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-  .avatar .logo { width: 22px; height: 22px; border-radius: 7px; font-size: 11px; }
-  .steps { list-style: none; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px;
-           background: var(--surface); font-size: 13px; color: var(--muted); }
-  .steps li { display: flex; gap: 8px; align-items: center; padding: 2px 0; }
+  .bubble { max-width: 88%; padding: 13px 18px; border-radius: 22px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .user .bubble { background: var(--user); color: var(--user-ink); border-bottom-right-radius: 7px; }
+  .bot { flex-direction: column; gap: 13px; }
+  .bot .bubble { background: var(--surface); border: 1px solid var(--line); max-width: 100%; margin-bottom: 14px; }
+  .card .bubble { border: 0; padding: 0; margin-bottom: 0; background: transparent; }
+  .body { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  .body > .bubble { margin-bottom: 0; }
+  .avatar { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--muted); }
+  .avatar .logo { width: 25px; height: 27px; border-radius: 14px 14px 8px 8px; font-size: 16px; }
+  .steps { list-style: none; margin: 0; padding: 13px 16px; border: 1px solid var(--line); border-radius: 16px;
+    background: var(--surface); font-size: 12px; color: var(--muted); }
+  .steps li { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
   .steps li::before { content: "○"; width: 14px; text-align: center; }
   .steps li.done { color: var(--ink); }
   .steps li.done::before { content: "✓"; color: var(--good); }
   .steps li.run::before { content: "◌"; color: var(--accent); animation: spin 1s linear infinite; }
   .steps li.block { color: var(--bad); }
-  .steps li.block::before { content: "⛔"; }
+  .steps li.block::before { content: "!"; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; box-shadow: var(--shadow); }
-  .card h3 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: .02em; }
-  .verdict { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; }
+  @keyframes breathe { 50% { opacity: .35; transform: translateY(-3px); } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 23px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+  .card h3 { margin: 0 0 15px; font-size: 14px; color: var(--ink); font-weight: 600; letter-spacing: -.02em; }
+  .card h3 .subtitle { font-size: 11px; color: var(--muted); font-weight: 400; margin-left: 6px; }
+  .verdict { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 20px; font-size: 13px; overflow-wrap: anywhere; }
   .verdict.ok { background: var(--good-soft); color: var(--good); }
-  .verdict.no { background: var(--bad-soft); color: var(--bad); }
-  .verdict .icon { font-size: 20px; line-height: 1.2; }
-  .verdict small { display: block; color: var(--muted); margin-top: 2px; }
-  .products { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x mandatory; }
-  .product { flex: 0 0 210px; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: var(--bg); }
-  .product .rank { font-size: 11px; color: var(--accent); font-weight: 700; }
-  .product .name { font-weight: 600; margin: 2px 0; }
-  .product .en { font-size: 12px; color: var(--muted); }
-  .product .price { margin-top: 6px; font-variant-numeric: tabular-nums; }
-  .product .why { font-size: 12px; color: var(--muted); margin-top: 6px; }
-  .route { list-style: none; margin: 0; padding: 0; position: relative; }
-  .route li { display: grid; grid-template-columns: 96px 1fr; gap: 10px; padding: 8px 0; }
-  .route .t { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+  .verdict.no { background: var(--warn-soft); color: var(--warn); }
+  .verdict .icon { font-size: 15px; line-height: 24px; flex: 0 0 24px; text-align: center; border: 1px solid currentColor; border-radius: 50%; }
+  .verdict small { display: block; color: var(--muted); margin-top: 4px; }
+  .products { display: flex; gap: 12px; overflow-x: auto; padding: 1px 1px 8px; scroll-snap-type: x mandatory; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  .product { flex: 0 0 215px; scroll-snap-align: start; border: 1px solid var(--line); border-radius: 18px; padding: 17px; background: var(--bg); overflow-wrap: anywhere; }
+  .product .rank { display: inline-block; font-size: 10px; color: var(--accent); background: var(--accent-soft); padding: 3px 8px; border-radius: 8px; margin-bottom: 13px; font-weight: 600; }
+  .product .name { font-weight: 650; margin: 2px 0; font-size: 15px; }
+  .product .en { font-size: 11px; color: var(--muted); }
+  .product .price { margin-top: 14px; font-size: 17px; font-weight: 550; font-variant-numeric: tabular-nums; }
+  .product .why { font-size: 12px; color: var(--muted); margin-top: 9px; }
+  .route { list-style: none; margin: 0; padding: 0; }
+  .route li { display: grid; grid-template-columns: 79px minmax(0, 1fr); gap: 16px; padding: 0; font-size: 14px; }
+  .route li > span:last-child { border-left: 1px solid var(--line); padding: 0 0 23px 18px; position: relative; overflow-wrap: anywhere; }
+  .route li > span:last-child::before { content: ""; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; position: absolute; top: 8px; left: -4px; }
+  .route li:last-child > span:last-child { padding-bottom: 0; }
+  .route .t { font-variant-numeric: tabular-nums; color: var(--accent); font-size: 11px; padding-top: 3px; }
   .route .exp { color: var(--accent); }
-  .route small { color: var(--muted); display: block; }
-  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
-  .staff { font-size: 18px; line-height: 1.75; padding: 16px; border: 2px dashed var(--accent); border-radius: 14px;
-           background: var(--accent-soft); white-space: pre-wrap; cursor: zoom-in; }
-  .staff.big { position: fixed; inset: 0; z-index: 20; font-size: 30px; border-radius: 0; overflow: auto; padding: 48px 32px; cursor: zoom-out; }
-  details { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 10px 14px; }
-  summary { cursor: pointer; font-size: 14px; font-weight: 600; }
+  .route small { color: var(--muted); display: block; font-size: 12px; margin-top: 3px; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 12px; overflow-wrap: anywhere; }
+  .staff { font-size: 17px; line-height: 1.8; padding: 21px; border: 1px dashed var(--accent); border-radius: 18px;
+    background: var(--accent-soft); white-space: pre-wrap; overflow-wrap: anywhere; cursor: zoom-in; }
+  .staff.big { position: fixed; inset: 0; z-index: 20; font-size: clamp(22px, 4vw, 32px); border: 0; border-radius: 0; overflow: auto; padding: 85px max(24px, calc((100vw - 760px)/2)) 40px; cursor: zoom-out; }
+  .staff-close { position: fixed; top: 20px; right: 20px; z-index: 21; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 30px; padding: 10px 18px; cursor: pointer; }
+  body.staff-open #thread { overflow: hidden; }
+  details { border: 1px solid var(--line); border-radius: 18px; background: var(--surface); padding: 15px 18px; overflow-wrap: anywhere; }
+  summary { cursor: pointer; font-size: 13px; font-weight: 600; }
   summary .count { font-weight: 400; color: var(--muted); }
-  .flist { margin: 10px 0 0; padding-left: 18px; font-size: 13px; }
-  .flist li { margin-bottom: 6px; }
-  .tag { display: inline-block; font-size: 11px; padding: 0 7px; border-radius: 999px; margin-right: 4px;
-         background: var(--warn-soft); color: var(--warn); }
+  .flist { margin: 10px 0 0; padding-left: 18px; font-size: 12px; }
+  .flist li { margin-bottom: 7px; }
+  .tag { display: inline-block; font-size: 10px; padding: 1px 8px; border-radius: 999px; margin-right: 4px; background: var(--warn-soft); color: var(--warn); }
   .tag.bad { background: var(--bad-soft); color: var(--bad); }
   .tag.ok { background: var(--good-soft); color: var(--good); }
-  .saved { font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); }
+  .saved { font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--muted); overflow-wrap: anywhere; }
   .log { margin-top: 10px; font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--bad-soft); color: var(--bad);
-         padding: 10px 12px; border-radius: 10px; white-space: pre-wrap; word-break: break-all; }
-  .meta { font-size: 11px; color: var(--muted); }
-  .composer { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
-              background: linear-gradient(to top, var(--bg) 70%, transparent); }
-  .composer form { max-width: 760px; margin: 0 auto; display: flex; gap: 8px; align-items: flex-end; background: var(--surface);
-                   border: 1px solid var(--line); border-radius: 22px; padding: 8px 8px 8px 16px; box-shadow: var(--shadow); }
-  .composer textarea { flex: 1; border: 0; outline: 0; resize: none; background: transparent; color: var(--ink);
-                       font: inherit; max-height: 160px; padding: 6px 0; }
-  .composer button { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
-                     font-size: 18px; cursor: pointer; flex: 0 0 auto; }
-  .composer button:disabled { opacity: .4; cursor: default; }
+    padding: 13px; border-radius: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .meta { font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+  .composer { position: fixed; left: 0; right: 0; bottom: 0; padding: 24px 20px calc(15px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 74%, transparent); z-index: 6; }
+  .composer form { max-width: 720px; margin: 0 auto; display: flex; gap: 10px; align-items: flex-end; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 25px; padding: 10px 10px 10px 19px; box-shadow: var(--shadow); }
+  .composer form:focus-within { border-color: var(--accent); }
+  .composer textarea { flex: 1; min-width: 0; border: 0; outline: 0; resize: none; background: transparent; color: var(--ink);
+    font: inherit; font-size: 16px; max-height: 160px; padding: 7px 0; }
+  .composer textarea::placeholder { color: var(--muted); font-size: 14px; }
+  .composer button { width: 42px; height: 42px; border-radius: 50%; border: 0; background: var(--accent); color: var(--accent-ink);
+    font-size: 22px; cursor: pointer; flex: 0 0 auto; }
+  .composer button:disabled { opacity: .45; cursor: default; }
+  .composer-caption { text-align: center; font-size: 10px; color: var(--muted); margin: 8px 0 0; }
   .bs { display: none !important; }
   body.backstage .bs { display: block !important; }
-  body.backstage .steps.bs { display: block !important; }
-  .friendly { font-size: 13px; color: var(--muted); }
+  body.backstage .header-note { display: none; }
+  .friendly { display: flex; gap: 9px; align-items: center; font-size: 12px; color: var(--muted); }
+  .loading-petal { flex-shrink: 0; color: var(--accent); font-size: 18px; animation: breathe 1.4s ease-in-out infinite; }
   body.backstage .friendly { display: none; }
-  .backstage-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--bad-soft); color: var(--bad); margin-left: 8px; }
+  .backstage-badge { font-size: 10px; padding: 3px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
   .profile-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .profile-chips span { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+  .profile-chips span { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  @media (max-width: 420px) {
+    header { padding: 14px 18px; gap: 9px; }
+    .brand { font-size: 16px; }
+    .header-note { font-size: 10px; }
+    #thread { padding: 14px 16px 158px; }
+    .hello { padding-top: 13px; }
+    .mascot-slot { width: 88px; height: 88px; margin-bottom: 15px; }
+    .mascot-slot img { width: 104px; height: 104px; }
+    .hello p { font-size: 12px; margin-bottom: 21px; }
+    .suggest { gap: 9px; }
+    .suggest button { padding: 14px 27px 15px 13px; font-size: 12px; border-radius: 17px; }
+    .suggest button::after { right: 11px; top: 12px; }
+    .card { padding: 16px; border-radius: 20px; }
+    .staff { font-size: 16px; padding: 16px; }
+    .composer { padding-left: 16px; padding-right: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><div class="logo">K</div><div>K-BeautyGate<small>진짜 K-뷰티로 가는 관문</small></div></div>
-  <div class="status"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span><span class="backstage-badge bs" style="display:none">BACKSTAGE · 발표용</span></div>
+  <span class="header-note">나만의 뷰티 여행</span>
+  <div class="status bs"><span class="dot" id="dot"></span><span id="statusText">연결 확인 중</span><span class="backstage-badge bs">BACKSTAGE · 발표용</span></div>
 </header>
 
-<div id="thread"><div class="wrap" id="wrap">
+<main id="thread" aria-label="뷰티 여행 대화"><div class="wrap" id="wrap">
   <div class="hello" id="hello">
-    <h1>어떤 K-뷰티 하루를 원하세요?</h1>
-    <p>피부 고민, 일정, 가고 싶은 동네를 편하게 말해 주세요. 한국어 · English · 日本語 · 中文</p>
-    <div class="suggest">
-      <button data-q="敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ『ソウルの春の日』のヒロインのメイクがしたい！あと「Seoul Glow Snail 99% Miracle Essence」って本物の韓国コスメ？"><b>日本語</b>敏感肌の私に合うソウルのコスメ旅、ドラマのメイクも</button>
-      <button data-q="I have combination skin with dullness and pores. Budget about $50, I'm in Myeongdong and Seongsu on Oct 7 from 1pm to 7pm. Is 'K-Skin Gangnam Collagen Mask (10ea)' a real Korean brand?"><b>English</b>Combination skin, $50, and is this mask really Korean?</button>
-      <button data-q="건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만원 안에서 살 만한 거 추천해 주세요."><b>한국어</b>건성 피부, 명동에서 5만 원으로 하루</button>
-      <button data-q="공통 테스트: 해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."><b>공통 테스트</b>해담 옛시장 · 성진정 반나절 문화 코스</button>
+    <div class="mascot-slot" aria-hidden="true">
+      <svg class="gate-mark" viewBox="0 0 64 70" fill="none"><path d="M12 61V29a20 20 0 0 1 40 0v32M6 61h52M24 61V34a8 8 0 0 1 16 0v27M8 22h48M18 15h28" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="m32 1 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="currentColor"/></svg>
+      <img id="mascot" src="/assets/mascot.png" alt="" hidden>
     </div>
+    <div class="eyebrow">YOUR BEAUTY, YOUR SEOUL</div>
+    <h1>나에게 맞는 뷰티,<br><em>나만의 서울.</em></h1>
+    <p>좋아하는 것부터 피부 고민까지, 편하게 말해 주세요.<br>진짜 K-뷰티와 함께할 하루를 찾아드릴게요.</p>
+    <div class="suggest-label">이렇게 시작해 볼까요?</div>
+    <div class="suggest">
+      <button data-q="敏感肌で赤みと乾燥が気になります。香料とアルコールは避けたいです。10月7日の午後1時から7時まで、ソンスと明洞で予算8万ウォン。ドラマ『ソウルの春の日』のヒロインのメイクがしたい！あと「Seoul Glow Snail 99% Miracle Essence」って本物の韓国コスメ？"><b>日本語 · 코스 추천</b>敏感肌の私にぴったりな<br>コスメ旅がしたい</button>
+      <button data-q="I have combination skin with dullness and pores. Budget about $50, I'm in Myeongdong and Seongsu on Oct 7 from 1pm to 7pm. Is 'K-Skin Gangnam Collagen Mask (10ea)' a real Korean brand?"><b>English · 제품 확인</b>Is this really K-beauty?<br>Help me find my match.</button>
+      <button data-q="건성 피부라 건조함이 제일 고민이에요. 10월 7일 오후 2시부터 6시까지 명동에서 5만원 안에서 살 만한 거 추천해 주세요."><b>한국어 · 맞춤 쇼핑</b>건조한 내 피부를 위한<br>명동 뷰티 산책</button>
+      <button data-q="공통 테스트: 해담 옛시장과 성진정을 포함해 해외 방문객 반나절 문화 코스를 초안으로 정리해 주세요. 음식 제한과 당일 운영 정보도 반영하되, 아직 어디에도 예약하거나 보내지는 마세요."><b>문화 산책</b>옛시장과 성진정에서<br>여유로운 반나절</button>
+    </div>
+    <p class="languages">한국어 · English · 日本語 · 中文</p>
   </div>
-</div></div>
+</div></main>
 
 <div class="composer"><form id="composer">
-  <textarea id="input" rows="1" placeholder="메시지를 입력하세요"></textarea>
+  <textarea id="input" rows="1" placeholder="어떤 뷰티 여행을 꿈꾸세요?" aria-label="메시지"></textarea>
   <button id="send" type="submit" aria-label="보내기">↑</button>
-</form></div>
+</form><p class="composer-caption">내 취향으로 고르고, 한국어 카드로 편하게.</p></div>
+<button class="staff-close" id="staffClose" type="button" hidden>닫기 ×</button>
 
 <script>
 const $ = (s, el = document) => el.querySelector(s);
 const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const md = (t) => esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/^#{1,3} (.*)$/gm, "<strong>$1</strong>");
 const wrap = $("#wrap"), thread = $("#thread"), input = $("#input"), send = $("#send");
-let state = null, busy = false;
-// 사용자 화면은 결과만, ?backstage=1 (발표용)은 판단 근거·차단 로그·저장 경로까지 보여 준다.
-if (new URLSearchParams(location.search).has("backstage")) document.body.classList.add("backstage");
-
+const BACKSTAGE = new URLSearchParams(location.search).get("backstage") === "1";
+document.body.classList.toggle("backstage", BACKSTAGE);
+let state = null, busy = false, activeStaff = null;
+const modelNames = new Set();
+const TECHNICAL = /\b(?:DENIED|OpenShell|Nemotron|NVIDIA|Brev|offline|API|LLM|demo-model)\b|규칙\s*기반|하네스|임베딩|모델(?:명|\s)|앱\s*가드|(?:hackathon|workspace|public|beauty|history|culture|travel|local|operations|people|restricted|secrets)[/\\]|(?:\/Users\/|\/tmp\/|\.env\b)|[\w.-]+\.(?:md|jsonl?|csv|ya?ml|py|txt)\b/i;
+function publicText(value, fallback = "") {
+  const raw = String(value ?? "");
+  if (BACKSTAGE) return raw || fallback;
+  let sourceSection = false;
+  const withoutCitations = raw.replace(/[([]\/?(?:[\w.-]+\/)+[\w.-]+\.(?:md|txt|jsonl?|csv|ya?ml|py)(?::[\d–, -]+)?[)\]]/gi, "");
+  const clean = withoutCitations.split("\n").filter((line) => {
+    if (/^#{1,4}\s/.test(line)) sourceSection = /^#{1,4}\s*(?:사용한 근거 자료|사용 근거|근거 자료|출처|저장 위치|처리 단계|실행 범위|배제한 자료|차단 로그)\s*$/.test(line);
+    return !sourceSection && !TECHNICAL.test(line) && ![...modelNames].some((model) => model && line.toLowerCase().includes(model.toLowerCase()));
+  }).join("\n").trim();
+  return clean.split("\n").some((line) => line.trim() && !/^#{1,4}\s/.test(line)) ? clean : fallback;
+}
+const shown = (value, fallback = "") => esc(publicText(value, fallback));
 const SKIN = { combination: "복합성", dry: "건성", oily: "지성", sensitive: "민감성", normal: "중성" };
 const CONCERN = { redness: "붉어짐", dryness: "건조", dullness: "칙칙함", pores: "모공" };
+const mascot = $("#mascot");
+const showMascot = () => { mascot.hidden = false; $(".gate-mark").setAttribute("hidden", ""); };
+mascot.addEventListener("load", showMascot);
+mascot.addEventListener("error", () => { mascot.hidden = true; });
+if (mascot.complete && mascot.naturalWidth) showMascot();
 
-fetch("/api/status").then((r) => r.json()).then((s) => {
+fetch("/api/status").then((r) => { if (!r.ok) throw new Error("status"); return r.json(); }).then((s) => {
+  [...(s.chat_models || []), s.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
   $("#dot").classList.toggle("on", s.online);
-  $("#statusText").textContent = (s.online ? "Nemotron 연결됨" : "오프라인 · 규칙 기반") +
-    (s.openshell ? " · OpenShell 정책 적용" : " · 앱 가드 (OpenShell 데모는 Brev)");
-});
+  $("#statusText").textContent = (s.online ? "NVIDIA 추론 설정 있음" : "추론 설정 없음") +
+    (s.openshell ? " · 실행 환경 표시: OpenShell (적용 증거 별도 확인)" : " · 앱 가드 · OpenShell 실행은 별도 확인");
+}).catch(() => { $("#statusText").textContent = "연결 상태를 확인하지 못했습니다."; });
 
 const scrollDown = () => thread.scrollTo({ top: thread.scrollHeight, behavior: "smooth" });
 input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 160) + "px"; });
@@ -164,115 +236,109 @@ input.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey 
 document.querySelectorAll(".suggest button").forEach((b) => b.onclick = () => ask(b.dataset.q));
 $("#composer").onsubmit = (e) => { e.preventDefault(); ask(input.value); };
 
+function closeStaff() {
+  if (!activeStaff) return;
+  const previous = activeStaff;
+  previous.classList.remove("big"); previous.setAttribute("aria-expanded", "false");
+  activeStaff = null; $("#staffClose").hidden = true; document.body.classList.remove("staff-open");
+  $("header").inert = false; $(".composer").inert = false;
+  previous.focus();
+}
+function openStaff(card) {
+  if (activeStaff === card) { closeStaff(); return; }
+  closeStaff(); activeStaff = card; card.classList.add("big"); card.setAttribute("aria-expanded", "true");
+  document.body.classList.add("staff-open"); $("#staffClose").hidden = false;
+  $("header").inert = true; $(".composer").inert = true; $("#staffClose").focus();
+}
+$("#staffClose").onclick = closeStaff;
+document.addEventListener("keydown", (e) => {
+  if (!activeStaff) return;
+  if (e.key === "Escape") { e.preventDefault(); closeStaff(); }
+  if (e.key === "Tab") { e.preventDefault(); (document.activeElement === activeStaff ? $("#staffClose") : activeStaff).focus(); }
+});
+function bindStaff(el) {
+  el.querySelectorAll(".staff").forEach((card) => {
+    card.tabIndex = 0; card.setAttribute("role", "button"); card.setAttribute("aria-label", "한글 카드 크게 보기"); card.setAttribute("aria-expanded", "false");
+    card.onclick = () => openStaff(card);
+    card.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openStaff(card); } };
+  });
+}
 function addUser(text) {
   $("#hello")?.remove();
-  wrap.insertAdjacentHTML("beforeend", `<div class="msg user"><div class="bubble">${esc(text)}</div></div>`);
+  wrap.insertAdjacentHTML("beforeend", `<div class="msg user"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
 }
-
-const STEPS = ["요청 이해 · Nemotron이 프로필 추출", "자료 수집 · /hackathon/input 읽기 전용",
-               "신뢰성 판단 · 광고 · 지난 행사 · 위장 K-뷰티 · 숨은 지시", "맞춤 추천 · Nemotron Embed 관련도", "동선 · 한글 카드 · 답변 작성"];
-
+const STEPS = ["요청 이해 · 프로필 추출", "자료 수집 · 허용된 입력 범위", "신뢰성 판단 · 광고 · 지난 정보 · 숨은 지시", "맞춤 추천", "동선 · 한글 카드 · 답변 작성"];
 function addBot() {
   const el = document.createElement("div");
   el.className = "msg bot";
-  el.innerHTML = `<div class="avatar"><div class="logo">K</div>K-BeautyGate</div>
-    <div class="friendly">진짜 K-뷰티만 골라 하루 코스를 짜는 중이에요…</div>
-    <ul class="steps bs">${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
+  el.innerHTML = `<div class="avatar"><div class="logo">K</div>나만의 K-BeautyGate</div>
+    <div class="friendly" role="status"><span class="loading-petal" aria-hidden="true">✿</span>진짜 K-뷰티만 골라 코스를 짜는 중이에요…</div>
+    <ul class="steps bs"><li class="meta">처리 순서 안내 · 실시간 실행 로그가 아닙니다</li>${STEPS.map((s) => `<li>${esc(s)}</li>`).join("")}</ul><div class="body"></div>`;
   wrap.appendChild(el);
-  const items = [...el.querySelectorAll(".steps li")];
-  let i = 0;
-  items[0].className = "run";
-  const timer = setInterval(() => {
-    if (i < items.length - 1) { items[i].className = "done"; i++; items[i].className = "run"; }
-  }, 1400);
   return { el, finish(blocked) {
-    clearInterval(timer);
     el.querySelector(".friendly")?.remove();
-    items.forEach((li) => li.className = "done");
-    if (blocked) el.querySelector(".steps").insertAdjacentHTML("beforeend",
-      `<li class="block">OpenShell · 앱 가드가 숨은 지시 ${blocked}건 차단</li>`);
+    if (blocked) el.querySelector(".steps").insertAdjacentHTML("beforeend", `<li class="block">자료 속 실행 지시 ${blocked}건을 따르지 않음 · 앱 판단 기록</li>`);
   } };
 }
-
 async function ask(text) {
   text = (text || "").trim();
   if (!text || busy) return;
   busy = true; send.disabled = true; input.value = ""; input.style.height = "auto";
-  addUser(text);
-  const bot = addBot();
-  scrollDown();
+  addUser(text); const bot = addBot(); scrollDown();
   try {
-    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" },
-                                           body: JSON.stringify({ message: text, state }) });
+    const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state }) });
     const data = await res.json();
-    if (data.error) throw new Error(data.error);
+    if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
+    if (!data.turn || !data.result) throw new Error("응답 형식을 확인해 주세요.");
     if (data.turn.mode === "beauty") state = data.turn.profile;
     bot.finish((data.result.blocked || []).filter((e) => e.action === "follow-instruction").length);
     bot.el.querySelector(".body").innerHTML = data.turn.mode === "beauty" ? beauty(data) : culture(data);
-    bot.el.querySelectorAll(".staff").forEach((s) => s.onclick = () => s.classList.toggle("big"));
+    bindStaff(bot.el);
   } catch (err) {
     bot.finish(0);
-    bot.el.querySelector(".body").innerHTML = `<div class="log">${esc(err.message)}</div>`;
+    bot.el.querySelector(".body").innerHTML = `<div class="bubble" role="alert">잠시 답변을 가져오지 못했어요. 조금 뒤에 다시 이야기해 주세요.</div><div class="log bs">${esc(err.message)}</div>`;
   } finally {
-    busy = false; send.disabled = false; input.focus(); scrollDown();
+    busy = false; send.disabled = false;
+    if (window.matchMedia("(min-width: 700px)").matches) input.focus();
+    scrollDown();
   }
 }
-
 function filtered(items) {
-  return `<ul class="flist">${items.map((d) => `<li>${(d.flags || []).map((f) =>
-    `<span class="tag ${/injection|disguised/.test(f) ? "bad" : ""}">${esc(f)}</span>`).join("")}<strong>${esc(d.target || d.product)}</strong><br>
-    <span class="meta">${esc((d.reasons || [d.reason]).join(" / "))}</span></li>`).join("")}</ul>`;
+  return `<ul class="flist">${items.map((d) => `<li>${(d.flags || []).map((f) => `<span class="tag ${/injection|disguised/.test(f) ? "bad" : ""}">${esc(f)}</span>`).join("")}<strong>${esc(d.target || d.product)}</strong><br><span class="meta">${esc((d.reasons || [d.reason]).filter(Boolean).join(" / "))}</span></li>`).join("")}</ul>`;
 }
-
 function savedBox(paths) {
   if (!paths?.length) return "";
   return `<div class="card bs"><h3>저장 위치 · 초안만 저장, 외부 발송 없음</h3><div class="saved">${paths.map(esc).join("<br>")}</div></div>`;
 }
-
 function blockedBox(events) {
   if (!events?.length) return "";
-  return `<details class="bs"><summary>차단한 행동 <span class="count">${events.length}건 · OpenShell 정책 + 앱 가드</span></summary>
-    <div class="log">${events.map((e) => esc(`DENIED ${e.action} → ${e.target}\n  ${e.reason}`)).join("\n")}</div></details>`;
+  return `<details class="bs"><summary>따르지 않은 행동 <span class="count">${events.length}건 · 앱 판단 기록</span></summary><div class="log">${events.map((e) => esc(`DENIED ${e.action} → ${e.target}\n  ${e.reason}`)).join("\n")}</div><div class="note">OpenShell의 실제 강제 차단 여부는 별도 실행 기록에서 확인합니다.</div></details>`;
 }
-
 function beauty({ turn, result: r }) {
-  const p = turn.profile;
-  const chips = [SKIN[p.skin_type] && SKIN[p.skin_type] + " 피부", ...(p.concerns || []).map((c) => CONCERN[c] || c),
-    ...(p.avoid_ingredients || []).map((a) => a + " 제외"), p.budget_krw && `${Number(p.budget_krw).toLocaleString()}원`,
-    p.visit_date, p.time_window, (p.areas || []).join(" → ")].filter(Boolean);
-  const bad = r.trust.documents.filter((x) => !x.trusted && x.target.startsWith("beauty/"))
-    .concat(r.trust.products.filter((x) => !x.trusted), r.excluded_by_profile);
-  const reply = r.summary || "Nemotron 연결 없이 규칙 기반으로 플랜을 만들었어요. 아래 카드를 확인해 주세요.";
-  return `
-  <div class="profile-chips">${chips.map((c) => `<span>${esc(c)}</span>`).join("")}</div>
-  <div class="bubble">${esc(reply)}</div>
-  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span>
-    <div><strong>${esc(c.target)}</strong> · ${c.trusted ? "공식 유통이 확인된 정품" : "위장 K-뷰티 의심 · 구매 비추천"}<small class="bs">${esc(c.reasons.join(" / "))}</small></div></div>`).join("")}
-  <div class="card"><h3>추천 제품</h3><div class="products">${r.recommendations.map((x) => `
-    <div class="product"><div class="rank">#${x.rank}</div><div class="name">${esc(x.name_ko)}</div><div class="en">${esc(x.name)}</div>
-    <div class="price">${x.price_krw.toLocaleString()}원</div><div class="why">${esc(x.why.join(" · "))}</div></div>`).join("")}</div></div>
-  <div class="card"><h3>하루 동선</h3><ul class="route">${r.route.map((s) => `
-    <li><span class="t">${s.time}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${esc(s.name)}</span> · ${esc(s.area)}<small>${esc(s.note)}</small></span></li>`).join("")}</ul>
-    ${r.notices_applied.length ? `<div class="note">반영한 공지 · ${esc(r.notices_applied.join("; "))}</div>` : ""}</div>
-  <div class="card"><h3>매장 직원에게 보여 주세요 · 눌러서 크게</h3><div class="staff">${md(r.staff_card)}</div></div>
-  <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 하네스</span></summary>${filtered(bad)}</details>
-  ${blockedBox(r.blocked)}
-  ${savedBox(r.saved)}
-  <div class="meta bs">${esc(r.nvidia.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model}` : "offline")}</div>`;
+  const p = turn.profile || {};
+  [r.nvidia?.chat_model, r.nvidia?.embed_model].filter(Boolean).forEach((name) => modelNames.add(name));
+  const chips = [SKIN[p.skin_type] && SKIN[p.skin_type] + " 피부", ...(p.concerns || []).map((c) => CONCERN[c] || c), ...(p.avoid_ingredients || []).map((a) => a + " 제외"), p.budget_krw && `${Number(p.budget_krw).toLocaleString()}원`, p.visit_date, p.time_window, (p.areas || []).join(" → ")].filter(Boolean);
+  const bad = (r.trust?.documents || []).filter((x) => !x.trusted && (x.target || "").startsWith("beauty/")).concat((r.trust?.products || []).filter((x) => !x.trusted), r.excluded_by_profile || []);
+  const reply = publicText(r.summary, "피부 고민과 여행 일정에 맞춰 골랐어요. 마음에 드는 제품과 오늘의 코스를 살펴보세요.");
+  const notices = (r.notices_applied || []).map((n) => publicText(n)).filter(Boolean);
+  return `<div class="bubble">${esc(reply)}</div>
+  <div class="profile-chips">${chips.map((c) => publicText(c)).filter(Boolean).map((c) => `<span>${esc(c)}</span>`).join("")}</div>
+  ${(r.authenticity_checks || []).map((c) => `<div class="verdict ${c.trusted ? "ok" : "no"}"><span class="icon">${c.trusted ? "✓" : "!"}</span><div><strong>${shown(c.target, "제품 확인")}</strong><br>${c.trusted ? "자료에서 확인한 K-뷰티예요" : "구매 전에 한 번 더 확인해 주세요"}<small class="bs">${esc((c.reasons || []).join(" / "))}</small></div></div>`).join("")}
+  <div class="card"><h3>나를 위한 뷰티 픽 <span class="subtitle">옆으로 넘겨 보세요</span></h3><div class="products">${(r.recommendations || []).map((x) => `<div class="product"><div class="rank">PICK ${esc(x.rank)}</div><div class="name">${shown(x.name_ko, "추천 제품")}</div><div class="en">${shown(x.name)}</div><div class="price">${Number(x.price_krw || 0).toLocaleString()}원</div><div class="why">${shown((x.why || []).join("\n"), "내 취향과 조건에 맞춰 골랐어요.")}</div></div>`).join("") || '<div class="note">조건에 맞는 제품을 아직 찾지 못했어요. 원하는 조건을 조금 더 알려주세요.</div>'}</div></div>
+  <div class="card"><h3>오늘의 뷰티 산책</h3><ul class="route">${(r.route || []).map((s) => `<li><span class="t">${shown(s.time)}</span><span><span class="${s.kind === "experience" ? "exp" : ""}">${shown(s.name, "방문 장소")}</span> · ${shown(s.area)}<small>${shown(s.note)}</small></span></li>`).join("")}</ul>${notices.length ? `<div class="note">방문 전에 확인해 주세요 · ${esc(notices.join("; "))}</div>` : ""}</div>
+  <div class="card"><h3>말이 통하는 한 장 <span class="subtitle">눌러서 크게 보기</span></h3><div class="staff">${md(publicText(r.staff_card, "매장에 전달할 조건을 다시 확인해 주세요."))}</div></div>
+  <details class="bs"><summary>걸러낸 정보 <span class="count">${bad.length}건 · 신뢰성 판단</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}
+  <div class="meta bs">${esc(r.nvidia?.online ? `${r.nvidia.chat_model} · ${r.nvidia.embed_model} (설정값 · 실제 호출 결과는 별도 확인)` : "offline")}</div>`;
 }
-
 function culture({ result: r }) {
-  const bad = r.trust.documents.filter((x) => !x.trusted && !x.target.startsWith("beauty/"));
-  return `
-  <div class="card"><h3>문화 코스 초안 · ${esc(r.visit_date)} · 예약·발송 없음</h3><div class="bubble">${md(r.draft)}</div></div>
-  <div class="card"><h3>음식 제한 한글 카드 · 눌러서 크게</h3><div class="staff">${md(r.food_cards)}</div></div>
-  ${Object.keys(r.uncertain).length ? `<details open><summary>근거 확실성 <span class="count">문장별 확정 · 추정 · 측정 중 · 판독 불확실</span></summary>
-    <ul class="flist">${Object.entries(r.uncertain).map(([k, v]) => `<li><strong>${esc(k)}</strong><br>${v.map((i) =>
-      `<span class="tag ${i.certainty === "확정" ? "ok" : ""}">${esc(i.certainty)}</span>${esc(i.sentence)}`).join("<br>")}</li>`).join("")}</ul>
-    ${(r.conflicts || []).length ? `<div class="note">${esc(r.conflicts.join(" / "))}</div>` : ""}</details>` : ""}
-  <details class="bs"><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>
-  ${blockedBox(r.blocked)}
-  ${savedBox(r.saved)}`;
+  const bad = (r.trust?.documents || []).filter((x) => !x.trusted && !(x.target || "").startsWith("beauty/"));
+  const uncertainty = Object.entries(r.uncertain || {});
+  const caveats = uncertainty.flatMap(([, items]) => (Array.isArray(items) ? items : []).filter((i) => i.certainty && i.certainty !== "확정").map((i) => publicText(`${i.certainty} · ${i.sentence}`))).filter(Boolean);
+  return `<div class="card"><h3>여유롭게 걷는 문화 산책 <span class="subtitle">${shown(r.visit_date)}</span></h3><div class="bubble">${md(publicText(r.draft, "코스 안내를 완성하지 못했어요. 다시 요청해 주세요. 음식 제한 카드는 아래에서 확인할 수 있어요."))}</div></div>
+  <div class="card"><h3>음식 취향을 전하는 한 장 <span class="subtitle">눌러서 크게 보기</span></h3><div class="staff">${md(publicText(r.food_cards, "음식 제한 정보를 다시 확인해 주세요."))}</div></div>
+  ${caveats.length && !BACKSTAGE ? `<div class="card"><h3>함께 알아두면 좋아요</h3><ul class="flist">${[...new Set(caveats)].map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : ""}
+  ${uncertainty.length ? `<details class="bs" open><summary>근거 확실성 <span class="count">문장별 확정 · 추정 · 측정 중 · 판독 불확실</span></summary><ul class="flist">${uncertainty.map(([k, v]) => `<li><strong>${esc(k)}</strong><br>${(Array.isArray(v) ? v : []).map((i) => `<span class="tag ${i.certainty === "확정" ? "ok" : ""}">${esc(i.certainty)}</span>${esc(i.sentence || i)}`).join("<br>")}</li>`).join("")}</ul>${(r.conflicts || []).length ? `<div class="note">${esc(r.conflicts.join(" / "))}</div>` : ""}</details>` : ""}
+  <details class="bs"><summary>걸러낸 자료 <span class="count">${bad.length}건</span></summary>${filtered(bad)}</details>${blockedBox(r.blocked)}${savedBox(r.saved)}`;
 }
 </script>
 </body>

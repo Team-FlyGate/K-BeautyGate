@@ -4,8 +4,10 @@
 이 모듈은 같은 경계를 앱 안에서도 한 번 더 지키고, 무엇을 왜 막았는지 감사 로그로 남긴다.
 """
 import json
+import os
 import re
 import time
+import urllib.request
 from pathlib import Path
 from typing import List, Optional
 
@@ -77,6 +79,23 @@ class SafeFS:
         self.audit.record("write", name, "ALLOWED", "결과물 저장")
         self.saved.append(str(target))
         return target
+
+    def probe_runtime(self, target: str, why: str) -> None:
+        """발표용(KBG_OPENSHELL_PROBE=1): 앱 가드를 건너뛰고 실제로 열어/보내 본다.
+
+        OpenShell 샌드박스 안이라면 런타임이 막고, 그 거부가 여기와 `openshell logs`에 함께 남는다.
+        파일은 열기만 하고 내용은 읽지 않으며, URL에는 본문 없이 HEAD 요청만 보낸다.
+        """
+        try:
+            if target.startswith("http") or ("." in target and not target.startswith("/")):
+                url = target if target.startswith("http") else f"https://{target}/"
+                urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=5).close()
+            else:
+                os.close(os.open(target, os.O_RDONLY))
+            self.audit.record("runtime-probe", target, "NOT_BLOCKED",
+                              f"{why} — 런타임 차단 없음(OpenShell 밖에서 실행 중). 내용은 읽지 않음")
+        except OSError as exc:
+            self.audit.record("runtime-probe", target, "DENIED", f"{why} — 열기·전송 실패(샌드박스에서는 OpenShell 거부): {exc}")
 
     def try_follow(self, instruction_target: str, source: str) -> None:
         """자료 속 지시가 가리키는 경로·URL은 열지 않고, 거부 기록만 남긴다."""
