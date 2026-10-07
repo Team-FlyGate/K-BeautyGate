@@ -12,6 +12,7 @@ from .collect import collect
 from .config import get_settings
 from .conversation import BEAUTY_WORDS, select_mode
 from .culture import culture_visit_date, food_card, run_culture
+from .fact_guard import BEAUTY_FIX, check_beauty
 from .followups import suggest
 from .guard import AuditLog, SafeFS
 from .request_guard import refusal_text, screen_request
@@ -191,6 +192,19 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
             notices=result["notices_applied"], caveats=result.get("route_skipped", []),
             proper_names=names,
         )
+    # "금지 성분 없음"을 "안전한 제품·기준 충족"으로 부풀린 문장은 사실 문장으로 바꾼다
+    summary_fixed, safety_hits = check_beauty(localized.get("summary", ""), language)
+    reasons_fixed = []
+    for row in localized.get("recommendation_reasons") or []:
+        fixed_row = []
+        for item in row:
+            fixed_item, item_hits = check_beauty(item, language)
+            safety_hits += item_hits
+            fixed_row.append(BEAUTY_FIX[language if language in BEAUTY_FIX else "en"] if item_hits else fixed_item)
+        reasons_fixed.append(fixed_row)
+    if safety_hits:
+        localized = {**localized, "summary": summary_fixed, "recommendation_reasons": reasons_fixed}
+        result["fact_guard"] = safety_hits
     note = refusal_text(result.get("refusals") or [], language)
     if note and not localized["summary"].startswith(note):
         localized = {**localized, "summary": f"{note} {localized['summary']}"}

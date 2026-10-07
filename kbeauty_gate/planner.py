@@ -31,13 +31,52 @@ def _avoided(product: Dict, avoid: List[str]) -> Optional[str]:
     return None
 
 
+# 요청 문장에서 제품 종류와 목적을 읽는다 (예: "진정 토너" → 토너만, 고민에 붉어짐 추가)
+CATEGORY_WORDS = {
+    "toner": r"토너|스킨|toner|トナー|化粧水|爽肤水|化妝水",
+    "cream": r"크림|cream|クリーム|面霜|乳霜",
+    "sunscreen": r"선크림|썬크림|선블록|자외선\s*차단|sunscreen|sunblock|spf|日焼け止め|防晒|防曬",
+    "mask": r"마스크\s*팩|시트\s*마스크|마스크팩|팩|sheet\s*mask|face\s*mask|マスク|パック|面膜",
+    "lip": r"립|lip|リップ|口红|口紅|唇",
+    "cushion": r"쿠션|cushion|クッション|气垫|氣墊",
+    "essence": r"에센스|essence|エッセンス|精华液|精華液",
+    "serum": r"세럼|앰플|serum|ampoule|美容液|精华|精華",
+    "gel": r"젤|gel|ジェル|凝胶|凝膠",
+}
+PURPOSE_WORDS = {
+    "redness": r"진정|붉|calm|sooth|redness|鎮静|赤み|镇静|鎮靜|泛红|泛紅",
+    "dryness": r"보습|수분|건조|moistur|hydrat|dry|保湿|乾燥|补水|補水",
+    "pores": r"모공|pore|毛穴|毛孔",
+    "dullness": r"미백|톤\s*업|칙칙|bright|dull|美白|くすみ|提亮",
+}
+
+
+def request_preferences(request: str) -> Tuple[set, set]:
+    cats = {c for c, pat in CATEGORY_WORDS.items() if re.search(pat, request or "", re.IGNORECASE)}
+    purposes = {c for c, pat in PURPOSE_WORDS.items() if re.search(pat, request or "", re.IGNORECASE)}
+    return cats, purposes
+
+
 def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tuple[List[Dict], List[Dict]]:
     """신뢰 통과한 제품만 받아 피부·고민·회피 성분·드라마 요청으로 점수를 매긴다."""
     ranked, excluded = [], []
     request = profile.get("request", "")
     wants_drama = bool(re.search(r"드라마|ドラマ|drama|剧", request, flags=re.IGNORECASE))
+    # 따옴표 속 제품명·정품 확인 대상(예: "Miracle Essence")은 '원하는 종류'로 읽지 않는다
+    plain = re.sub(r"[「『\"“'‘][^」』\"”'’]*[」』\"”'’]", " ", request)
+    for item in profile.get("check_items") or []:
+        plain = plain.replace(item, " ")
+    wanted_cats, purposes = request_preferences(plain)
+    if purposes - set(profile.get("concerns") or []):
+        profile = {**profile, "concerns": sorted(set(profile.get("concerns") or []) | purposes)}
+    # 요청한 종류가 후보에 있을 때만 종류로 거른다 (없으면 거르지 않고 그대로 추천)
+    if wanted_cats and not any(p.get("category") in wanted_cats for p in products):
+        wanted_cats = set()
 
     for p in products:
+        if wanted_cats and p.get("category") not in wanted_cats:
+            excluded.append({"product": p["name"], "reason": "요청한 제품 종류가 아님"})
+            continue
         if profile.get("avoid_ingredients") and not p.get("ingredients_verified", False):
             excluded.append({"product": p["name"], "reason": "전성분표가 확인되지 않아 회피 성분 여부 확인 필요"})
             continue
@@ -62,7 +101,9 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
             why.append(p["drama_ref"])
         # 고민을 말했으면 그 고민과 맞는 제품만, 아니면 피부 타입이 맞는 제품만 추천한다
         concerns = profile.get("concerns") or []
-        if concerns:
+        if wanted_cats:  # 종류를 콕 집어 말했으면 그 종류 안에서는 고민이 덜 맞아도 후보로 둔다
+            relevant = True
+        elif concerns:
             relevant = bool(overlap)
         elif skin:
             relevant = skin in p["skin_types"]
@@ -89,7 +130,7 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
                 continue
             if tw and kr_hits is None:
                 why.extend(regulatory.reasons_ko(tw))
-        ranked.append({"product": p, "score": score, "why": why})
+        ranked.append({"product": p, "score": score, "why": why, "fits_concern": bool(overlap)})
 
     query = f"{profile.get('skin_type')} skin, concerns {profile.get('concerns')}; {request}"
     passages = [f"{r['product']['name']} ({r['product']['category']}): "
@@ -102,6 +143,11 @@ def rank_products(products: List[Dict], profile: Dict, settings: Settings) -> Tu
             r["relevance"] = round((sim - lo) / (hi - lo + 1e-9), 3)
             r["score"] += 2 * r["relevance"]
 
+    # 종류를 말했고 그 종류 안에 고민(목적)까지 맞는 제품이 있으면 그것만 남긴다 ("진정 토너" → 모공 토너 제외)
+    if wanted_cats and (profile.get("concerns")) and any(r["fits_concern"] for r in ranked):
+        for r in [r for r in ranked if not r["fits_concern"]]:
+            excluded.append({"product": r["product"]["name"], "reason": "요청한 목적과 맞지 않음"})
+        ranked = [r for r in ranked if r["fits_concern"]]
     ranked.sort(key=lambda r: -r["score"])
     picked, total = [], 0
     for r in ranked:

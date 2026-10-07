@@ -120,3 +120,38 @@ def check_text(text: str, language: str = "ko") -> Tuple[str, List[Dict]]:
     body = "\n".join(u for u in kept).strip()
     body = re.sub(r"\n{3,}", "\n\n", body)
     return body + "\n\n" + "\n".join(f"- {f}" for f in fixes), hits
+
+
+# ---- K-뷰티 답변: "금지 성분 없음"을 "안전·기준 충족"으로 부풀린 표현 ----
+SAFETY_CLAIM = re.compile(
+    r"안전한\s*(제품|화장품|선택)|안전하게\s*(사용|쓰)|안심하고\s*(사용|쓰|바르)|"
+    r"(기준|규정|규제)(을|에|를)?\s*(충족|만족|부합|통과)|문제\s*없는\s*(제품|성분)|"
+    r"safe\s+(product|choice|to\s+use|for\s+your)|meets?\s+.{0,30}(standard|requirement|regulation)|"
+    r"(fully\s+)?compliant\s+with|"
+    r"安全な(製品|商品|化粧品|選択)|安心して(使え|使用|お使い)|基準を満た|基準に適合|"
+    r"安全的(产品|產品|化妆品|化妝品)|放心(使用|选购|選購)|符合.{0,12}(标准|標準|规定|規定)", re.IGNORECASE)
+BEAUTY_FIX = {
+    "ko": "확인한 공식 금지 성분 목록에 해당하는 성분은 없었어요. 피부에 맞는지는 사람마다 다르니 사용 전 테스트를 권해요.",
+    "en": "None of its ingredients appear on the official banned lists we checked. That is not a guarantee it suits your skin, so patch-test first.",
+    "ja": "確認した公的な禁止成分リストに該当する成分はありませんでした。肌に合うかは人それぞれなので、使う前にパッチテストをおすすめします。",
+    "zh-Hans": "成分不在我们核对的官方禁用成分清单中。这并不代表一定适合您的皮肤，使用前建议先做局部测试。",
+    "zh-Hant": "成分不在我們核對的官方禁用成分清單中。這並不代表一定適合您的皮膚，使用前建議先做局部測試。",
+}
+
+
+def check_beauty(text: str, language: str = "ko") -> Tuple[str, List[Dict]]:
+    """안전·기준 충족 단정 문장을 빼고, 사실만 말하는 문장 하나로 바꾼다."""
+    if not text:
+        return text, []
+    lang = language if language in BEAUTY_FIX else "en"
+    hits, kept = [], []
+    for unit in _units(text):
+        if SAFETY_CLAIM.search(unit) and not re.search(r"보장할\s*수\s*없|아니|not\s+a\s+guarantee|cannot|ではありません|不代表|不保证|不保證", unit, re.IGNORECASE):
+            hits.append({"rule": "safety_claim", "removed": unit.strip()})
+            continue
+        kept.append(unit)
+    if not hits:
+        return text, []
+    body = re.sub(r"\n{3,}", "\n\n", "\n".join(kept).strip())
+    sep = " " if body and "\n" not in body else "\n\n"
+    return (body + sep + BEAUTY_FIX[lang]).strip(), hits
