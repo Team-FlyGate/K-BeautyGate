@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/*.py": {
+      "maxDuration": 60,
+      "includeFiles": "{kbeauty_gate/**,hackathon/input/**,profiles/**,TASK.md}"
+    }
+  }
+}

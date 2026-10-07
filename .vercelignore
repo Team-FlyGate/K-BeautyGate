@@ -1,0 +1,5 @@
+.env
+workspace/
+hackathon/restricted/
+hackathon/secrets/
+hackathon/output/

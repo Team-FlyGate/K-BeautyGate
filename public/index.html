@@ -144,7 +144,8 @@ const CONCERN = { redness: "붉어짐", dryness: "건조", dullness: "칙칙함"
 
 fetch("/api/status").then((r) => r.json()).then((s) => {
   $("#dot").classList.toggle("on", s.online);
-  $("#statusText").textContent = s.online ? "Nemotron 연결됨 · OpenShell 정책 적용" : "오프라인 · 규칙 기반";
+  $("#statusText").textContent = (s.online ? "Nemotron 연결됨" : "오프라인 · 규칙 기반") +
+    (s.openshell ? " · OpenShell 정책 적용" : " · 앱 가드 (OpenShell 데모는 Brev)");
 });
 
 const scrollDown = () => thread.scrollTo({ top: thread.scrollHeight, behavior: "smooth" });

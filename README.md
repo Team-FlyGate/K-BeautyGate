@@ -38,6 +38,10 @@ python3 -m kbeauty_gate.web --input hackathon/input --output hackathon/output --
 
 `http://localhost:8080`은 대화형 화면입니다. 한·영·중·일 어느 언어로 피부 고민과 일정을 말하면 Nemotron이 프로필을 뽑고, 답변과 함께 정품 확인, 추천 제품, 하루 동선, 매장용 한글 카드(눌러서 크게), 걸러낸 정보, 차단한 행동 로그를 카드로 보여 줍니다. "공통 테스트"를 언급하면 문화 코스 초안을 만듭니다.
 
+### Vercel 배포 (공개 데모 URL)
+
+`public/index.html`이 화면, `api/chat.py`·`api/status.py`가 서버리스 함수입니다(`vercel.json`). Vercel 프로젝트 설정의 Environment Variables에 `NVIDIA_API_KEY`를 넣으면 됩니다. 결과물은 `/tmp`에 저장됩니다. Vercel에는 OpenShell이 없어 앱 가드만 동작하고, 정책 차단 데모는 아래 샌드박스에서 보여 줍니다.
+
 OpenShell 샌드박스 안에서 실행:
 
 ```bash
