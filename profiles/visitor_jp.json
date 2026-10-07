@@ -2,12 +2,23 @@
   "name": "Yui",
   "language": "ja",
   "skin_type": "combination",
-  "concerns": ["redness", "dryness"],
-  "avoid_ingredients": ["fragrance", "alcohol"],
+  "concerns": [
+    "redness",
+    "dryness"
+  ],
+  "avoid_ingredients": [
+    "fragrance",
+    "alcohol"
+  ],
   "budget_krw": 80000,
   "visit_date": "2026-10-07",
-  "time_window": "13:00-19:00",
-  "areas": ["성수", "명동"],
+  "time_window": "18:00-21:00",
+  "areas": [
+    "성수",
+    "명동"
+  ],
   "request": "ドラマ『ソウルの春の日』のヒロインみたいなメイクがしたい。敏感肌でも使える韓国コスメを買いたいです。",
-  "check_items": ["Seoul Glow Snail 99% Miracle Essence"]
+  "check_items": [
+    "Seoul Glow Snail 99% Miracle Essence"
+  ]
 }
