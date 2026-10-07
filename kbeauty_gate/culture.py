@@ -438,6 +438,33 @@ def guard_culture_projection(localized: Dict, constraints: Dict, notices: List[s
     return out, {"replaced_fields": replaced}
 
 
+PLACE_PATTERNS = (
+    re.compile(r"[가-힣]{2,10}(?:시장|궁(?!금)|공원|마을|타워|박물관|미술관|해수욕장|산성|성당|사찰|대교)"),
+    re.compile(r"\b(?:[A-Z][a-z]+\s)*[A-Z][a-z]+\s(?:Palace|Market|Temple|Park|Village|Tower|Museum|Beach|Fortress|Bridge)\b"),
+    re.compile(r"[一-龥ァ-ヶー]{1,8}(?:市場|市场|宮|宫|寺|公園|公园|村|タワー|塔|博物館|博物馆)"),
+)
+KNOWN_PLACE = re.compile(r"해담|성진|haedam|seongjin|ヘダム|ソンジン|海潭|海談|城鎮|城镇|成鎮|成镇", re.IGNORECASE)
+UNLISTED_PLACE = {
+    "ko": "요청하신 {places}은(는) 제공된 자료에 없어서 운영 시간·출입구·이동 시간·음식 정보를 확인할 수 없어요. 확인되지 않은 정보로 코스를 만들지 않았어요.\n방문 전에 공식 안내에서 당일 운영 시간, 휴무일, 출입 제한, 음식 재료·알레르기 성분을 확인해 주세요.\n자료에 있는 해담 옛시장·성진정 코스가 필요하면 그렇게 요청해 주세요. 예약·발송·결제는 하지 않았어요.",
+    "en": "{places} is not in the provided materials, so its opening hours, entrances, travel times and food information cannot be verified. I did not build a course from unverified information.\nBefore visiting, check the official notice for same-day hours, closures, access limits, and food ingredients and allergens.\nIf you need the Haedam Old Market and Seongjinjeong course from the materials, ask for it. Nothing was booked, sent or paid.",
+    "ja": "ご依頼の{places}は提供資料にないため、営業時間・出入口・移動時間・食事の情報を確認できません。確認できない情報でコースは作成していません。\n訪問前に公式案内で当日の営業時間、休業日、通行制限、食材やアレルゲンを確認してください。\n資料にあるヘダム旧市場・ソンジンジョンのコースが必要な場合はそうご依頼ください。予約・送信・支払いは行っていません。",
+    "zh-Hans": "您询问的{places}不在提供的资料中，无法确认营业时间、出入口、移动时间和饮食信息。我没有用未经确认的信息制定路线。\n出发前请通过官方公告确认当天营业时间、休息日、通行限制以及食材和过敏原。\n如需资料中的海潭旧市场和城镇亭路线，请直接提出。未进行任何预订、发送或付款。",
+    "zh-Hant": "您詢問的{places}不在提供的資料中，無法確認營業時間、出入口、移動時間和飲食資訊。我沒有用未經確認的資訊制定路線。\n出發前請透過官方公告確認當天營業時間、休息日、通行限制以及食材和過敏原。\n如需資料中的海潭舊市場和城鎮亭路線，請直接提出。未進行任何預訂、發送或付款。",
+}
+
+
+def unlisted_places(request: str, docs: Dict[str, str]) -> List[str]:
+    """요청에 나온 장소 이름 중 제공 자료(뷰티 자료 제외)에 없는 것. 자료 밖 장소로 가상 코스를 만들지 않기 위해 쓴다."""
+    corpus = " ".join(text for name, text in docs.items() if not name.startswith("beauty/"))
+    found = []
+    for pattern in PLACE_PATTERNS:
+        for match in pattern.finditer(request or ""):
+            name = match.group(0).strip()
+            if not KNOWN_PLACE.search(name) and name not in corpus and name not in found:
+                found.append(name)
+    return found
+
+
 def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str, settings, language=None) -> Dict:
     group = json.loads(docs.get("travel/visitor_group.json", "{}") or "{}")
     scheduled = date.fromisoformat(group.get("date", date.today().isoformat()))
@@ -456,6 +483,14 @@ def run_culture(docs: Dict[str, str], verdicts: Dict[str, Verdict], request: str
     caveats = {n: classify_sentences(docs[n]) for n in trusted if "uncertain" in verdicts[n].flags}
     conflicts = find_conflicts(docs, verdicts)
     language = normalize_locale(language) if language else detect_language(request)
+    outside = unlisted_places(request, docs)
+    if outside:
+        text = UNLISTED_PLACE.get(language, UNLISTED_PLACE["en"]).format(places=", ".join(outside))
+        localized = {"language": language, "display_names": {}, "draft": text, "recommendation_reasons": [],
+                     "route_notes": [], "notices": [], "caveats": [], "status": "ok", "status_reason": None}
+        return {"visit_date": visit.isoformat(), "people": people, "notices": [], "language": language,
+                "localized": localized, "draft": text, "uncertain": {}, "conflicts": [],
+                "culture_validation": {"replaced_fields": [], "unlisted_places": outside}}
     constraints = culture_constraints(trusted, visit, people, request, caveats,
                                       current_people_csv=docs.get("people/contacts_current.csv", ""))
     archive = docs.get("people/same_name_archive.txt", "")
