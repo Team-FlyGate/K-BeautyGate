@@ -8,7 +8,7 @@
 <meta name="description" content="토끼와 함께 고르는 K-뷰티 쇼핑 계획과 직원용 한국어 카드">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="BeautyGate">
+<meta name="apple-mobile-web-app-title" content="K-BeautyGate">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>K-BeautyGate Bunny</title>
 <style>
@@ -405,7 +405,7 @@
     <button class="glass-btn" id="menuBtn" type="button" aria-label="메뉴" aria-controls="drawer" aria-expanded="false">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 9h14M5 15h14"/></svg>
     </button>
-    <button class="persona" id="persona" type="button" aria-label="BeautyGate"><img id="personaFace" alt=""><span id="personaName">BeautyGate</span></button>
+    <button class="persona" id="persona" type="button" aria-label="K-BeautyGate"><img id="personaFace" alt=""><span id="personaName">K-BeautyGate</span></button>
     <button class="lang-pill" id="langBtn" type="button" aria-haspopup="dialog">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3Z"/></svg><span id="langLabel">한국어</span>
     </button>
@@ -477,7 +477,7 @@ const LANG_ORDER = ["ko", "en", "ja", "zh-Hans", "zh-Hant"];
 const SPEECH_LANG = { "ko": "ko-KR", "en": "en-US", "ja": "ja-JP", "zh-Hans": "zh-CN", "zh-Hant": "zh-TW" };
 const I18N = {
   "ko": {
-    langName: "한국어", persona: "BeautyGate", menu: "메뉴", languageTitle: "언어를 골라 주세요", newChat: "새 대화 시작", close: "닫기",
+    langName: "한국어", persona: "K-BeautyGate", menu: "메뉴", languageTitle: "언어를 골라 주세요", newChat: "새 대화 시작", close: "닫기",
     tabs: { chat: "대화", plan: "계획", cards: "카드", safety: "안심" },
     placeholder: "토끼에게 편하게 말해 보세요", message: "메시지", send: "보내기", mic: "말로 입력하기", listening: "듣고 있어요…", plus: "예시 질문",
     loadingTitle: "토끼가 살펴보고 있어요",
@@ -545,7 +545,7 @@ const I18N = {
     translationPending: "번역 확인 필요", followups: "이어서 물어보세요",
   },
   "en": {
-    langName: "English", persona: "BeautyGate", menu: "Menu", languageTitle: "Choose your language", newChat: "Start a new chat", close: "Close",
+    langName: "English", persona: "K-BeautyGate", menu: "Menu", languageTitle: "Choose your language", newChat: "Start a new chat", close: "Close",
     tabs: { chat: "Chat", plan: "Plan", cards: "Cards", safety: "Safe" },
     placeholder: "Tell the bunny anything", message: "Message", send: "Send", mic: "Speak", listening: "Listening…", plus: "Example questions",
     loadingTitle: "The bunny is taking a look",
@@ -613,7 +613,7 @@ const I18N = {
     translationPending: "Translation needed", followups: "Keep exploring",
   },
   "ja": {
-    langName: "日本語", persona: "BeautyGate", menu: "メニュー", languageTitle: "言語を選んでください", newChat: "新しい会話をはじめる", close: "閉じる",
+    langName: "日本語", persona: "K-BeautyGate", menu: "メニュー", languageTitle: "言語を選んでください", newChat: "新しい会話をはじめる", close: "閉じる",
     tabs: { chat: "会話", plan: "プラン", cards: "カード", safety: "安心" },
     placeholder: "うさぎに気軽に話しかけてね", message: "メッセージ", send: "送信", mic: "音声で入力", listening: "聞いています…", plus: "質問の例",
     loadingTitle: "うさぎが確認しています",
@@ -681,7 +681,7 @@ const I18N = {
     translationPending: "翻訳の確認が必要です", followups: "続けて聞いてみる",
   },
   "zh-Hans": {
-    langName: "简体中文", persona: "BeautyGate", menu: "菜单", languageTitle: "请选择语言", newChat: "开始新对话", close: "关闭",
+    langName: "简体中文", persona: "K-BeautyGate", menu: "菜单", languageTitle: "请选择语言", newChat: "开始新对话", close: "关闭",
     tabs: { chat: "对话", plan: "计划", cards: "卡片", safety: "安心" },
     placeholder: "和小兔随便聊聊吧", message: "消息", send: "发送", mic: "语音输入", listening: "正在听…", plus: "示例问题",
     loadingTitle: "小兔正在帮你查看",
@@ -749,7 +749,7 @@ const I18N = {
     translationPending: "需要确认译文", followups: "继续问问",
   },
   "zh-Hant": {
-    langName: "繁體中文", persona: "BeautyGate", menu: "選單", languageTitle: "請選擇語言", newChat: "開始新對話", close: "關閉",
+    langName: "繁體中文", persona: "K-BeautyGate", menu: "選單", languageTitle: "請選擇語言", newChat: "開始新對話", close: "關閉",
     tabs: { chat: "對話", plan: "計畫", cards: "卡片", safety: "安心" },
     placeholder: "和小兔隨意聊聊吧", message: "訊息", send: "傳送", mic: "語音輸入", listening: "正在聽…", plus: "範例問題",
     loadingTitle: "小兔正在幫你查看",
