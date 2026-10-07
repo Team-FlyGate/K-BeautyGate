@@ -1454,6 +1454,12 @@ function syncComposer() {
   els.send.disabled = busy || !has;
 }
 const scrollDown = () => requestAnimationFrame(() => els.chat.scrollTo({ top: els.chat.scrollHeight, behavior: "smooth" }));
+// 답이 오면 맨 아래가 아니라, 방금 한 질문이 화면 위쪽에 오도록 맞춰 답을 처음부터 읽게 한다
+const scrollToTurn = (el) => requestAnimationFrame(() => {
+  if (!el) return scrollDown();
+  const top = el.getBoundingClientRect().top - els.chat.getBoundingClientRect().top + els.chat.scrollTop - 12;
+  els.chat.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+});
 function addUser(text) {
   document.getElementById("hello")?.remove();
   els.thread.insertAdjacentHTML("beforeend", `<div class="msg user" lang="${uiLanguage}"><div class="bubble">${esc(text.replace(/^공통 테스트:\s*/, ""))}</div></div>`);
@@ -1483,6 +1489,7 @@ async function ask(text) {
   setLanguage(requestLanguage);
   state = { ...(state || {}), language: uiLanguage, ...languageState() };
   addUser(text);
+  const question = els.thread.lastElementChild;
   const bot = addLoading(); scrollDown();
   try {
     const res = await fetch("/api/chat", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text, state: state || { language: uiLanguage } }) });
@@ -1500,8 +1507,8 @@ async function ask(text) {
     bot.done(`<div class="panel oops" role="alert">${art("oops")}<div><p>${esc(l.error)}</p><button class="btn ghost" type="button" data-retry="${esc(text)}">${esc(l.retry)}</button></div></div>${BACKSTAGE ? `<div class="backstage"><pre>${esc(err.message)}</pre></div>` : ""}`);
   } finally {
     busy = false; syncComposer();
-    if (window.matchMedia("(min-width: 720px)").matches) els.input.focus();
-    scrollDown();
+    if (window.matchMedia("(min-width: 720px)").matches) els.input.focus({ preventScroll: true });
+    scrollToTurn(question);
   }
 }
 function newChat() {
