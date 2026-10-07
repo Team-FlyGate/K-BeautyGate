@@ -4,6 +4,9 @@
   <a href="https://k-beauty-gate-zeta.vercel.app/"><img src="docs/images/kbeautygate-hero_v2.1.0.png" width="100%" alt="K-BeautyGate — 한복 토끼와 한국의 문을 모티프로 한 K뷰티 쇼핑 에이전트"></a>
 </p>
 
+<p align="center">
+  <a href="docs/media/K-BeautyGate_showreel_v1.0.0.mp4"><img src="docs/images/kbeautygate-showreel-preview_v1.0.0.webp" width="100%" alt="K-BeautyGate 30초 쇼릴 미리보기. 누르면 MP4 영상이 열립니다."></a>
+</p>
 <h3 align="center"><a href="docs/media/K-BeautyGate_showreel_v1.0.0.mp4">▶ 30초 쇼릴 영상 보기 (MP4)</a></h3>
 
 <p align="center">낯선 제품의 근거를 확인하고,<br>필요한 말은 한국어 카드로.</p>
