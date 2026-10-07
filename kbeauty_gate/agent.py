@@ -229,9 +229,11 @@ def _event_answer(request: str, events, visit_date) -> str:
         periods = re.findall(r"^-\s*([^:\n]+):\s*(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})", event.get("details", ""), re.M)
         if not periods:
             continue
-        ended = visit_date and all(end < visit_date for _, _, end in periods)
-        span = ", ".join(f"{label.strip()} {start}~{end}" for label, start, end in periods)
-        lines.append(f"{event['title']}: {span}." + (f" 방문일({visit_date})에는 이미 끝났어요." if ended else ""))
+        first, last = min(start for _, start, _ in periods), max(end for _, _, end in periods)
+        if visit_date and last < visit_date:
+            lines.append(f"{event['title']}은(는) {first}부터 {last}까지 열렸고, 방문일({visit_date})에는 이미 끝났어요.")
+        else:
+            lines.append(f"{event['title']}은(는) {first}부터 {last}까지 열려요.")
     return " ".join(lines)
 
 
@@ -270,7 +272,8 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
         localized = {**localized, "summary": summary_fixed, "recommendation_reasons": reasons_fixed}
         result["fact_guard"] = safety_hits
     event_line = _event_answer(profile.get("latest_request", ""), result.get("events_info", []), result.get("visit_date"))
-    if event_line and language == "ko":  # 다른 언어는 모델 답변(행사 날짜 포함 지시)에 맡긴다
+    # 모델 답이 이미 그 행사를 말했으면 같은 내용을 반복하지 않는다
+    if event_line and language == "ko" and not any(e["title"] in localized.get("summary", "") for e in result.get("events_info", []) if e["title"] in event_line):  # 다른 언어는 모델 답변(행사 날짜 포함 지시)에 맡긴다
         localized = {**localized, "summary": event_line + "\n" + localized.get("summary", "")}
     answer = refusal_answer(result.get("refusals") or [], language)
     if answer:
