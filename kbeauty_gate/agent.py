@@ -209,6 +209,26 @@ def render_card(result: Dict, profile: Dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+FESTIVAL_WORDS = re.compile(r"페스타|페스티벌|축제|festival|fest\b|フェス|祭|节|節", re.IGNORECASE)
+
+
+def _event_answer(request: str, events, visit_date) -> str:
+    """'뷰티페스타 일정'처럼 축제를 물으면, 모델에 맡기지 않고 자료의 날짜로 먼저 답한다 (한국어 원문 날짜 그대로)."""
+    if not FESTIVAL_WORDS.search(request or ""):
+        return ""
+    lines = []
+    for event in events:
+        if not FESTIVAL_WORDS.search(event.get("title", "")):
+            continue
+        periods = re.findall(r"^-\s*([^:\n]+):\s*(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})", event.get("details", ""), re.M)
+        if not periods:
+            continue
+        ended = visit_date and all(end < visit_date for _, _, end in periods)
+        span = ", ".join(f"{label.strip()} {start}~{end}" for label, start, end in periods)
+        lines.append(f"{event['title']}: {span}." + (f" 방문일({visit_date})에는 이미 끝났어요." if ended else ""))
+    return " ".join(lines)
+
+
 def render_plan(result: Dict, profile: Dict, settings) -> str:
     language = normalize_locale(profile.get("language"))
     copy = COPY[language]
@@ -243,6 +263,9 @@ def render_plan(result: Dict, profile: Dict, settings) -> str:
     if safety_hits:
         localized = {**localized, "summary": summary_fixed, "recommendation_reasons": reasons_fixed}
         result["fact_guard"] = safety_hits
+    event_line = _event_answer(profile.get("latest_request", ""), result.get("events_info", []), result.get("visit_date"))
+    if event_line and language == "ko":  # 다른 언어는 모델 답변(행사 날짜 포함 지시)에 맡긴다
+        localized = {**localized, "summary": event_line + "\n" + localized.get("summary", "")}
     answer = refusal_answer(result.get("refusals") or [], language)
     if answer:
         localized = {**localized, "summary": answer}

@@ -173,7 +173,9 @@ def _rule_fields(text: str) -> Dict:
         m = re.search(r"\b(\d{1,2})\s*(am|pm)\s*(?:to|-|–|until|till)\s*(\d{1,2})\s*(am|pm)\b", t, re.IGNORECASE)
         if m:
             out["time_window"] = f"{hour(m.group(1), m.group(2).lower() == 'pm'):02d}:00-{hour(m.group(3), m.group(4).lower() == 'pm'):02d}:00"
-    quoted = re.findall(r"[「『\"“'‘]([^」』\"”'’]{4,80})[」』\"”'’]", t)
+    quoted = [m.group(1) for m in re.finditer(r"[「『\"“'‘]([^」』\"”'’]{4,80})[」』\"”'’]", t)
+              # 드라마·영화 제목은 제품이 아니다 (예: ドラマ『ソウルの春の日』)
+              if not re.search(r"(?:드라마|영화|배우|ドラマ|映画|女優|drama|movie|actress|电视剧|電視劇|电影|電影)\s*$", t[max(0, m.start() - 12):m.start()], re.IGNORECASE)]
     if quoted:
         out["check_items"] = [q.strip() for q in quoted]
     return out
