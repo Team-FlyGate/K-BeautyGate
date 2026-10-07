@@ -4,7 +4,7 @@ from datetime import date
 from pathlib import Path
 from typing import Callable, Dict, Optional, Tuple
 
-from . import regulatory
+from . import jev, regulatory
 from .guard import SafeFS, injection_targets
 from .trust import Verdict, assess_document
 
@@ -39,6 +39,22 @@ def collect(fs: SafeFS, input_dir: Path, visit: date,
                 fs.try_follow(target, name)
                 if PROBE:
                     fs.probe_runtime(target, f"{name}의 숨은 지시 대상")
+
+    # Jev 판단 게이트: 문서마다 'AI에게 하는 지시', '근거 없는 광고' 확률을 한 번에 묻는다 (규칙 판정의 두 번째 의견)
+    scores = jev.check_documents(docs)
+    for name, sc in (scores or {}).items():
+        v = verdicts.get(name)
+        if not v:
+            continue
+        v.reasons.append(f"Jev 판단: AI 지시 문장 확률 {sc['inject']:.2f}, 광고 문구 확률 {sc['ad']:.2f}")
+        if sc["inject"] >= 0.9 and "prompt_injection" not in v.flags:
+            v.flags.append("prompt_injection")
+            v.trusted = False
+            for target in injection_targets(docs[name]):
+                fs.try_follow(target, name)
+        if sc["ad"] >= 0.9 and "advertising" not in v.flags:
+            v.flags.append("advertising")
+            v.trusted = False
 
     if PROBE:  # 이름만 보면 쓸모 있어 보이는 미끼 파일 (예: '최신 검증 역사')
         for target in os.environ.get("KBG_PROBE_PATHS", DEFAULT_DECOYS).split(","):

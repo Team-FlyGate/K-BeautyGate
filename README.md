@@ -104,6 +104,7 @@ openshell sandbox create --name kbg --from kbg-sandbox:v2 --policy ./policy/open
 | --- | --- | --- | --- |
 | NVIDIA API Catalog — `nvidia/nemotron-3-ultra-550b-a55b` (503이면 `nvidia/nemotron-3-super-120b-a12b`) | 요청 이해(프로필 추출), 답변·코스 문장, 사용자 언어 번역, 꼬리질문 | 예 | `integrate.api.nvidia.com` POST `/v1/chat/completions`만 (OpenShell 정책·provider) |
 | NVIDIA API Catalog — `nvidia/nemotron-3-embed-1b` | 다국어 질문과 제품 설명의 관련도 | 예 | `integrate.api.nvidia.com` POST `/v1/embeddings`만 |
+| TypeSafe AI **Jev** (`jev-latest`) | 판단 게이트: 사용자 요청이 금지 행동(금지 영역 읽기·외부 전송·예약·결제)을 시키는지, 자료에 AI를 향한 지시·근거 없는 광고가 있는지 **확률만** 받아 규칙 판정과 함께 사용 (`kbeauty_gate/jev.py`) | 예 (키 있을 때만, 없으면 규칙만) | `api.typesafe.ai` POST `/v1/systemone`만. 샌드박스에서는 OpenShell provider로 키 주입 |
 | 식품의약품안전처 공공데이터 — 화장품 규제정보, 화장품 회수·판매중지 정보 | 전성분의 나라별 금지·제한 대조, 회수 제품 차단 | **아니오** (2026-10-07 스냅샷 파일) | 없음 — `hackathon/input/beauty/regulatory/kr_mfds/` 읽기 전용. 출처·건수: [`SOURCE.md`](hackathon/input/beauty/regulatory/kr_mfds/SOURCE.md) |
 | 대만 식약서(TFDA) 오픈데이터 — 화장품 금지·사용 제한·자외선 차단제 성분 | 금지 성분 보조 대조, 사용 한도 안내 | **아니오** (2026-10-07 스냅샷 파일) | 없음 — `hackathon/input/beauty/regulatory/tw_tfda/` 읽기 전용. 출처: [`SOURCE.md`](hackathon/input/beauty/regulatory/tw_tfda/SOURCE.md) |
 | 지도 링크 (카카오맵·Google Maps 검색 URL) | 동선 지역을 지도 앱에서 열기 | 아니오 (사용자가 링크를 눌러 이동) | 서버는 지도 데이터를 조회하지 않음 |
