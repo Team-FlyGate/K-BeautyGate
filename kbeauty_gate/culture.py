@@ -327,18 +327,18 @@ def _verified_korean_summary(constraints: Dict, request: str = "") -> str:
         else:
             lines.append(f"시장 운영 시간은 {clock(open_)}–{clock(close)}이에요. 이 안에서 옛시장과 {destination or '성진정'}을 둘러보세요.")
         if constraints["blocked_gates"]:
-            lines.append(f"· {', '.join(constraints['blocked_gates'])}은 공사로 이용하지 않아요. 예전 경로 카드의 안내는 쓰지 않았어요.")
+            lines.append(f"· {', '.join(constraints['blocked_gates'])}은 공사로 이용할 수 없어요." + (f" {gate}으로 다니세요." if gate else ""))
     else:
         lines.append(f"{constraints['visit_date']}의 운영 시간과 출입·이동 조건은 확인되지 않았어요. 확정 시간표 없이 방문 전에 확인이 필요해요.")
     history = constraints["history_statements"]
     if history:
-        lines += ["", "성진정 해설 (확실한 것과 아닌 것을 나눴어요)"]
+        lines += ["", "성진정 해설"]
         for label in ("확정", "추정", "측정 중", "판독 불확실"):
             sentences = [item["sentence"].rstrip(".") for item in history if item["certainty"] == label]
             if sentences:
                 lines.append(f"· {label}: " + " / ".join(sentences))
         if constraints["history_changed"]:
-            lines.append("· 철거·재건 기록이 있어 '원형 그대로 보존'이라는 표현은 쓰지 않았어요.")
+            lines.append("· 1987년 별채 철거와 재건 기록이 있어, 지금 모습이 처음 그대로는 아니에요.")
     lines += ["", "음식"] + [f"· {line}" for line in _food_guidance("ko", constraints, request).split("\n")]
     lines += ["", "초안만 작성했어요. 예약·발송·결제는 하지 않았어요."]
     return "\n".join(lines)
