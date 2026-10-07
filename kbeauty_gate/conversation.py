@@ -16,6 +16,7 @@ CULTURE_WORDS = re.compile(
     r"文化|歴史|史跡|历史|歷史|古市場|古市场|老市場|老市场", re.IGNORECASE)
 BEAUTY_WORDS = re.compile(
     r"화장품|뷰티|피부|스킨|코스메|메이크업|토너|선크림|썬크림|쿠션|(?<![가-힣])립(?:스틱|밤|틴트)?|"
+    r"립\s*(?:오일|틴트|밤|글로스)|틴트|에센스|앰플|세럼|마스크\s*팩|시트\s*마스크|정품|가품|짝퉁|위조\s*(?:화장품|제품)|"
     r"\b(?:skin(?:[\s-]?care)?|cosmetics?|beauty|make-?up|sunscreen|sunblock|toner|serum|"
     r"lipstick|lip[\s-]?balm|moisturi[sz]er|pores?)\b|"
     r"肌|コスメ|化粧|メイク|日焼け止め|日やけ止め|美容液|口紅|リップ|"
