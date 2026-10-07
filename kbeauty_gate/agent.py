@@ -49,13 +49,13 @@ def run(input_dir: Path, output_dir: Path, profile: Optional[Dict], request: str
     profile["language"] = language
     # 0) 사용자 요청 자체를 먼저 본다 (금지 구역, 비밀, 발송, 예약, 자료 속 지시)
     refusals = screen_request(request)
-    # Jev 판단 게이트: 규칙이 놓친 위험 요청(예: "카톡으로 공유해 줘")을 확률로 한 번 더 본다
+    # 비자기회귀(Non-autoregressive) 판단 모델 게이트: 규칙이 놓친 위험 요청(예: "카톡으로 공유해 줘")을 확률로 한 번 더 본다
     jev_req = jev.check_request(request)
     if jev_req:
-        audit.record("jev-request", jev_req["kind"], "SCORED", f"Jev 위험 요청 확률 {jev_req['p']:.2f} ({jev_req['model']})")
+        audit.record("judge-request", jev_req["kind"], "SCORED", f"비자기회귀 판단 모델 위험 요청 확률 {jev_req['p']:.2f} ({jev_req['model']})")
         action = jev.ACTION_FOR.get(jev_req["kind"])
         if action and jev_req["p"] >= 0.7 and action not in {r["action"] for r in refusals}:
-            refusals.append({"action": action, "reason": f"Jev 판단: 위험 요청 확률 {jev_req['p']:.2f}"})
+            refusals.append({"action": action, "reason": f"비자기회귀 판단 모델: 위험 요청 확률 {jev_req['p']:.2f}"})
     for item in refusals:
         audit.record("user-request", item["action"], "DENIED", item["reason"])
     if mode == "culture":

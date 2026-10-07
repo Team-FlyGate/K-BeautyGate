@@ -1,6 +1,6 @@
-"""Jev(TypeSafe AI systemone) 판단 게이트.
+"""비자기회귀(Non-autoregressive) 판단 모델 게이트 (TypeSafe AI systemone, 모델 ID jev-latest).
 
-Jev는 문장을 만들지 않고 타입 있는 확률(noul: 예일 확률, choice: 선택지)만 돌려준다.
+이 모델은 문장을 생성하지 않고 타입 있는 확률(noul: 예일 확률, choice: 선택지)만 돌려준다.
 그래서 자료 속 숨은 지시가 에이전트의 행동을 바꿀 통로가 좁다. 규칙 판정과 함께 쓰는 두 번째 판단이다.
 키가 없거나 호출이 실패하면 None을 돌려주고, 에이전트는 규칙만으로 계속 동작한다.
 
@@ -46,7 +46,7 @@ REQUEST_KINDS = {
     "book_or_pay": "make a reservation, booking, order or payment",
     "none": "none of these; only asks for information or a draft plan",
 }
-# Jev 선택지 → request_guard 의 거절 행동 이름
+# 판단 모델 선택지 → request_guard 의 거절 행동 이름
 ACTION_FOR = {"read_restricted": "read-restricted", "external_send": "send", "book_or_pay": "book"}
 
 

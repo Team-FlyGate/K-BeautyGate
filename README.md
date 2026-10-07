@@ -71,7 +71,7 @@ Seoul Glow Snail 99%も確認してください。
 <p align="center">
   <a href="docs/images/kbeautygate-architecture_v2.0.0.png"><img src="docs/images/kbeautygate-architecture_v2.0.0.png" width="100%" alt="K-BeautyGate 구조: 하나의 Python 워크플로를 웹 Vercel과 Brev OpenShell에서 각각 실행. Nemotron은 요청 해석과 설명, 규칙 코드는 자료 선별과 계획을 담당. NVIDIA API와 키 주입은 샌드박스 밖에 위치."></a>
 </p>
-<p align="center"><sub>상단은 공통 처리 순서, 하단은 웹과 보관된 Brev 실행의 경계입니다. NVIDIA API는 외부 서비스이며 Brev 내부의 모델 서버를 뜻하지 않습니다. 선택적인 Jev 판단은 아래 표에 설명합니다.</sub></p>
+<p align="center"><sub>상단은 공통 처리 순서, 하단은 웹과 보관된 Brev 실행의 경계입니다. NVIDIA API는 외부 서비스이며 Brev 내부의 모델 서버를 뜻하지 않습니다. 선택적인 비자기회귀 판단 모델은 아래 표에 설명합니다.</sub></p>
 
 ### 그림을 읽는 순서
 
@@ -79,7 +79,7 @@ Seoul Glow Snail 99%も確認してください。
 | --- | --- | --- |
 | **요청 이해** | Nemotron이 자연어에서 조건을 추출합니다. 키가 없거나 호출이 실패하면 제한적인 규칙으로 이어갑니다. | [conversation.py](kbeauty_gate/conversation.py) |
 | **자료 판단과 계획** | 규칙 코드가 자료의 기간·광고·숨은 지시, 등록부·판매 출처, 성분·예산·시간을 대조합니다. 모델 연결 시 임베딩 관련도도 더합니다. | [trust.py](kbeauty_gate/trust.py) · [planner.py](kbeauty_gate/planner.py) · [regulatory.py](kbeauty_gate/regulatory.py) |
-| **선택적 판단 보강** | Jev가 요청의 금지 행동과 자료 속 지시·광고 문구를 확률로 평가해 규칙 판단을 보강합니다. 키가 없거나 호출이 실패하면 규칙만 사용합니다. | [jev.py](kbeauty_gate/jev.py) |
+| **선택적 판단 보강** | 비자기회귀(Non-autoregressive) 판단 모델이 요청의 금지 행동과 자료 속 지시·광고 문구를 확률로 평가해 규칙 판단을 보강합니다. 키가 없거나 호출이 실패하면 규칙만 사용합니다. | [jev.py](kbeauty_gate/jev.py) |
 | **설명과 저장** | Nemotron이 사용자 언어의 설명을 만들고, 고정 코드가 직원용 카드와 결과 파일을 생성합니다. 과장된 안전 표현은 별도 검사합니다. | [agent.py](kbeauty_gate/agent.py) · [language.py](kbeauty_gate/language.py) · [fact_guard.py](kbeauty_gate/fact_guard.py) |
 | **웹 실행** | 브라우저 → Vercel Python API → 같은 워크플로. 앱의 요청·자료 검사가 동작합니다. | [public/index.html](public/index.html) · [api/index.py](api/index.py) |
 | **Brev 실행** | 같은 워크플로를 NVIDIA OpenShell 샌드박스 안에서 실행하고 파일·네트워크 정책을 적용합니다. | [Dockerfile](openshell/Dockerfile) · [정책](policy/openshell-policy.yaml) · [provider](openshell/nvidia-profile.yaml) |
@@ -140,13 +140,13 @@ Seoul Glow Snail 99%も確認してください。
 | --- | --- | --- |
 | **NVIDIA Nemotron 3 Ultra / Super** | 자연어 조건 추출, 사용자 언어 설명, 후속 질문 | 호스티드 API 호출. 기본 Ultra, 실패 시 Super. 일부 빠른 요청은 Super부터 시도 |
 | **NVIDIA Nemotron 3 Embed 1B** | 질문과 제품 설명의 관련도 | 키가 있고 호출이 성공하면 순위 점수에 반영 |
-| **TypeSafe AI Jev — 선택 사항** | 요청의 금지 행동, 문서 속 지시·광고의 확률 판단 | `TYPESAFE_API_KEY`가 있을 때 `api.typesafe.ai/v1/systemone` 호출. 없으면 규칙으로 진행 |
+| **비자기회귀(Non-autoregressive) 판단 모델 (TypeSafe AI) — 선택 사항** | 요청의 금지 행동, 문서 속 지시·광고의 확률 판단 | `TYPESAFE_API_KEY`가 있을 때 `api.typesafe.ai/v1/systemone` 호출. 없으면 규칙으로 진행 |
 | **NVIDIA OpenShell 0.1.2** | Brev에서 파일·네트워크 접근 제한, provider 인증정보 주입 | [정책](policy/openshell-policy.yaml)과 [실행 기록](evidence/) 공개 |
 | **식품의약품안전처(MFDS) 자료** | 성분별 국가 규제, 회수·판매중지 정보 대조 | **2026-10-07 저장 사본**을 로컬에서 읽음. 실행 중 실시간 조회 아님 |
 | **대만 식품약물관리서(TFDA) 자료** | 금지·사용 제한·자외선 차단제 성분 대조 | **2026-10-07 공식 CSV 사본**, 대만 기준을 구분해서 표시 |
 | **가상 제품·매장 자료** | 추천·일정·자료 충돌·숨은 지시 시나리오 | [hackathon/input/beauty/](hackathon/input/beauty/) |
 
-Jev 연결 코드는 현재 포함되어 있지만, 보관된 Brev 실행 기록에는 Jev 호출 증거가 없습니다. 현재 저장소의 OpenShell 정책·provider 파일에도 TypeSafe 목적지는 포함되어 있지 않으므로, 샌드박스에서 사용할 때는 별도 목적지 허용과 인증정보 설정을 확인해야 합니다.
+판단 모델 연결 코드는 현재 포함되어 있지만, 보관된 Brev 실행 기록에는 판단 모델 호출 증거가 없습니다. 현재 저장소의 OpenShell 정책·provider 파일에도 TypeSafe 목적지는 포함되어 있지 않으므로, 샌드박스에서 사용할 때는 별도 목적지 허용과 인증정보 설정을 확인해야 합니다.
 
 모델을 새로 학습하지 않습니다. 모델 호출과 규칙 코드를 조합하며, 설정된 모델명과 실제 호출 성공은 구분합니다. 구현은 [nvidia.py](kbeauty_gate/nvidia.py), 모델 기본값은 [config.py](kbeauty_gate/config.py)에 있습니다.
 
@@ -270,7 +270,7 @@ KBG_OPENSHELL_PROBE=1 python3 -m kbeauty_gate \
 
 - 화면은 [public/index.html](public/index.html), 서버 진입점은 [api/index.py](api/index.py)입니다. 배포 설정은 [vercel.json](vercel.json)·[pyproject.toml](pyproject.toml)에 있습니다.
 - Vercel 환경변수에 `NVIDIA_API_KEY`를 설정하면 모델을 호출하며 결과물은 `/tmp`에 저장합니다. Vercel에서는 앱 검사만 동작합니다.
-- NVIDIA 모델 사용 시 요청 문장, 사용자가 입력한 취향·피부 정보·일정, 필요한 자료가 NVIDIA API로 전달됩니다. Jev를 활성화하면 요청과 판단 대상 문서 발췌가 TypeSafe AI API로도 전달됩니다. OpenShell provider의 키 주입 설명은 Brev 실행에 해당합니다.
+- NVIDIA 모델 사용 시 요청 문장, 사용자가 입력한 취향·피부 정보·일정, 필요한 자료가 NVIDIA API로 전달됩니다. 판단 모델을 활성화하면 요청과 판단 대상 문서 발췌가 TypeSafe AI API로도 전달됩니다. OpenShell provider의 키 주입 설명은 Brev 실행에 해당합니다.
 - 데모에는 가상 프로필과 연습 자료를 사용합니다. 공개 데모에는 실제 고객 개인정보를 입력하지 않습니다.
 - [발표용 화면](https://k-beauty-gate-zeta.vercel.app/?backstage=1)에서는 자료 판단과 앱 실행 기록을 함께 볼 수 있습니다.
 

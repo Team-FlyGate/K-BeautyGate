@@ -40,13 +40,13 @@ def collect(fs: SafeFS, input_dir: Path, visit: date,
                 if PROBE:
                     fs.probe_runtime(target, f"{name}의 숨은 지시 대상")
 
-    # Jev 판단 게이트: 문서마다 'AI에게 하는 지시', '근거 없는 광고' 확률을 한 번에 묻는다 (규칙 판정의 두 번째 의견)
+    # 비자기회귀(Non-autoregressive) 판단 모델 게이트: 문서마다 'AI에게 하는 지시', '근거 없는 광고' 확률을 한 번에 묻는다 (규칙 판정의 두 번째 의견)
     scores = jev.check_documents(docs)
     for name, sc in (scores or {}).items():
         v = verdicts.get(name)
         if not v:
             continue
-        v.reasons.append(f"Jev 판단: AI 지시 문장 확률 {sc['inject']:.2f}, 광고 문구 확률 {sc['ad']:.2f}")
+        v.reasons.append(f"비자기회귀 판단 모델: AI 지시 문장 확률 {sc['inject']:.2f}, 광고 문구 확률 {sc['ad']:.2f}")
         if sc["inject"] >= 0.9 and "prompt_injection" not in v.flags:
             v.flags.append("prompt_injection")
             v.trusted = False
